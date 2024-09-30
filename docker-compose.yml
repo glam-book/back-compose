@@ -1,9 +1,31 @@
 services:
-  postgres:
-    image: postgres:16.4
-    environment:
-      - POSTGRES_DB=tlback
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 5433:5432
+      - "8095:8095"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-tl_back}
+    depends_on:
+      - db
+    networks:
+      - backend_network
+
+  db:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=${DB_NAME:-tl_back}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+    ports:
+      - 5599:5432
+    networks:
+      - backend_network
+
+networks:
+  backend_network:

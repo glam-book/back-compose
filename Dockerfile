@@ -1,37 +1,38 @@
-# Stage 1: Build stage
-FROM gradle:8.10.1-jdk21-graal AS builder
+# Use the GraalVM 21 base image
+FROM ghcr.io/graalvm/graalvm-community:21 as graalvm
 
-# Set the working directory inside the container
+# Set environment variables
+ENV GRAALVM_HOME=/opt/graalvm-ce-java21
+ENV PATH="$GRAALVM_HOME/bin:$PATH"
+
+# Optional: Install native-image (if you plan to create native binaries)
+# RUN gu install native-image
+
+# Create a working directory
 WORKDIR /app
 
-# Copy only the Gradle wrapper and build files
-COPY gradle/ gradle/
-COPY build.gradle settings.gradle gradlew ./
+# Copy Gradle build files
+COPY build.gradle settings.gradle /app/
 
-# Download project dependencies (without building the application)
-RUN ./gradlew build -x test --parallel --continue
+# Copy the gradle wrapper to avoid needing to install gradle globally
+COPY gradlew /app/
+COPY gradle /app/gradle
 
-# Copy the rest of the project files
-COPY src ./src
+# Download dependencies (this step helps leverage Docker's cache)
+RUN ./gradlew --no-daemon dependencies
 
-# Build the application
-RUN ./gradlew clean bootJar -x test
+# Copy the entire project
+COPY . /app
 
-# Stage 2: Run stage
-FROM findepi/graalvm:java21 as runner
+# Build the application using Gradle
+RUN ./gradlew --no-daemon build
 
-# Set environment variables for the app
-ENV JAVA_OPTS=""
-ENV APP_HOME="/app"
+# Expose the port your application uses (change as needed)
+EXPOSE 8080
 
-# Create directory for the application
-WORKDIR $APP_HOME
+# Run the application (for standard JVM execution)
+CMD ["./gradlew", "bootRun"]
 
-# Copy the built jar from the builder stage
-COPY --from=builder /app/build/libs/*.jar app.jar
-
-# Expose the port the app will run on
-EXPOSE 8095
-
-# Run the application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Optional: native build
+#RUN ./gradlew nativeCompile
+#CMD ["./build/native/nativeCompile/your-app"]
