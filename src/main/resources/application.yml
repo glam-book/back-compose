@@ -7,10 +7,7 @@ logging.level:
   root: INFO
   org.hibernate.SQL: DEBUG
 
-springfox.documentation.swagger.v3:
-  host: owpk.ru
-  port: 443
-  schema: https
+swagger.url: "${SWAGGER_URL:http://localhost:8095}"
 
 spring:
   liquibase:
