@@ -7,6 +7,11 @@ logging.level:
   root: INFO
   org.hibernate.SQL: DEBUG
 
+springfox.documentation.swagger.v3:
+  host: owpk.ru
+  port: 443
+  schema: https
+
 spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yml
@@ -35,3 +40,4 @@ spring:
       lifecycle-management: start-only
 
 springdoc.api-docs.enabled: true
+
