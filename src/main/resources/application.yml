@@ -1,0 +1,43 @@
+server.port: 8095
+
+logging.level:
+  root: INFO
+  org.hibernate.SQL: DEBUG
+
+spring:
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+  datasource:
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5599/tl_back}
+    username: ${JDBC_DATABASE_USERNAME:postgres}
+    password: ${JDBC_DATABASE_PASSWORD:postgres}
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        id:
+          new_generator_mappings: true
+  docker:
+    compose:
+      lifecycle-management: start-only
+error:
+  handling:
+    http-status-in-json-response: true
+    exception-logging: NO_LOGGING
+    full-stacktrace-http-statuses: 5xx
+    log-levels:
+      5xx: ERROR
+
+springdoc:
+  pathsToMatch: /
+

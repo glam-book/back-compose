@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:16.4
+    environment:
+      - POSTGRES_DB=tlback
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5433:5432
