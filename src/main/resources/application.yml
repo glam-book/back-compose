@@ -1,4 +1,7 @@
-server.port: 8095
+server:
+  port: 8095
+  servlet:
+    context-path: /tl-api
 
 logging.level:
   root: INFO
