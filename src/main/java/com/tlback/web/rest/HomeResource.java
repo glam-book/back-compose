@@ -2,6 +2,7 @@ package com.tlback.web.rest;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin("*")
 public class HomeResource {
     private final OwnerService ownerService;
     private final RecordService recordService;
@@ -44,7 +46,6 @@ public class HomeResource {
         return recordService.getAllRecords(serviceId).stream()
             .map(recordMapper::toDto).toList();
     }
-    
 
     @GetMapping("/client/create-record")
     public String recordClient() {
