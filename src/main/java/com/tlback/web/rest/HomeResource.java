@@ -7,12 +7,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tlback.domain.view.ServiceInfoView;
+import com.tlback.service.ServiceInfoService;
 import com.tlback.service.UserService;
 import com.tlback.web.dto.UserDto;
 import com.tlback.web.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
@@ -24,6 +27,7 @@ import reactor.core.publisher.Mono;
 public class HomeResource {
     private final UserService userService;
     private final UserMapper mapper;
+    private final ServiceInfoService serviceInfo;
 
     @PostMapping("/create")
     public Mono<UserDto> postMethodName(@RequestBody UserDto userDto) {
@@ -34,6 +38,11 @@ public class HomeResource {
     @GetMapping("/get-user")
     public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId) {
         return userService.findById(userId).map(it -> mapper.toDto(it));
+    }
+
+    @GetMapping("/get-service-info")
+    public Flux<ServiceInfoView> getServiceInfo(@RequestParam(name = "user_id") Long userId) {
+        return serviceInfo.findAllViewByUserId(userId);
     }
 
     @GetMapping("/client/create-record")

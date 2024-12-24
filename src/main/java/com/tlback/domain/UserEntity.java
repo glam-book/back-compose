@@ -1,4 +1,4 @@
-package com.tlback.jpa.entities;
+package com.tlback.domain;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table(schema = "public", name = "user")
-public class User {
+public class UserEntity {
 
     @Id
     @Column("id")
@@ -31,6 +31,6 @@ public class User {
     @Column("login")
     private String login;
 
-    private Set<Role> roles = new HashSet<>();
+    private Set<RoleEntity> roles = new HashSet<>();
 
 }

@@ -1,4 +1,4 @@
-package com.tlback.jpa.entities;
+package com.tlback.domain;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table(schema = "public", name = "role")
-public class Role {
+public class RoleEntity {
 
     @Id
     @Column("id")

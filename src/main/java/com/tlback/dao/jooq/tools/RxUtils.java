@@ -1,7 +1,8 @@
-package com.tlback.jooq.repo.tools;
+package com.tlback.dao.jooq.tools;
 
 import java.util.List;
 import java.util.function.Function;
+
 import org.jooq.Record;
 import org.jooq.Select;
 

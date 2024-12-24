@@ -3,7 +3,7 @@ Table user {
   name varchar
   last_name varchar
   middle_name varchar
-  login varchar   
+  login varchar
 }
 
 Table telegram_user {
@@ -12,7 +12,7 @@ Table telegram_user {
 
   indexes {
     (user_id, telegram_id) [pk]
-  } 
+  }
 }
 
 Table user_role {
@@ -33,7 +33,7 @@ Table service_info {
   service_owner_id bigint [ref: > user.id]
   service_name varchar(75)
   editable boolean // показывает можно ли другим юзерам создавать рекорды в твоем графике
-  service_description text 
+  service_description text
   record_limit int // record amount restriction (default 1)
   time_duration int // seconds
 
@@ -50,7 +50,7 @@ Table record {
   limit int
 
   indexes {
-    (record_owner_id, service_info_id) 
+    (record_owner_id, service_info_id)
   }
 
   time_from timestamp
@@ -64,8 +64,6 @@ Table record_pending {
   confirmed boolean
 
   indexes {
-    (client_id,record_id) [pk] 
+    (client_id,record_id) [pk]
   }
-
 }
-

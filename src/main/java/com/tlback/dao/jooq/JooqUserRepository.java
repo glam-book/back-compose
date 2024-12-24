@@ -1,4 +1,4 @@
-package com.tlback.jooq.repo;
+package com.tlback.dao.jooq;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,10 +10,10 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectOnConditionStep;
 import org.springframework.stereotype.Service;
 
+import com.tlback.dao.jooq.tools.RxUtils;
 import com.tlback.jooq.gen.tables.Role;
 import com.tlback.jooq.gen.tables.User;
 import com.tlback.jooq.gen.tables.UserRole;
-import com.tlback.jooq.repo.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,39 +25,41 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class JooqUserRepository {
     private final DSLContext dsl;
-    private final User userTable = User.USER;
-    private final UserRole userRoleTable = UserRole.USER_ROLE;
-    private final Role roleTable = Role.ROLE;
+    private static final User userTable = User.USER;
+    private static final UserRole userRoleTable = UserRole.USER_ROLE;
+    private static final Role roleTable = Role.ROLE;
 
-    public Mono<com.tlback.jpa.entities.User> findById(Long id) {
+    public Mono<com.tlback.domain.UserEntity> findById(Long id) {
         var query = fetchWhere(userRoleTable.USER_ID.eq(id));
         return flux(query).next();
     }
 
-    public Flux<com.tlback.jpa.entities.User> findByIds(Long...ids) {
+    public Flux<com.tlback.domain.UserEntity> findByIds(Long...ids) {
         var query = fetchWhere(userRoleTable.USER_ID.in(ids));
         return flux(query);
     }
 
-    public Flux<com.tlback.jpa.entities.User> findAll(int offset, int limit) {
-        var query = fetch().offset(offset).limit(limit);
+    public Flux<com.tlback.domain.UserEntity> findAll(int offset, int limit) {
+        var query = fetch(dsl).offset(offset).limit(limit);
         return flux(query);
     }
 
-    private Flux<com.tlback.jpa.entities.User> flux(Select<org.jooq.Record> query) {
+    private Flux<com.tlback.domain.UserEntity> flux(Select<org.jooq.Record> query) {
         return RxUtils.fluxIterable(query,
-                it -> {
-                    Map<Long, com.tlback.jpa.entities.User> users = new HashMap<>();
-                    it.stream().forEach(rec -> {
-                        var user = users.computeIfAbsent(rec.get(userTable.ID),
-                                k -> rec.into(userTable.fields()).into(com.tlback.jpa.entities.User.class));
-                        user.getRoles().add(rec.into(roleTable.fields()).into(com.tlback.jpa.entities.Role.class));
-                    });
-                    return users.values();
-                });
+                it -> collectToMap(it).values());
     }
 
-    private SelectOnConditionStep<org.jooq.Record> fetch() {
+    public static Map<Long, com.tlback.domain.UserEntity> collectToMap(Iterable<org.jooq.Record> records) {
+        Map<Long, com.tlback.domain.UserEntity> users = new HashMap<>();
+        records.forEach(rec -> {
+            var user = users.computeIfAbsent(rec.get(userTable.ID),
+                    k -> rec.into(userTable.fields()).into(com.tlback.domain.UserEntity.class));
+            user.getRoles().add(rec.into(roleTable.fields()).into(com.tlback.domain.RoleEntity.class));
+        });
+        return users;
+    }
+
+    public static SelectOnConditionStep<org.jooq.Record> fetch(DSLContext dsl) {
         return dsl
                 .select(userTable.fields())
                 .select(roleTable.fields())
@@ -69,6 +71,6 @@ public class JooqUserRepository {
     }
 
     private SelectConditionStep<org.jooq.Record> fetchWhere(Condition where) {
-        return fetch().where(where);
+        return fetch(dsl).where(where);
     }
 }

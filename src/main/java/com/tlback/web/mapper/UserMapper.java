@@ -3,13 +3,13 @@ package com.tlback.web.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
-import com.tlback.jpa.entities.User;
+import com.tlback.domain.UserEntity;
 import com.tlback.web.dto.UserDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = RoleMapper.class)
 public interface UserMapper {
 
-    UserDto toDto(User user);
+    UserDto toDto(UserEntity user);
 
-    User toEntity(UserDto userDto);
+    UserEntity toEntity(UserDto userDto);
 }
