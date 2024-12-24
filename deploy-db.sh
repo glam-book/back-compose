@@ -7,7 +7,6 @@ DB_PORT="${2:-5599}"
 DB_PASS="${3:-postgres}"
 DB_USER="${4:-postgres}"
 
-
 echo "Deploying database:"
 echo "Db name: $DB_NAME"
 echo "Db port: $DB_PORT"

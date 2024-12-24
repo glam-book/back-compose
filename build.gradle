@@ -8,7 +8,7 @@ plugins {
 }
 
 def jooq_version = '3.19.16'
-def mapstructVer = '1.6.2'
+def mapstructVer = '1.6.3'
 def liquibaseVer = '3.5.5'
 
 group = 'com.tlback'
@@ -37,9 +37,11 @@ dependencies {
 	}
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 
+	// utils
 	implementation "org.mapstruct:mapstruct:${mapstructVer}"
 	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVer}"
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+	// ---
 
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testImplementation 'org.testcontainers:junit-jupiter'

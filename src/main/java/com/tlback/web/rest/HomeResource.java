@@ -8,16 +8,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tlback.domain.view.ServiceInfoView;
+import com.tlback.service.RecordService;
 import com.tlback.service.ServiceInfoService;
 import com.tlback.service.UserService;
+import com.tlback.web.dto.ServiceOwnerRecordDto;
 import com.tlback.web.dto.UserDto;
+import com.tlback.web.mapper.RecordMapper;
 import com.tlback.web.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 
 
 @RestController
@@ -27,7 +29,11 @@ import reactor.core.publisher.Mono;
 public class HomeResource {
     private final UserService userService;
     private final UserMapper mapper;
+
     private final ServiceInfoService serviceInfo;
+
+    private final RecordService recordService;
+    private final RecordMapper recordMapper;
 
     @PostMapping("/create")
     public Mono<UserDto> postMethodName(@RequestBody UserDto userDto) {
@@ -38,6 +44,11 @@ public class HomeResource {
     @GetMapping("/get-user")
     public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId) {
         return userService.findById(userId).map(it -> mapper.toDto(it));
+    }
+
+    @GetMapping("/get-owner-records")
+    public Flux<ServiceOwnerRecordDto> getOwnerRecords(@RequestParam(name = "user_id") Long userId) {
+        return recordService.getOwnerRecords(userId).map(it -> recordMapper.toDto(it));
     }
 
     @GetMapping("/get-service-info")
