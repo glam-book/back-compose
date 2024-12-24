@@ -1,21 +1,20 @@
 package com.tlback.web.rest;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tlback.service.OwnerService;
-import com.tlback.service.RecordService;
-import com.tlback.web.dto.RecordDto;
-import com.tlback.web.dto.ServiceOwnerInfoDto;
-import com.tlback.web.mapper.RecordMapper;
-import com.tlback.web.mapper.ServiceOwnerMapper;
+import com.tlback.service.UserService;
+import com.tlback.web.dto.UserDto;
+import com.tlback.web.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
 
 
 @RestController
@@ -23,28 +22,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @CrossOrigin("*")
 public class HomeResource {
-    private final OwnerService ownerService;
-    private final RecordService recordService;
-    private final ServiceOwnerMapper ownerMapper;
-    private final RecordMapper recordMapper;
+    private final UserService userService;
+    private final UserMapper mapper;
 
-    @GetMapping("/create-service")
-    public ServiceOwnerInfoDto service(@RequestParam(name = "name") String name) {
-        var service = ownerService.createService(name);
-        log.info(service.toString());
-        return ownerMapper.toDto(service);
+    @PostMapping("/create")
+    public Mono<UserDto> postMethodName(@RequestBody UserDto userDto) {
+        log.info("accpeting create request: {}" + userDto);
+        return userService.createUser(mapper.toEntity(userDto)).map(it -> mapper.toDto(it));
     }
 
-    @GetMapping("/owner/create-record")
-    public RecordDto recordOwner(@RequestParam(name = "service_id") Long serviceId) {
-        var service = ownerService.findServiceById(serviceId);
-        return recordMapper.toDto(recordService.createRecord(service));
-    }
-
-    @GetMapping("/get-records")
-    public List<RecordDto> getRecords(@RequestParam(name = "service_id") Long serviceId) {
-        return recordService.getAllRecords(serviceId).stream()
-            .map(recordMapper::toDto).toList();
+    @GetMapping("/get-user")
+    public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId) {
+        return userService.findById(userId).map(it -> mapper.toDto(it));
     }
 
     @GetMapping("/client/create-record")

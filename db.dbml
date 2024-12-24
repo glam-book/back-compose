@@ -1,0 +1,71 @@
+Table user {
+  id bigserial [pk]
+  name varchar
+  last_name varchar
+  middle_name varchar
+  login varchar   
+}
+
+Table telegram_user {
+  user_id bigint [ref: > user.id]
+  telegram_id varchar
+
+  indexes {
+    (user_id, telegram_id) [pk]
+  } 
+}
+
+Table user_role {
+  user_id bigint [ref: > user.id]
+  role_id bigint [ref: > role.id]
+  indexes {
+    (user_id, role_id) [pk]
+  }
+}
+
+Table role {
+  id bigserial [pk]
+  name varchar // возможно нужно добавить табличку с authorities
+}
+
+Table service_info {
+  id bigserial [pk]
+  service_owner_id bigint [ref: > user.id]
+  service_name varchar(75)
+  editable boolean // показывает можно ли другим юзерам создавать рекорды в твоем графике
+  service_description text 
+  record_limit int // record amount restriction (default 1)
+  time_duration int // seconds
+
+  indexes {
+    (id, service_owner_id) [unique]
+  }
+}
+
+Table record {
+  id bigserial [pk]
+  service_info_id bigint [ref: > service_info.id]
+  record_owner_id bigint [ref: > user.id]  // может быть любой юзер id тогда будет понятно что запись была инициирована от какого то юзера к текущему юзеру, если id совпадает то мы понимаем что эта запись была создана самим юзером для самого себя
+  public boolean
+  limit int
+
+  indexes {
+    (record_owner_id, service_info_id) 
+  }
+
+  time_from timestamp
+  time_to timestamp
+}
+
+Table record_pending {
+  record_id bigint [ref: > record.id]
+  client_id bigint [ref: > user.id]
+  request_time timestamp
+  confirmed boolean
+
+  indexes {
+    (client_id,record_id) [pk] 
+  }
+
+}
+
