@@ -1,5 +1,8 @@
 package com.tlback.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -34,4 +37,5 @@ public class RecordEntity {
     @Column("time_to")
     private Long timeTo;
 
+    private List<RecordPending> recordPendings = new ArrayList<>();
 }
