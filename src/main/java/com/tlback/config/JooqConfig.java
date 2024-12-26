@@ -17,9 +17,10 @@ public class JooqConfig {
 
     @Bean
     DSLContext dslContext(ConnectionFactory connectionFactory) {
-        Settings settings = new Settings()
-                .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED) // Defaults to
+        var settings = new Settings()
+                .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
                 .withRenderNameCase(RenderNameCase.LOWER);
+
         return DSL.using(
                 new TransactionAwareConnectionFactoryProxy(connectionFactory),
                 SQLDialect.POSTGRES, settings);

@@ -1,5 +1,9 @@
 package com.tlback.web.rest;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,8 +51,19 @@ public class HomeResource {
     }
 
     @GetMapping("/get-owner-records")
-    public Flux<ServiceOwnerRecordDto> getOwnerRecords(@RequestParam(name = "user_id") Long userId) {
-        return recordService.getOwnerRecords(userId).map(it -> recordMapper.toDto(it));
+    public Flux<ServiceOwnerRecordDto> getOwnerRecords(
+            @RequestParam(name = "user_id") Long userId, /*TODO get id from token*/
+            @RequestParam(name = "time_from", required = false) LocalDateTime timeFrom,
+            @RequestParam(name = "time_to", required = false) LocalDateTime timeTo,
+            @RequestParam(name = "date", required = false) LocalDate date) {
+        
+        if (date != null) {
+            timeFrom = date.atTime(LocalTime.of(0, 0, 0));
+            timeTo = timeFrom.plusDays(1);
+        }
+
+        return recordService.getOwnerRecords(userId, timeFrom, timeTo)
+            .map(it -> recordMapper.toDto(it));
     }
 
     @GetMapping("/get-service-info")

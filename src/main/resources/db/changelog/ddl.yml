@@ -106,10 +106,13 @@ databaseChangeLog:
                    type: boolean
                - column:
                    name: time_from
-                   type: bigint
+                   type: timestamp
                - column:
                    name: time_to
-                   type: bigint
+                   type: timestamp
+               - column:
+                   name: tz
+                   type: varchar(8)
          - createTable:
              tableName: record_pending
              columns:
@@ -125,7 +128,7 @@ databaseChangeLog:
                      primaryKey: true
                - column:
                    name: request_time
-                   type: bigint
+                   type: timestamp
                - column:
                    name: confirmed
                    type: boolean

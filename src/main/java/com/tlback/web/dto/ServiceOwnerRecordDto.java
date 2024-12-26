@@ -1,5 +1,6 @@
 package com.tlback.web.dto;
 
+import java.time.LocalDateTime;
 import java.util.SortedSet;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,10 +26,10 @@ public class ServiceOwnerRecordDto {
     private Boolean isPublic;
 
     @JsonProperty(value = "time_from")
-    private Long timeFrom;
+    private LocalDateTime timeFrom;
 
     @JsonProperty(value = "time_to")
-    private Long timeTo;
+    private LocalDateTime timeTo;
 
     @JsonProperty(value = "record_pendings")
     private SortedSet<OwnerRecordPendingDto> recordPendings;
