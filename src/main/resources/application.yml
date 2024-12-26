@@ -5,8 +5,8 @@ swagger.url: "${SWAGGER_URL:http://localhost:8095}"
 
 spring:
   r2dbc:
-    url: r2dbc:postgresql://localhost:5599/tl_back
-    username: postgres
-    password: postgres
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5599}/${DB_NAME:tl_back}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
 
 springdoc.api-docs.enabled: true

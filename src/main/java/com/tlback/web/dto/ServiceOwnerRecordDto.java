@@ -24,9 +24,6 @@ public class ServiceOwnerRecordDto {
     @JsonProperty(value = "is_public")
     private Boolean isPublic;
 
-    @JsonProperty(value = "limit")
-    private Integer limit;
-
     @JsonProperty(value = "time_from")
     private Long timeFrom;
 

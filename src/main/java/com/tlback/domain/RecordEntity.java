@@ -28,9 +28,6 @@ public class RecordEntity {
     @Column("is_public")
     private Boolean isPublic;
 
-    @Column("limit")
-    private Integer limit;
-
     @Column("time_from")
     private Long timeFrom;
 

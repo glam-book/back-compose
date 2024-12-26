@@ -10,14 +10,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.tlback.dao.jooq.tools.RxUtils;
+import com.tlback.domain.DomainUserEntity;
 import com.tlback.domain.ServiceInfoEntity;
-import com.tlback.domain.UserEntity;
 import com.tlback.domain.utils.RecordSupplier;
 import com.tlback.domain.utils.ServiceOwneraAware;
 import com.tlback.domain.view.ServiceInfoView;
-import com.tlback.jooq.gen.tables.Record;
+import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.ServiceInfo;
-import com.tlback.jooq.gen.tables.User;
+import com.tlback.jooq.gen.tables.Record;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -26,8 +26,8 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class JooqServiceInfoRepository {
     private static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
-    private static final User userTable = User.USER;
-    private static final com.tlback.jooq.gen.tables.Record recordTable = Record.RECORD;
+    private static final DomainUser userTable = DomainUser.DOMAIN_USER;
+    private static final Record recordTable = Record.RECORD;
 
     private final DSLContext dsl;
 
@@ -52,7 +52,7 @@ public class JooqServiceInfoRepository {
 
     public static <T extends RecordSupplier & ServiceOwneraAware> Map<Long, T>
         collectToMapWithUser(Iterable<org.jooq.Record> records,
-            @Nullable Function<Iterable<org.jooq.Record>, UserEntity> userMapper, Class<T> clazz) {
+            @Nullable Function<Iterable<org.jooq.Record>, DomainUserEntity> userMapper, Class<T> clazz) {
 
         Map<Long, T> entities = new HashMap<>();
         records.forEach(rec -> {

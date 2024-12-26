@@ -1,4 +1,7 @@
 databaseChangeLog:
-  - includeAll:
-      path: ../sql/
+  - include:
+      file: ddl.yml
+      relativeToChangelogFile: true
+  - include:
+      file: data.yml
       relativeToChangelogFile: true

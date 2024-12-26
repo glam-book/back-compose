@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.dao.jooq.JooqUserRepository;
 import com.tlback.dao.r2dbc.UserRepository;
-import com.tlback.domain.UserEntity;
+import com.tlback.domain.DomainUserEntity;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -16,12 +16,12 @@ public class UserService {
     private final UserRepository repo;
     private final JooqUserRepository jooqUserRepository;
 
-    public Mono<UserEntity> createUser(UserEntity user) {
+    public Mono<DomainUserEntity> createUser(DomainUserEntity user) {
         return repo.save(user);
     }
 
     @Transactional(readOnly = true)
-    public Mono<UserEntity> findById(Long id) {
+    public Mono<DomainUserEntity> findById(Long id) {
         return jooqUserRepository.findById(id);
     }
 }

@@ -7,8 +7,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.tlback.domain.DomainUserEntity;
 import com.tlback.domain.RecordEntity;
-import com.tlback.domain.UserEntity;
 import com.tlback.domain.utils.RecordSupplier;
 import com.tlback.domain.utils.ServiceOwneraAware;
 
@@ -44,10 +44,10 @@ public class ServiceInfoView implements RecordSupplier, ServiceOwneraAware {
     private List<RecordEntity> records = new ArrayList<>();
 
     @Override
-    public void setServiceOwner(UserEntity user) { }
+    public void setServiceOwner(DomainUserEntity user) { }
 
     @Override
-    public UserEntity getServiceOwner() {
+    public DomainUserEntity getServiceOwner() {
         return null;
     }
 }
