@@ -1,5 +1,7 @@
 package com.tlback.domain;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,10 +31,13 @@ public class RecordEntity {
     private Boolean isPublic;
 
     @Column("time_from")
-    private Long timeFrom;
+    private LocalDateTime timeFrom;
 
     @Column("time_to")
-    private Long timeTo;
+    private LocalDateTime timeTo;
+
+    @Column("tz")
+    private ZoneOffset tz;
 
     private List<RecordPending> recordPendings = new ArrayList<>();
 }

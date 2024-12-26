@@ -1,9 +1,11 @@
 package com.tlback.service;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tlback.common.daofilter.RecordFilter;
 import com.tlback.dao.jooq.JooqRecordRepository;
 import com.tlback.domain.RecordEntity;
 
@@ -15,8 +17,22 @@ import reactor.core.publisher.Flux;
 public class RecordService {
     private final JooqRecordRepository recordRepository;
 
-    public Flux<RecordEntity> getOwnerRecords(Long userId) {
-        return recordRepository.findByDateAndServiceOwner(userId, /*TODO */null, /*TODO */null,
-            Optional.empty());
+    @Transactional(readOnly = true)
+    public Flux<RecordEntity> getRecords(RecordFilter filter) {
+        return recordRepository.findByFilter(filter);
     }
+
+    @Transactional(readOnly = true)
+    public Flux<RecordEntity> getOwnerRecords(Long userId,
+        LocalDateTime timeFrom,
+        LocalDateTime timeTo) {
+
+        var filter = RecordFilter.builder()
+            .recordOwnerId(userId)
+            .dateFrom(timeFrom)
+            .dateTo(timeTo)
+            .build();
+        return recordRepository.findByFilter(filter);
+    }
+
 }

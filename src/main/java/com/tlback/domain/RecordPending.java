@@ -1,5 +1,7 @@
 package com.tlback.domain;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -24,7 +26,7 @@ public class RecordPending {
     private Long recordId;
 
     @Column("request_time")
-    private Long requestTime;
+    private LocalDateTime requestTime;
 
     @Column("confirmed")
     private Boolean confirmed;

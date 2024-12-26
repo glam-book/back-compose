@@ -7,15 +7,9 @@
             "command": "${workspaceRoot}/deploy-db.sh",
         },
         {
-            "label": "liquibase",
-            "type": "shell",
-            "command": "${workspaceRoot}/gradlew",
-            "args": ["update"]
-        },
-        {
             "label": "clean-start",
             "dependsOrder": "sequence",
-            "dependsOn": ["database", "liquibase"]
+            "dependsOn": ["database"]
         }
     ]
 }
