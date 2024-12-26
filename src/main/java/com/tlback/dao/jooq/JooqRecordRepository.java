@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 
 import com.tlback.dao.jooq.tools.RxUtils;
 import com.tlback.domain.RecordEntity;
+import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.RecordPending;
-import com.tlback.jooq.gen.tables.User;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -20,9 +20,9 @@ import reactor.core.publisher.Flux;
 @Service
 @RequiredArgsConstructor
 public class JooqRecordRepository {
-    private static final com.tlback.jooq.gen.tables.Record recordTable = Record.RECORD;
+    private static final Record recordTable = Record.RECORD;
     private static final RecordPending recordPendingTable = RecordPending.RECORD_PENDING;
-    private static final User userTable = User.USER;
+    private static final DomainUser userTable = DomainUser.DOMAIN_USER;
 
     private final DSLContext dsl;
 
@@ -47,7 +47,7 @@ public class JooqRecordRepository {
                 var pending = rec.into(recordPendingTable.fields())
                         .into(com.tlback.domain.RecordPending.class);
                 if (pending.getPendingOwner() == null)
-                    pending.setPendingOwner(rec.into(userTable.fields()).into(com.tlback.domain.UserEntity.class));
+                    pending.setPendingOwner(rec.into(userTable.fields()).into(com.tlback.domain.DomainUserEntity.class));
                 record.getRecordPendings().add(pending);
             });
             return records.values();

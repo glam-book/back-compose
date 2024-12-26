@@ -1,8 +1,8 @@
 package com.tlback.domain.utils;
 
-import com.tlback.domain.UserEntity;
+import com.tlback.domain.DomainUserEntity;
 
 public interface ServiceOwneraAware {
-    void setServiceOwner(UserEntity user);
-    UserEntity getServiceOwner();
+    void setServiceOwner(DomainUserEntity user);
+    DomainUserEntity getServiceOwner();
 }

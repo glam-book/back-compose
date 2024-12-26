@@ -30,6 +30,12 @@ RUN ./gradlew --no-daemon build
 # Expose the port your application uses (change as needed)
 EXPOSE 8080
 
+# Копируем entrypoint.sh в контейнер
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Задаем его как точку входа
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 # Run the application (for standard JVM execution)
 CMD ["./gradlew", "bootRun"]
 

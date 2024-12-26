@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@Table(schema = "public", name = "user")
-public class UserEntity {
+@Table(schema = "public", name = "domain_user")
+public class DomainUserEntity {
 
     @Id
     @Column("id")

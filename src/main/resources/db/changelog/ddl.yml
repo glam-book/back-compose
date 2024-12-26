@@ -1,0 +1,189 @@
+databaseChangeLog:
+  - changeSet:
+      id: "main_tables_26.12.2024_19:57"
+      context: ddl
+      author: owpk
+      changes:
+         - createTable:
+            tableName: domain_user
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar
+              - column:
+                  name: last_name
+                  type: varchar
+              - column:
+                  name: middle_name
+                  type: varchar
+              - column:
+                  name: login
+                  type: varchar
+         - createTable:
+             tableName: telegram_user
+             columns:
+             - column:
+                 name: user_id
+                 type: bigint
+                 constraints:
+                   primaryKey: true
+             - column:
+                 name: telegram_id
+                 type: varchar
+                 constraints:
+                   primaryKey: true
+         - createTable:
+             tableName: user_role
+             columns:
+             - column:
+                 name: user_id
+                 type: bigint
+                 constraints:
+                   primaryKey: true
+             - column:
+                 name: role_id
+                 type: bigint
+                 constraints:
+                   primaryKey: true
+         - createTable:
+             tableName: role
+             columns:
+               - column:
+                   name: id
+                   type: bigserial
+                   constraints:
+                     primaryKey: true
+               - column:
+                   name: name
+                   type: varchar
+         - createTable:
+             tableName: service_info
+             columns:
+               - column:
+                   name: id
+                   type: bigserial
+                   constraints:
+                     primaryKey: true
+               - column:
+                   name: service_owner_id
+                   type: bigint
+               - column:
+                   name: service_name
+                   type: varchar(75)
+               - column:
+                   name: editable
+                   type: boolean
+               - column:
+                   name: service_description
+                   type: text
+               - column:
+                   name: record_limit
+                   type: int
+               - column:
+                   name: time_duration
+                   type: int
+         - createTable:
+             tableName: record
+             columns:
+               - column:
+                   name: id
+                   type: bigserial
+                   constraints:
+                     primaryKey: true
+               - column:
+                   name: service_info_id
+                   type: bigint
+               - column:
+                   name: record_owner_id
+                   type: bigint
+               - column:
+                   name: is_public
+                   type: boolean
+               - column:
+                   name: time_from
+                   type: bigint
+               - column:
+                   name: time_to
+                   type: bigint
+         - createTable:
+             tableName: record_pending
+             columns:
+               - column:
+                   name: record_id
+                   type: bigint
+                   constraints:
+                     primaryKey: true
+               - column:
+                   name: client_id
+                   type: bigint
+                   constraints:
+                     primaryKey: true
+               - column:
+                   name: request_time
+                   type: bigint
+               - column:
+                   name: confirmed
+                   type: boolean
+         - addUniqueConstraint:
+             tableName: service_info
+             columnNames: id, service_owner_id
+         - createIndex:
+             tableName: record
+             columns:
+               - column:
+                   name: record_owner_id
+               - column:
+                   name: service_info_id
+         - addForeignKeyConstraint:
+             constraintName: "fk_telegram_user_user_id"
+             baseTableName: telegram_user
+             baseColumnNames: user_id
+             referencedTableName: domain_user
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_user_role_user_id"
+             baseTableName: user_role
+             baseColumnNames: user_id
+             referencedTableName: domain_user
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_user_role_role_id"
+             baseTableName: user_role
+             baseColumnNames: role_id
+             referencedTableName: role
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_service_info_service_owner_id"
+             baseTableName: service_info
+             baseColumnNames: service_owner_id
+             referencedTableName: domain_user
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_record_service_info_id"
+             baseTableName: record
+             baseColumnNames: service_info_id
+             referencedTableName: service_info
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_record_record_owner_id"
+             baseTableName: record
+             baseColumnNames: record_owner_id
+             referencedTableName: domain_user
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_record_pending_record_id"
+             baseTableName: record_pending
+             baseColumnNames: record_id
+             referencedTableName: record
+             referencedColumnNames: id
+         - addForeignKeyConstraint:
+             constraintName: "fk_record_pending_client_id"
+             baseTableName: record_pending
+             baseColumnNames: client_id
+             referencedTableName: domain_user
+             referencedColumnNames: id

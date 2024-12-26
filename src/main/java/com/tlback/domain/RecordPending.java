@@ -29,5 +29,5 @@ public class RecordPending {
     @Column("confirmed")
     private Boolean confirmed;
 
-    private UserEntity pendingOwner;
+    private DomainUserEntity pendingOwner;
 }
