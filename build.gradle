@@ -38,15 +38,8 @@ dependencies {
 	}
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 
-	// utils
-	implementation "org.mapstruct:mapstruct:${mapstructVer}"
-	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVer}"
-	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-	// ---
-
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'org.testcontainers:junit-jupiter'
-
+	// core
+	//implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -56,7 +49,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.postgresql:r2dbc-postgresql'
 	runtimeOnly 'org.postgresql:postgresql'
-
 	jooqGenerator "org.yaml:snakeyaml:${snakeYmlVer}"
     jooqGenerator "org.jooq:jooq-meta-extensions-liquibase:${jooqVer}"
     jooqGenerator "org.liquibase:liquibase-core:${liquibaseVer}"
@@ -70,10 +62,20 @@ dependencies {
     liquibaseRuntime "org.yaml:snakeyaml:${snakeYmlVer}"
 	// ---
 
-	compileOnly 'org.projectlombok:lombok'
+	// utils
+	implementation "org.mapstruct:mapstruct:${mapstructVer}"
+	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVer}"
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 	annotationProcessor 'org.projectlombok:lombok'
+	compileOnly 'org.projectlombok:lombok'
+	// ---
+	 
+	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:junit-jupiter'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	// ---
 }
 
 def db_host = System.getenv('DB_HOST')
@@ -83,8 +85,6 @@ def db_pass = System.getenv('DB_PASSWORD')
 def db_name = System.getenv('DB_NAME')
 
 def psql_url = "jdbc:postgresql://${db_host}:${db_port}/${db_name}?currentSchema=public"
-def psql_pswrd = "${db_pass}"
-def psql_user = "${db_user}"
 
 def liquibaseRoot = "${project.projectDir}/src/main/resources/db/changelog"
 def changelogFile = 'changelog-master.yml'
@@ -95,8 +95,8 @@ liquibase {
             classpath liquibaseRoot
             changeLogFile changelogFile
             url psql_url
-            username psql_user
-            password psql_pswrd
+            username db_user
+            password db_pass
         }
     }
 }
