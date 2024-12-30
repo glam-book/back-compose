@@ -31,6 +31,9 @@ public class ServiceOwnerRecordDto {
     @JsonProperty(value = "time_to")
     private LocalDateTime timeTo;
 
+    @JsonProperty(value = "original_tz")
+    private String originalTz;
+
     @JsonProperty(value = "record_pendings")
     private SortedSet<OwnerRecordPendingDto> recordPendings;
 }

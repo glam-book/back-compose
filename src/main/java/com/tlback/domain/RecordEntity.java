@@ -1,6 +1,6 @@
 package com.tlback.domain;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +31,10 @@ public class RecordEntity {
     private Boolean isPublic;
 
     @Column("time_from")
-    private LocalDateTime timeFrom;
+    private OffsetDateTime timeFrom;
 
     @Column("time_to")
-    private LocalDateTime timeTo;
+    private OffsetDateTime timeTo;
 
     @Column("tz")
     private ZoneOffset tz;
