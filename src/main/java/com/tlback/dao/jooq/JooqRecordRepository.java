@@ -78,8 +78,8 @@ public class JooqRecordRepository {
             entity.setServiceInfoId(rec.get(recordTable.SERVICE_INFO_ID));
             entity.setRecordOwnerId(rec.get(recordTable.RECORD_OWNER_ID));
             entity.setIsPublic(rec.get(recordTable.IS_PUBLIC));
-            entity.setTimeFrom(timeFrom);
-            entity.setTimeTo(timeTo);
+            entity.setTimeFrom(timeFrom.atOffset(tz));
+            entity.setTimeTo(timeTo.atOffset(tz));
             entity.setTz(tz);
             return entity;
         });

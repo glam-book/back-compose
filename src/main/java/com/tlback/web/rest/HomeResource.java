@@ -3,6 +3,7 @@ package com.tlback.web.rest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,15 +56,16 @@ public class HomeResource {
             @RequestParam(name = "user_id") Long userId, /*TODO get id from token*/
             @RequestParam(name = "time_from", required = false) LocalDateTime timeFrom,
             @RequestParam(name = "time_to", required = false) LocalDateTime timeTo,
+            @RequestParam(name = "tz", required = false) ZoneOffset tz,
             @RequestParam(name = "date", required = false) LocalDate date) {
-        
+
         if (date != null) {
             timeFrom = date.atTime(LocalTime.of(0, 0, 0));
             timeTo = timeFrom.plusDays(1);
         }
 
         return recordService.getOwnerRecords(userId, timeFrom, timeTo)
-            .map(it -> recordMapper.toDto(it));
+            .map(it -> recordMapper.toDto(it, tz));
     }
 
     @GetMapping("/get-service-info")
