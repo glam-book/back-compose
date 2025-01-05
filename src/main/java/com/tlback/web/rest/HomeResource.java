@@ -3,14 +3,14 @@ package com.tlback.web.rest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tlback.config.security.UserData;
 import com.tlback.domain.view.ServiceInfoView;
 import com.tlback.service.RecordService;
 import com.tlback.service.ServiceInfoService;
@@ -39,14 +39,9 @@ public class HomeResource {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
 
-    @PostMapping("/create")
-    public Mono<UserDto> postMethodName(@RequestBody UserDto userDto) {
-        log.info("accpeting create request: {}" + userDto);
-        return userService.createUser(mapper.toEntity(userDto)).map(it -> mapper.toDto(it));
-    }
-
     @GetMapping("/get-user")
-    public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId) {
+    public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId, UserData userData) {
+        log.info("requested get user with user data: {}", userData);
         return userService.findById(userId).map(it -> mapper.toDto(it));
     }
 
@@ -55,15 +50,16 @@ public class HomeResource {
             @RequestParam(name = "user_id") Long userId, /*TODO get id from token*/
             @RequestParam(name = "time_from", required = false) LocalDateTime timeFrom,
             @RequestParam(name = "time_to", required = false) LocalDateTime timeTo,
+            @RequestParam(name = "tz", required = false) ZoneOffset tz,
             @RequestParam(name = "date", required = false) LocalDate date) {
-        
+
         if (date != null) {
             timeFrom = date.atTime(LocalTime.of(0, 0, 0));
             timeTo = timeFrom.plusDays(1);
         }
 
         return recordService.getOwnerRecords(userId, timeFrom, timeTo)
-            .map(it -> recordMapper.toDto(it));
+            .map(it -> recordMapper.toDto(it, tz));
     }
 
     @GetMapping("/get-service-info")

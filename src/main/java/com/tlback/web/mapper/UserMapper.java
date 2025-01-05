@@ -6,7 +6,7 @@ import org.mapstruct.MappingConstants;
 import com.tlback.domain.DomainUserEntity;
 import com.tlback.web.dto.UserDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = RoleMapper.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
 
     UserDto toDto(DomainUserEntity user);

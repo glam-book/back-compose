@@ -1,8 +1,6 @@
 server:
   port: 8095
 
-swagger.url: "${SWAGGER_URL:http://localhost:8095}"
-
 spring:
   r2dbc:
     url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5599}/${DB_NAME:tl_back}

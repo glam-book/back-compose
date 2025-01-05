@@ -1,6 +1,5 @@
 plugins {
 	id 'java'
-	id 'application'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'nu.studer.jooq' version '9.0'
@@ -21,6 +20,14 @@ java {
 	}
 }
 
+compileJava {
+    options.compilerArgs += [
+        '-Amapstruct.suppressGeneratorTimestamp=true',
+        '-Amapstruct.suppressGeneratorVersionInfoComment=true',
+        '-Amapstruct.verbose=true'
+    ]
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -39,7 +46,7 @@ dependencies {
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 
 	// core
-	//implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'

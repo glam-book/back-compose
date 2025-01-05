@@ -7,7 +7,8 @@
             "name": "TlbackApplication",
             "request": "launch",
             "mainClass": "com.tlback.TlbackApplication",
-            "projectName": "back-compose-test"
+            "projectName": "tl-back",
+            "envFile": "${workspaceFolder}/credentials"
         }
     ]
 }

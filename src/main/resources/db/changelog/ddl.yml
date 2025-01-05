@@ -27,16 +27,46 @@ databaseChangeLog:
          - createTable:
              tableName: telegram_user
              columns:
-             - column:
-                 name: user_id
-                 type: bigint
-                 constraints:
-                   primaryKey: true
-             - column:
-                 name: telegram_id
-                 type: varchar
-                 constraints:
-                   primaryKey: true
+               - column:
+                   name: user_id
+                   type: bigint
+                   constraints:
+                     nullable: false
+               - column:
+                   name: id
+                   type: bigint
+                   constraints:
+                     nullable: false
+               - column:
+                   name: first_name
+                   type: varchar(255)
+                   constraints:
+                     nullable: false
+               - column:
+                   name: is_bot
+                   type: boolean
+               - column:
+                   name: last_name
+                   type: varchar(255)
+               - column:
+                   name: username
+                   type: varchar(255)
+               - column:
+                   name: language_code
+                   type: varchar(255)
+               - column:
+                   name: is_premium
+                   type: boolean
+               - column:
+                   name: added_to_attachment_menu
+                   type: boolean
+               - column:
+                   name: allows_write_to_pm
+                   type: boolean
+               - column:
+                   name: photo_url
+                   type: varchar(255)
+
          - createTable:
              tableName: user_role
              columns:
@@ -132,6 +162,11 @@ databaseChangeLog:
                - column:
                    name: confirmed
                    type: boolean
+         - addPrimaryKey:
+             tableName: telegram_user
+             columnNames: "id, user_id"
+             constraintName: "pk_tg_pk"
+        
          - addUniqueConstraint:
              tableName: service_info
              columnNames: id, service_owner_id

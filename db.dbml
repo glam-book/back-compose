@@ -8,10 +8,19 @@ Table user {
 
 Table telegram_user {
   user_id bigint [ref: > user.id]
-  telegram_id varchar
+  id BIGINT [not null]
+  first_name VARCHAR(255) [NOT NULL]
+  is_bot BOOLEAN
+  last_name VARCHAR(255)
+  username VARCHAR(255)
+  language_code VARCHAR(255)
+  is_premium BOOLEAN
+  added_to_attachment_menu BOOLEAN
+  allows_write_to_pm BOOLEAN
+  photo_url VARCHAR(255)
 
   indexes {
-    (user_id, telegram_id) [pk]
+    (user_id, id) [pk]
   }
 }
 
