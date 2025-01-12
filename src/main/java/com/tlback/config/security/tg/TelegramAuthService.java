@@ -5,7 +5,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -59,8 +58,7 @@ public class TelegramAuthService {
             return Optional.empty();
 
         try {
-            var result = Base64.getDecoder().decode(telegramHeader);
-            var params = parseQueryString(new String(result));
+            var params = parseQueryString(new String(telegramHeader));
             var userBody = params.get("user");
             var hash = params.get("hash");
 
