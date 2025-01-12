@@ -7,6 +7,7 @@ import java.time.ZoneOffset;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +31,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin("*")
+@RequestMapping("/api")
 public class HomeResource {
     private final UserService userService;
     private final UserMapper mapper;
