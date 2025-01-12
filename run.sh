@@ -11,5 +11,6 @@ if [ -f "./credentials" ]; then
 fi
 
 ./deploy-db.sh
+sleep 5
 ./gradlew update
 ./gradlew clean bootRun
