@@ -72,4 +72,15 @@ public class HomeResource {
         return "\"Hello World!\"";
     }
 
+    @GetMapping("/get-profile")
+    public Mono<UserDto> getProfile(UserData token) {
+        var userId = token.getPrincipal();
+        return userService.findById(userId)
+            .log().map(it -> {
+                var dto = mapper.toDto(it);
+                log.info("recevied user: {}", dto);
+                return dto;
+            });
+    }
+
 }
