@@ -11,10 +11,10 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectOnConditionStep;
 import org.springframework.stereotype.Service;
 
-import com.tlback.dao.jooq.tools.RxUtils;
 import com.tlback.domain.DomainUserEntity;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.TelegramUser;
+import com.tlback.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
