@@ -34,7 +34,7 @@ public class JooqUserRepository {
         return Mono.from(flux(query));
     }
 
-    public Flux<com.tlback.domain.DomainUserEntity> findByIds(Long...ids) {
+    public Flux<com.tlback.domain.DomainUserEntity> findByIds(Long... ids) {
         var query = fetchWhere(userTable.ID.in(ids));
         return flux(query);
     }
@@ -45,8 +45,7 @@ public class JooqUserRepository {
     }
 
     private Flux<com.tlback.domain.DomainUserEntity> flux(Select<org.jooq.Record> query) {
-        return RxUtils.fluxIterable(query,
-                it -> collectToMap(it).values());
+        return RxUtils.fluxIterable(query, it -> collectToMap(it).values());
     }
 
     public static Map<Long, com.tlback.domain.DomainUserEntity> collectToMap(Iterable<org.jooq.Record> records) {
@@ -64,12 +63,8 @@ public class JooqUserRepository {
     }
 
     public static SelectOnConditionStep<org.jooq.Record> fetch(DSLContext dsl) {
-        return dsl
-                .select(userTable.fields())
-                .select(telegramUserTable.fields())
-                .from(userTable)
-                .join(telegramUserTable)
-                    .on(userTable.ID.eq(telegramUserTable.USER_ID));
+        return dsl.select(userTable.fields()).select(telegramUserTable.fields()).from(userTable).join(telegramUserTable)
+                .on(userTable.ID.eq(telegramUserTable.USER_ID));
     }
 
     private SelectConditionStep<org.jooq.Record> fetchWhere(Condition where) {
@@ -77,25 +72,18 @@ public class JooqUserRepository {
     }
 
     public Mono<com.tlback.domain.TelegramUser> createTelegramUser(Long userId, com.tlback.domain.TelegramUser tgUser) {
-            var tgInsertQuery = dsl.insertInto(telegramUserTable)
-                    .columns(
-                            telegramUserTable.USER_ID,
-                            telegramUserTable.ID,
-                            telegramUserTable.FIRST_NAME,
-                            telegramUserTable.LAST_NAME,
-                            telegramUserTable.USERNAME,
-                            telegramUserTable.LANGUAGE_CODE,
-                            telegramUserTable.IS_BOT,
-                            telegramUserTable.IS_PREMIUM,
-                            telegramUserTable.ADDED_TO_ATTACHMENT_MENU,
-                            telegramUserTable.ALLOWS_WRITE_TO_PM,
-                            telegramUserTable.PHOTO_URL)
-                    .values(userId, tgUser.getId(), tgUser.getFirstName(), tgUser.getLastName(), tgUser.getUsername(),
-                            tgUser.getLanguageCode(), tgUser.getIsBot(), tgUser.getIsPremium(), tgUser.getAddedToAttachmentMenu(),
-                            tgUser.getAllowsWriteToPm(), tgUser.getPhotoUrl())
-                    .returningResult(telegramUserTable.fields());
+        var tgInsertQuery = dsl.insertInto(telegramUserTable)
+                .columns(telegramUserTable.USER_ID, telegramUserTable.ID, telegramUserTable.FIRST_NAME,
+                        telegramUserTable.LAST_NAME, telegramUserTable.USERNAME, telegramUserTable.LANGUAGE_CODE,
+                        telegramUserTable.IS_BOT, telegramUserTable.IS_PREMIUM,
+                        telegramUserTable.ADDED_TO_ATTACHMENT_MENU, telegramUserTable.ALLOWS_WRITE_TO_PM,
+                        telegramUserTable.PHOTO_URL)
+                .values(userId, tgUser.getId(), tgUser.getFirstName(), tgUser.getLastName(), tgUser.getUsername(),
+                        tgUser.getLanguageCode(), tgUser.getIsBot(), tgUser.getIsPremium(),
+                        tgUser.getAddedToAttachmentMenu(), tgUser.getAllowsWriteToPm(), tgUser.getPhotoUrl())
+                .returningResult(telegramUserTable.fields());
 
-            return Mono.from(tgInsertQuery)
+        return Mono.from(tgInsertQuery)
                 .map(it -> it.into(telegramUserTable.fields()).into(com.tlback.domain.TelegramUser.class));
     }
 
@@ -105,8 +93,7 @@ public class JooqUserRepository {
                 .values(entity.getLogin(), entity.getName(), entity.getLastName(), entity.getMiddleName())
                 .returningResult(userTable.fields());
 
-        var initial = Flux.from(insertQuery).collectList()
-            .map(it -> collectToMap(it).values().iterator().next());
+        var initial = Flux.from(insertQuery).collectList().map(it -> collectToMap(it).values().iterator().next());
 
         if (entity.getTgUser().isPresent()) {
             var tgUser = entity.getTgUser().get();
