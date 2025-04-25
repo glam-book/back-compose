@@ -10,10 +10,10 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectOnConditionStep;
 import org.springframework.stereotype.Service;
 
-import com.tlback.dao.jooq.tools.RxUtils;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Role;
 import com.tlback.jooq.gen.tables.UserRole;
+import com.tlback.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class JooqUserRepository {
         return flux(query).next();
     }
 
-    public Flux<com.tlback.domain.DomainUserEntity> findByIds(Long...ids) {
+    public Flux<com.tlback.domain.DomainUserEntity> findByIds(Long... ids) {
         var query = fetchWhere(userRoleTable.USER_ID.in(ids));
         return flux(query);
     }
@@ -45,8 +45,7 @@ public class JooqUserRepository {
     }
 
     private Flux<com.tlback.domain.DomainUserEntity> flux(Select<org.jooq.Record> query) {
-        return RxUtils.fluxIterable(query,
-                it -> collectToMap(it).values());
+        return RxUtils.fluxIterable(query, it -> collectToMap(it).values());
     }
 
     public static Map<Long, com.tlback.domain.DomainUserEntity> collectToMap(Iterable<org.jooq.Record> records) {
@@ -60,14 +59,8 @@ public class JooqUserRepository {
     }
 
     public static SelectOnConditionStep<org.jooq.Record> fetch(DSLContext dsl) {
-        return dsl
-                .select(userTable.fields())
-                .select(roleTable.fields())
-                .from(userRoleTable)
-                .join(userTable)
-                .on(userTable.ID.eq(userRoleTable.USER_ID))
-                .join(roleTable)
-                .on(userRoleTable.ROLE_ID.eq(roleTable.ID));
+        return dsl.select(userTable.fields()).select(roleTable.fields()).from(userRoleTable).join(userTable)
+                .on(userTable.ID.eq(userRoleTable.USER_ID)).join(roleTable).on(userRoleTable.ROLE_ID.eq(roleTable.ID));
     }
 
     private SelectConditionStep<org.jooq.Record> fetchWhere(Condition where) {

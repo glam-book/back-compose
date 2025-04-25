@@ -9,7 +9,7 @@ import org.jooq.SelectOnConditionStep;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import com.tlback.dao.jooq.tools.RxUtils;
+import com.tlback.tools.RxUtils;
 import com.tlback.domain.DomainUserEntity;
 import com.tlback.domain.ServiceInfoEntity;
 import com.tlback.domain.utils.RecordSupplier;
@@ -35,33 +35,29 @@ public class JooqServiceInfoRepository {
         var condition = userTable.ID.eq(userId);
         var query = fetchFull(dsl).where(condition);
 
-        return RxUtils.fluxIterable(query, iter ->
-            collectToMapWithUser(iter,
-                records -> JooqUserRepository.collectToMap(records).values().iterator().next(),
-                 ServiceInfoEntity.class)
-            .values());
+        return RxUtils.fluxIterable(query,
+                iter -> collectToMapWithUser(iter,
+                        records -> JooqUserRepository.collectToMap(records).values().iterator().next(),
+                        ServiceInfoEntity.class).values());
     }
 
     public Flux<ServiceInfoView> findAllViewByUserId(Long userId) {
         var condition = userTable.ID.eq(userId);
         var query = fetchFull(dsl).where(condition);
 
-        return RxUtils.fluxIterable(query, iter -> collectToMapWithUser(iter, null,
-         ServiceInfoView.class).values());
+        return RxUtils.fluxIterable(query, iter -> collectToMapWithUser(iter, null, ServiceInfoView.class).values());
     }
 
-    public static <T extends RecordSupplier & ServiceOwneraAware> Map<Long, T>
-        collectToMapWithUser(Iterable<org.jooq.Record> records,
+    public static <T extends RecordSupplier & ServiceOwneraAware> Map<Long, T> collectToMapWithUser(
+            Iterable<org.jooq.Record> records,
             @Nullable Function<Iterable<org.jooq.Record>, DomainUserEntity> userMapper, Class<T> clazz) {
 
         Map<Long, T> entities = new HashMap<>();
         records.forEach(rec -> {
             var serviceInfo = entities.computeIfAbsent(rec.get(serviceInfoTable.ID),
-                    k -> rec.into(serviceInfoTable.fields())
-                            .into(clazz));
+                    k -> rec.into(serviceInfoTable.fields()).into(clazz));
 
-            serviceInfo.getRecords().add(rec.into(recordTable.fields())
-                .into(com.tlback.domain.RecordEntity.class));
+            serviceInfo.getRecords().add(rec.into(recordTable.fields()).into(com.tlback.domain.RecordEntity.class));
 
             if (userMapper != null && serviceInfo.getServiceOwner() == null) {
                 var user = userMapper.apply(records);
@@ -72,15 +68,9 @@ public class JooqServiceInfoRepository {
     }
 
     public static SelectOnConditionStep<org.jooq.Record> fetchFull(DSLContext dsl) {
-        return dsl
-            .select(JooqUserRepository.fetch(dsl).asMultiset())
-            .select(serviceInfoTable.fields())
-            .select(userTable.fields())
-            .select(recordTable.fields())
-            .from(serviceInfoTable)
-            .join(userTable)
-            .on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID))
-            .join(recordTable)
-            .on(serviceInfoTable.ID.eq(recordTable.SERVICE_INFO_ID));
+        return dsl.select(JooqUserRepository.fetch(dsl).asMultiset()).select(serviceInfoTable.fields())
+                .select(userTable.fields()).select(recordTable.fields()).from(serviceInfoTable).join(userTable)
+                .on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID)).join(recordTable)
+                .on(serviceInfoTable.ID.eq(recordTable.SERVICE_INFO_ID));
     }
 }
