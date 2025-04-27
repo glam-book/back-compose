@@ -23,15 +23,9 @@ public class RecordService {
     }
 
     @Transactional(readOnly = true)
-    public Flux<RecordEntity> getOwnerRecords(Long userId,
-        LocalDateTime timeFrom,
-        LocalDateTime timeTo) {
+    public Flux<RecordEntity> getOwnerRecords(Long userId, LocalDateTime timeFrom, LocalDateTime timeTo) {
 
-        var filter = RecordFilter.builder()
-            .recordOwnerId(userId)
-            .dateFrom(timeFrom)
-            .dateTo(timeTo)
-            .build();
+        var filter = RecordFilter.builder().recordOwnerId(userId).dateFrom(timeFrom).dateTo(timeTo).build();
         return recordRepository.findByFilter(filter);
     }
 

@@ -1,7 +1,6 @@
 package com.tlback.domain;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -31,6 +30,5 @@ public class DomainUserEntity {
     @Column("login")
     private String login;
 
-    private Set<RoleEntity> roles = new HashSet<>();
-
+    private Optional<TelegramUser> tgUser;
 }

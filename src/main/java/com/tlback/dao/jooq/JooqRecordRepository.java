@@ -10,7 +10,7 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import com.tlback.common.daofilter.RecordFilter;
-import com.tlback.dao.jooq.tools.RxUtils;
+import com.tlback.tools.RxUtils;
 import com.tlback.domain.RecordEntity;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
@@ -33,7 +33,7 @@ public class JooqRecordRepository {
 
         if (filter.serviceInfoId() != null)
             query = query.and(recordTable.SERVICE_INFO_ID.eq(filter.serviceInfoId()));
-        
+
         if (filter.recordOwnerId() != null)
             query = query.and(recordTable.RECORD_OWNER_ID.eq(filter.recordOwnerId()));
 
@@ -45,20 +45,18 @@ public class JooqRecordRepository {
 
         if (filter.dateTo() != null)
             query = query.and(recordTable.TIME_TO.lessThan(filter.dateTo()));
-        
+
         if (filter.isPublic() != null)
             query = query.and(recordTable.IS_PUBLIC.eq(filter.isPublic()));
 
         return RxUtils.fluxIterable(query, it -> {
             Map<Long, RecordEntity> records = new HashMap<>();
             it.forEach(rec -> {
-                var record = records.computeIfAbsent(rec.get(recordTable.ID),
-                        k -> mapJustRecEntity(rec));
-                var pending = rec.into(recordPendingTable.fields())
-                        .into(com.tlback.domain.RecordPending.class);
+                var record = records.computeIfAbsent(rec.get(recordTable.ID), k -> mapJustRecEntity(rec));
+                var pending = rec.into(recordPendingTable.fields()).into(com.tlback.domain.RecordPending.class);
                 if (pending.getPendingOwner() == null)
-                    pending.setPendingOwner(rec.into(userTable.fields())
-                        .into(com.tlback.domain.DomainUserEntity.class));
+                    pending.setPendingOwner(
+                            rec.into(userTable.fields()).into(com.tlback.domain.DomainUserEntity.class));
                 record.getRecordPendings().add(pending);
             });
             return records.values();
@@ -86,8 +84,8 @@ public class JooqRecordRepository {
     }
 
     public static SelectOnConditionStep<org.jooq.Record> fetch(DSLContext dsl) {
-        return dsl.select().from(recordTable)
-                .join(recordPendingTable).on(recordTable.ID.eq(recordPendingTable.RECORD_ID))
-                .join(userTable).on(recordPendingTable.CLIENT_ID.eq(userTable.ID));
+        return dsl.select().from(recordTable).join(recordPendingTable)
+                .on(recordTable.ID.eq(recordPendingTable.RECORD_ID)).join(userTable)
+                .on(recordPendingTable.CLIENT_ID.eq(userTable.ID));
     }
 }
