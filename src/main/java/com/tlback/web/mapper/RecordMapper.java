@@ -9,32 +9,41 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
-import org.springframework.lang.Nullable;
 
 import com.tlback.domain.RecordEntity;
-import com.tlback.web.dto.ServiceOwnerRecordDto;
+import com.tlback.web.dto.records.preview.RecordPendingPreviewDto;
+import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-    uses = {RecordPendingMapper.class})
-public interface RecordMapper {
+import io.micrometer.common.lang.Nullable;
 
-    @Mapping(target = "timeFrom", qualifiedByName = "toLocalDateTime")
-    @Mapping(target = "timeTo", qualifiedByName = "toLocalDateTime")
-    @Mapping(target = "originalTz", source = "tz")
-    ServiceOwnerRecordDto toDto(RecordEntity entity, @Context ZoneOffset offset);
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = { RecordPendingMapper.class,
+        ServiceInfoMapper.class })
+public abstract class RecordMapper {
+
+    @Mapping(target = "tsFrom", qualifiedByName = "toLocalDateTime")
+    @Mapping(target = "tsTo", qualifiedByName = "toLocalDateTime")
+    @Mapping(target = "recordPendings", source = ".", qualifiedByName = "pendingsToPreview")
+    @Mapping(target = "serviceInfo", qualifiedByName = "map")
+    public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, @Context ZoneOffset offset);
 
     @Named("toLocalDateTime")
-    default LocalDateTime toLocalDateTime(OffsetDateTime timestamp, @Nullable @Context ZoneOffset offset) {
+    public LocalDateTime toLocalDateTime(OffsetDateTime timestamp, @Nullable @Context ZoneOffset offset) {
         if (offset == null)
             return timestamp.toLocalDateTime();
         return timestamp.withOffsetSameInstant(offset).toLocalDateTime();
     }
 
-    default String zoneToStr(ZoneOffset tz) {
+    @Named("pendingsToPreview")
+    public RecordPendingPreviewDto pendingsToPreview(RecordEntity recordEntity) {
+        return new RecordPendingPreviewDto(recordEntity.getServiceInfo().getRecordLimit(),
+                recordEntity.getRecordPendings().size());
+    }
+
+    public String zoneToStr(ZoneOffset tz) {
         return tz.toString();
     }
 
-    default ServiceOwnerRecordDto toDto(RecordEntity entity) {
+    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity) {
         return toDto(entity, null);
     }
 

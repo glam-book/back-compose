@@ -26,26 +26,26 @@ databaseChangeLog:
              INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, record_limit, time_duration)
              VALUES (1, 'test_resnichkee', 3, true, 'test', 1, 1);
 
-             INSERT INTO record (id, service_info_id, record_owner_id, is_public, time_from, time_to, tz)
-             VALUES (1, 1, 1, false, '2024-12-26 19:20:00', '2024-12-26 20:25:00', '+03');
+             INSERT INTO record (id, service_info_id, record_owner_id, is_public, ts_from, ts_to, tz)
+             VALUES (1, 1, 3, false, '2024-12-26 19:20:00', '2024-12-26 20:25:00', '+03');
 
-             INSERT INTO record (id, service_info_id, record_owner_id, is_public, time_from, time_to, tz)
-             VALUES (2, 1, 1, false, '2024-12-26 20:25:00', '2024-12-26 21:25:00', '+03');
+             INSERT INTO record (id, service_info_id, record_owner_id, is_public, ts_from, ts_to, tz)
+             VALUES (2, 1, 4, false, '2024-12-26 20:25:00', '2024-12-26 21:25:00', '+03');
 
-             INSERT INTO record (id, service_info_id, record_owner_id, is_public, time_from, time_to, tz)
-             VALUES (3, 1, 1, false, '2024-12-26 21:25:00', '2024-12-26 23:25:00', '+03');
+             INSERT INTO record (id, service_info_id, record_owner_id, is_public, ts_from, ts_to, tz)
+             VALUES (3, 1, 5, false, '2024-12-26 21:25:00', '2024-12-26 23:25:00', '+03');
 
              INSERT INTO record_pending (record_id, client_id, request_time, confirmed)
-             VALUES (1, 2, '2024-12-26 19:25:00+03', false);
+             VALUES (1, 5, '2024-12-26 19:25:00+03', false);
 
              INSERT INTO record_pending (record_id, client_id, request_time, confirmed)
              VALUES (1, 3, '2024-12-26 19:30:00+03', false);
 
              INSERT INTO record_pending (record_id, client_id, request_time, confirmed)
-             VALUES (2, 2, '2024-12-26 19:35:00+03', true);
+             VALUES (2, 3, '2024-12-26 19:35:00+03', true);
 
              INSERT INTO record_pending (record_id, client_id, request_time, confirmed)
-             VALUES (2, 3, '2024-12-26 19:40:00+03', false);
+             VALUES (2, 5, '2024-12-26 19:40:00+03', false);
 
              INSERT INTO record_pending (record_id, client_id, request_time, confirmed)
-             VALUES (3, 3, '2024-12-26 19:45:00+03', false);
+             VALUES (3, 4, '2024-12-26 19:45:00+03', false);

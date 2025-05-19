@@ -30,14 +30,16 @@ public class RecordEntity {
     @Column("is_public")
     private Boolean isPublic;
 
-    @Column("time_from")
-    private OffsetDateTime timeFrom;
+    @Column("ts_from")
+    private OffsetDateTime tsFrom;
 
-    @Column("time_to")
-    private OffsetDateTime timeTo;
+    @Column("ts_to")
+    private OffsetDateTime tsTo;
 
     @Column("tz")
     private ZoneOffset tz;
 
     private List<RecordPending> recordPendings = new ArrayList<>();
+
+    private ServiceInfoEntity serviceInfo;
 }

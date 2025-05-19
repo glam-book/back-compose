@@ -1,4 +1,4 @@
-package com.tlback.web.dto;
+package com.tlback.web.dto.records;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class OwnerRecordPendingDto implements Comparable<OwnerRecordPendingDto> {
+public class RecordPendingDto implements Comparable<RecordPendingDto> {
 
     @JsonProperty(value = "requester_id")
     private Long requesterId;
@@ -24,7 +24,7 @@ public class OwnerRecordPendingDto implements Comparable<OwnerRecordPendingDto> 
     private Boolean confirmed;
 
     @Override
-    public int compareTo(OwnerRecordPendingDto o) {
+    public int compareTo(RecordPendingDto o) {
         if (this.requestTime == null || o.getRequestTime() == null)
             return 0;
         return this.requestTime.compareTo(o.getRequestTime());

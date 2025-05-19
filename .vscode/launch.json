@@ -2,6 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "TlbackApplication",
+            "request": "launch",
+            "mainClass": "com.tlback.TlbackApplication",
+            "projectName": "back-compose",
+            "args": "--spring.profiles.active=dev,no-auth"
+        },
+        {
             "preLaunchTask": "clean-start",
             "type": "java",
             "name": "TlbackApplication",

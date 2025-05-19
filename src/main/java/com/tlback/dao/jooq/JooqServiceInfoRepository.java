@@ -9,15 +9,14 @@ import org.jooq.SelectOnConditionStep;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import com.tlback.tools.RxUtils;
 import com.tlback.domain.DomainUserEntity;
 import com.tlback.domain.ServiceInfoEntity;
 import com.tlback.domain.utils.RecordSupplier;
 import com.tlback.domain.utils.ServiceOwneraAware;
-import com.tlback.domain.view.ServiceInfoView;
 import com.tlback.jooq.gen.tables.DomainUser;
-import com.tlback.jooq.gen.tables.ServiceInfo;
 import com.tlback.jooq.gen.tables.Record;
+import com.tlback.jooq.gen.tables.ServiceInfo;
+import com.tlback.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -39,13 +38,6 @@ public class JooqServiceInfoRepository {
                 iter -> collectToMapWithUser(iter,
                         records -> JooqUserRepository.collectToMap(records).values().iterator().next(),
                         ServiceInfoEntity.class).values());
-    }
-
-    public Flux<ServiceInfoView> findAllViewByUserId(Long userId) {
-        var condition = userTable.ID.eq(userId);
-        var query = fetchFull(dsl).where(condition);
-
-        return RxUtils.fluxIterable(query, iter -> collectToMapWithUser(iter, null, ServiceInfoView.class).values());
     }
 
     public static <T extends RecordSupplier & ServiceOwneraAware> Map<Long, T> collectToMapWithUser(
