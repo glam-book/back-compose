@@ -9,10 +9,12 @@ import org.jooq.Select;
 import reactor.core.publisher.Flux;
 
 public final class RxUtils {
-    public static <T, R> Flux<R> fluxIterable(Select<Record> select, Function<List<Record>, Iterable<R>> mapper) {
-        var r = Flux.from(select).collectList();
-        var b = r.flatMapIterable(mapper);
-        return b;
+
+    private RxUtils() {
+        // Private constructor to hide the implicit public one
     }
 
+    public static <R> Flux<R> fluxIterable(Select<Record> select, Function<List<Record>, Iterable<R>> mapper) {
+        return Flux.from(select).collectList().flatMapIterable(mapper);
+    }
 }

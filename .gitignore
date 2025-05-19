@@ -36,3 +36,5 @@ out/
 *.log
 *.error
 .DS_store
+
+credentials

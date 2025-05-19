@@ -7,11 +7,11 @@ import java.time.ZoneOffset;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tlback.config.security.UserData;
 import com.tlback.domain.view.ServiceInfoView;
 import com.tlback.service.RecordService;
 import com.tlback.service.ServiceInfoService;
@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin("*")
+@RequestMapping("/api")
 public class HomeResource {
     private final UserService userService;
     private final UserMapper mapper;
@@ -40,14 +41,9 @@ public class HomeResource {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
 
-    @PostMapping("/create")
-    public Mono<UserDto> postMethodName(@RequestBody UserDto userDto) {
-        log.info("accpeting create request: {}" + userDto);
-        return userService.createUser(mapper.toEntity(userDto)).map(it -> mapper.toDto(it));
-    }
-
     @GetMapping("/get-user")
-    public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId) {
+    public Mono<UserDto> getRecords(@RequestParam(name = "user_id") Long userId, UserData userData) {
+        log.info("requested get user with user data: {}", userData);
         return userService.findById(userId).map(it -> mapper.toDto(it));
     }
 
@@ -76,6 +72,17 @@ public class HomeResource {
     @GetMapping("/client/create-record")
     public String recordClient() {
         return "\"Hello World!\"";
+    }
+
+    @GetMapping("/get-profile")
+    public Mono<UserDto> getProfile(UserData token) {
+        var userId = token.getPrincipal();
+        return userService.findById(userId)
+            .log().map(it -> {
+                var dto = mapper.toDto(it);
+                log.info("recevied user: {}", dto);
+                return dto;
+            });
     }
 
 }

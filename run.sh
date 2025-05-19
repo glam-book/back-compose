@@ -6,6 +6,11 @@ export DB_PASSWORD="${3:-postgres}"
 export DB_USER="${4:-postgres}"
 export DB_HOST="${5:-localhost}"
 
+if [ -f "./credentials" ]; then
+    export "$(xargs < ./credentials)"
+fi
+
 ./deploy-db.sh
+sleep 5
 ./gradlew update
 ./gradlew clean bootRun
