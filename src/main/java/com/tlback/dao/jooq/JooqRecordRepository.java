@@ -10,11 +10,11 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import com.tlback.common.daofilter.RecordFilter;
-import com.tlback.tools.RxUtils;
 import com.tlback.domain.RecordEntity;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.RecordPending;
+import com.tlback.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -31,33 +31,33 @@ public class JooqRecordRepository {
     public Flux<RecordEntity> findByFilter(RecordFilter filter) {
         var query = fetch(dsl).where(DSL.noCondition());
 
-        if (filter.serviceInfoId() != null)
-            query = query.and(recordTable.SERVICE_INFO_ID.eq(filter.serviceInfoId()));
+        if (filter.getServiceInfoId() != null)
+            query = query.and(recordTable.SERVICE_INFO_ID.eq(filter.getServiceInfoId()));
 
-        if (filter.recordOwnerId() != null)
-            query = query.and(recordTable.RECORD_OWNER_ID.eq(filter.recordOwnerId()));
+        if (filter.getRecordOwnerId() != null)
+            query = query.and(recordTable.RECORD_OWNER_ID.eq(filter.getRecordOwnerId()));
 
-        if (filter.clientId() != null)
-            query = query.and(recordPendingTable.CLIENT_ID.eq(filter.clientId()));
+        if (filter.getClientId() != null)
+            query = query.and(recordPendingTable.CLIENT_ID.eq(filter.getClientId()));
 
-        if (filter.dateFrom() != null)
-            query = query.and(recordTable.TIME_FROM.greaterThan(filter.dateFrom()));
+        if (filter.getDateFrom() != null)
+            query = query.and(recordTable.TIME_FROM.greaterThan(filter.getDateFrom()));
 
-        if (filter.dateTo() != null)
-            query = query.and(recordTable.TIME_TO.lessThan(filter.dateTo()));
+        if (filter.getDateTo() != null)
+            query = query.and(recordTable.TIME_TO.lessThan(filter.getDateTo()));
 
-        if (filter.isPublic() != null)
-            query = query.and(recordTable.IS_PUBLIC.eq(filter.isPublic()));
+        if (filter.getIsPublic() != null)
+            query = query.and(recordTable.IS_PUBLIC.eq(filter.getIsPublic()));
 
         return RxUtils.fluxIterable(query, it -> {
             Map<Long, RecordEntity> records = new HashMap<>();
             it.forEach(rec -> {
-                var record = records.computeIfAbsent(rec.get(recordTable.ID), k -> mapJustRecEntity(rec));
+                var recordEntity = records.computeIfAbsent(rec.get(recordTable.ID), k -> mapJustRecEntity(rec));
                 var pending = rec.into(recordPendingTable.fields()).into(com.tlback.domain.RecordPending.class);
                 if (pending.getPendingOwner() == null)
                     pending.setPendingOwner(
                             rec.into(userTable.fields()).into(com.tlback.domain.DomainUserEntity.class));
-                record.getRecordPendings().add(pending);
+                recordEntity.getRecordPendings().add(pending);
             });
             return records.values();
         });
@@ -65,12 +65,12 @@ public class JooqRecordRepository {
 
     public static RecordEntity mapJustRecEntity(org.jooq.Record rec) {
         return rec.into(recordTable.fields()).map(mapper -> {
+
             var offsetTz = mapper.get(recordTable.TZ);
             var tz = ZoneOffset.of(offsetTz);
 
             var timeFrom = mapper.get(recordTable.TIME_FROM);
             var timeTo = mapper.get(recordTable.TIME_TO);
-
             var entity = new RecordEntity();
             entity.setId(rec.get(recordTable.ID));
             entity.setServiceInfoId(rec.get(recordTable.SERVICE_INFO_ID));

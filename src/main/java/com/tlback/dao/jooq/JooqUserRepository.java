@@ -53,10 +53,8 @@ public class JooqUserRepository {
         records.forEach(rec -> {
             var user = users.computeIfAbsent(rec.get(userTable.ID),
                     k -> rec.into(userTable.fields()).into(com.tlback.domain.DomainUserEntity.class));
-            if (user.getTgUser() == null) {
-                var tgUser = rec.into(telegramUserTable.fields()).into(com.tlback.domain.TelegramUser.class);
-                user.setTgUser(Optional.ofNullable(tgUser));
-            }
+            var tgUser = rec.into(telegramUserTable.fields()).into(com.tlback.domain.TelegramUser.class);
+            user.setTgUser(Optional.ofNullable(tgUser));
             // user.getRoles().add(rec.into(roleTable.fields()).into(com.tlback.domain.RoleEntity.class));
         });
         return users;
@@ -68,6 +66,7 @@ public class JooqUserRepository {
     }
 
     private SelectConditionStep<org.jooq.Record> fetchWhere(Condition where) {
+
         return fetch(dsl).where(where);
     }
 
@@ -93,21 +92,11 @@ public class JooqUserRepository {
                 .values(entity.getLogin(), entity.getName(), entity.getLastName(), entity.getMiddleName())
                 .returningResult(userTable.fields());
 
-        var initial = Flux.from(insertQuery).collectList().map(it -> collectToMap(it).values().iterator().next());
-
-        if (entity.getTgUser().isPresent()) {
-            var tgUser = entity.getTgUser().get();
-
-            var i = initial.flatMap(it -> {
-                var tgMono = createTelegramUser(it.getId(), tgUser);
-                return tgMono.map(tg -> {
-                    it.setTgUser(Optional.of(tg));
-                    return it;
-                });
-            });
-            return i;
-        }
-        return initial;
+        return Flux.from(insertQuery).collectList().map(it -> collectToMap(it).values().iterator().next())
+                .flatMap(user -> entity.getTgUser().map(tgUser -> createTelegramUser(user.getId(), tgUser).map(tg -> {
+                    user.setTgUser(Optional.of(tg));
+                    return user;
+                })).orElseGet(() -> Mono.just(user)));
     }
 
     public Mono<DomainUserEntity> findByTgId(Long id) {
