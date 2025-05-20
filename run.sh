@@ -13,4 +13,4 @@ fi
 ./deploy-db.sh
 sleep 5
 ./gradlew update
-./gradlew clean bootRun
+./gradlew clean bootRun --args="--spring.profiles.active=no-auth"

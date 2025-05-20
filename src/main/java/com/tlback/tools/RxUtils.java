@@ -17,4 +17,5 @@ public final class RxUtils {
     public static <R> Flux<R> fluxIterable(Select<Record> select, Function<List<Record>, Iterable<R>> mapper) {
         return Flux.from(select).collectList().flatMapIterable(mapper);
     }
+
 }

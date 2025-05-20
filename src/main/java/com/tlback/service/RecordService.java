@@ -1,6 +1,8 @@
 package com.tlback.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,14 +21,31 @@ public class RecordService {
 
     @Transactional(readOnly = true)
     public Flux<RecordEntity> getRecords(RecordFilter filter) {
-        return recordRepository.findByFilter(filter);
+        return recordRepository.findFullByFilter(filter);
     }
 
     @Transactional(readOnly = true)
-    public Flux<RecordEntity> getOwnerRecords(Long userId, LocalDateTime timeFrom, LocalDateTime timeTo) {
+    public Flux<RecordEntity> getRecordsByUserId(Long userId, LocalDateTime timeFrom, LocalDateTime timeTo) {
+        var filter = RecordFilter.builder()
+                .recordOwnerId(userId)
+                .dateFrom(timeFrom)
+                .dateTo(timeTo).build();
+        return recordRepository.findFullByFilter(filter);
+    }
 
-        var filter = RecordFilter.builder().recordOwnerId(userId).dateFrom(timeFrom).dateTo(timeTo).build();
-        return recordRepository.findByFilter(filter);
+    // TODO add cache
+    @Transactional(readOnly = true)
+    public Flux<RecordEntity> getRecordsWithPendingsAndServiceByUserdId(Long userId, LocalDate date) {
+        var fromDate = date.atStartOfDay();
+        var toDate = date.plusDays(1).atStartOfDay();
+
+        var filter = RecordFilter.builder()
+                .recordOwnerId(userId)
+                .dateFrom(fromDate)
+                .dateTo(toDate).build();
+
+        return recordRepository.findByFilter(filter,
+                List.of(JooqRecordRepository.JOIN_SERVICE_INFO, JooqRecordRepository.JOIN_RECORD_PENDINGS));
     }
 
 }

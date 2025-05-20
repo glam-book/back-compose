@@ -5,7 +5,7 @@ databaseChangeLog:
       author: owpk
       changes:
          - createTable:
-            tableName: domain_user
+            tableName: "domain_user"
             columns:
               - column:
                   name: id
@@ -135,10 +135,10 @@ databaseChangeLog:
                    name: is_public
                    type: boolean
                - column:
-                   name: time_from
+                   name: ts_from
                    type: timestamp
                - column:
-                   name: time_to
+                   name: ts_to
                    type: timestamp
                - column:
                    name: tz

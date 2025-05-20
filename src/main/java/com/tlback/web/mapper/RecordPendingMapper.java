@@ -8,17 +8,17 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 import com.tlback.domain.RecordPending;
-import com.tlback.web.dto.OwnerRecordPendingDto;
+import com.tlback.web.dto.records.RecordPendingDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class RecordPendingMapper {
-    
+
     @Mapping(target = "requesterLogin", source = "pendingOwner.login")
     @Mapping(target = "requesterId", source = "pendingOwner.id")
-    public abstract OwnerRecordPendingDto toDto(RecordPending recordPending);
+    public abstract RecordPendingDto toDto(RecordPending recordPending);
 
-    public SortedSet<OwnerRecordPendingDto> toDto(SortedSet<RecordPending> recordPendings) {
-        return recordPendings.stream().map(this::toDto)
-            .collect(() -> new TreeSet<>(), SortedSet::add, SortedSet::addAll);
+    public SortedSet<RecordPendingDto> toDto(SortedSet<RecordPending> recordPendings) {
+        return recordPendings.stream().map(this::toDto).collect(() -> new TreeSet<>(), SortedSet::add,
+                SortedSet::addAll);
     }
 }

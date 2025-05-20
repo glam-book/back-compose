@@ -1,5 +1,6 @@
 package com.tlback.domain;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
@@ -12,7 +13,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table(schema = "public", name = "domain_user")
-public class DomainUserEntity {
+public class DomainUserEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @Id
     @Column("id")
