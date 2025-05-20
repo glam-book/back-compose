@@ -31,6 +31,15 @@ public class JooqUserRepository {
 
     public Mono<com.tlback.domain.DomainUserEntity> findById(Long id) {
         var query = fetchWhere(userTable.ID.eq(id));
+        log.info(query.toString());
+
+        return Mono.from(flux(query));
+    }
+
+    public Mono<com.tlback.domain.DomainUserEntity> findByTgId(Long tgId) {
+        var query = fetchWhere(telegramUserTable.ID.eq(tgId));
+        log.info(query.toString());
+
         return Mono.from(flux(query));
     }
 
@@ -51,19 +60,21 @@ public class JooqUserRepository {
     public static Map<Long, com.tlback.domain.DomainUserEntity> collectToMap(Iterable<org.jooq.Record> records) {
         Map<Long, com.tlback.domain.DomainUserEntity> users = new HashMap<>();
         records.forEach(rec -> {
-            var user = users.computeIfAbsent(rec.get(userTable.ID),
-                    k -> rec.into(userTable.fields()).into(com.tlback.domain.DomainUserEntity.class));
-            if (user.getTgUser() == null) {
-                var tgUser = rec.into(telegramUserTable.fields()).into(com.tlback.domain.TelegramUser.class);
-                user.setTgUser(Optional.ofNullable(tgUser));
-            }
-            // user.getRoles().add(rec.into(roleTable.fields()).into(com.tlback.domain.RoleEntity.class));
+            users.computeIfAbsent(rec.get(userTable.ID), k -> mapUser(rec));
         });
         return users;
     }
 
+    public static com.tlback.domain.DomainUserEntity mapUser(org.jooq.Record rec) {
+        var user = rec.into(userTable.fields()).into(com.tlback.domain.DomainUserEntity.class);
+        var tgUser = rec.into(telegramUserTable.fields()).into(com.tlback.domain.TelegramUser.class);
+        user.setTgUser(Optional.ofNullable(tgUser));
+        return user;
+    }
+
     public static SelectOnConditionStep<org.jooq.Record> fetch(DSLContext dsl) {
-        return dsl.select(userTable.fields()).select(telegramUserTable.fields()).from(userTable).join(telegramUserTable)
+        return dsl.select(userTable.fields()).select(telegramUserTable.fields())
+                .from(userTable).join(telegramUserTable)
                 .on(userTable.ID.eq(telegramUserTable.USER_ID));
     }
 
@@ -93,24 +104,24 @@ public class JooqUserRepository {
                 .values(entity.getLogin(), entity.getName(), entity.getLastName(), entity.getMiddleName())
                 .returningResult(userTable.fields());
 
-        var initial = Flux.from(insertQuery).collectList().map(it -> collectToMap(it).values().iterator().next());
+        log.info(insertQuery.toString());
 
-        if (entity.getTgUser().isPresent()) {
-            var tgUser = entity.getTgUser().get();
-
-            var i = initial.flatMap(it -> {
-                var tgMono = createTelegramUser(it.getId(), tgUser);
-                return tgMono.map(tg -> {
-                    it.setTgUser(Optional.of(tg));
-                    return it;
+        // Сохраняем пользователя и получаем его id
+        return Mono.from(insertQuery)
+                .cache()
+                .map(rec -> mapUser(rec))
+                .flatMap(savedUser -> {
+                    if (entity.getTgUser().isPresent()) {
+                        var tgUser = entity.getTgUser().get();
+                        // Сохраняем telegram_user с полученным userId
+                        return createTelegramUser(savedUser.getId(), tgUser)
+                                .map(tg -> {
+                                    savedUser.setTgUser(Optional.of(tg));
+                                    return savedUser;
+                                });
+                    } else {
+                        return Mono.just(savedUser);
+                    }
                 });
-            });
-            return i;
-        }
-        return initial;
-    }
-
-    public Mono<DomainUserEntity> findByTgId(Long id) {
-        return Mono.error(new UnsupportedOperationException());
     }
 }

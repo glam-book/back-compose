@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.common.daofilter.RecordFilter;
@@ -34,7 +35,7 @@ public class RecordService {
     }
 
     // TODO add cache
-    @Transactional(readOnly = true)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Flux<RecordEntity> getRecordsWithPendingsAndServiceByUserdId(Long userId, LocalDate date) {
         var fromDate = date.atStartOfDay();
         var toDate = date.plusDays(1).atStartOfDay();

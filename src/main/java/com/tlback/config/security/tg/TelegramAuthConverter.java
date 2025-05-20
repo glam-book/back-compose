@@ -16,7 +16,8 @@ class TelegramAuthConverter implements ServerAuthenticationConverter {
 
     @Override
     public Mono<Authentication> convert(ServerWebExchange exchange) {
-        return Mono.justOrEmpty(telegramAuthService.auth(exchange));
+        var authentication = telegramAuthService.auth(exchange);
+        return Mono.justOrEmpty(authentication);
     }
 
 }

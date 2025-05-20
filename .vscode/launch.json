@@ -7,7 +7,7 @@
             "request": "launch",
             "mainClass": "com.tlback.TlbackApplication",
             "projectName": "back-compose",
-            "args": "--spring.profiles.active=dev,no-auth"
+            "args": "--spring.profiles.active=dev"
         },
         {
             "preLaunchTask": "clean-start",

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tlback.config.security.UserData;
 import com.tlback.service.RecordService;
 import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 import com.tlback.web.mapper.RecordMapper;
@@ -22,7 +23,9 @@ public class RecordController {
     private final RecordMapper recordMapper;
 
     @GetMapping
-    public Flux<RecordPendingsServiceResponsePreviewDto> entity(@RequestParam LocalDate date) {
-        return service.getRecordsWithPendingsAndServiceByUserdId(3L, date).map(recordMapper::toDto);
+    public Flux<RecordPendingsServiceResponsePreviewDto> entity(UserData userDetail, @RequestParam LocalDate date) {
+        var details = userDetail.getDetails();
+        return service.getRecordsWithPendingsAndServiceByUserdId(details.getId(), date)
+                .map(recordMapper::toDto);
     }
 }

@@ -1,6 +1,7 @@
 package com.tlback.config.security;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -17,14 +18,12 @@ import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 import com.tlback.config.security.tg.TelegramAuthService;
+import com.tlback.config.security.tg.TelegramAuthServiceDev;
 
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfig implements WebFluxConfigurer {
-
-    @Value("${GLAM_TG_BOT_TOKEN}")
-    private String botToken;
 
     @Bean
     @Profile("!no-auth")
@@ -34,41 +33,50 @@ public class SecurityConfig implements WebFluxConfigurer {
         var authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
         authenticationWebFilter.setServerAuthenticationConverter(authenticationConverter);
 
+        System.out.println("CREATING SECURITY WEB FILTER CHAIN !NO_AUTH");
         return http.csrf(c -> c.disable())
-            .headers(c -> c.frameOptions(frame -> frame.disable()))
-            .requestCache(c -> c.disable())
-            .authorizeExchange(c -> c.anyExchange().authenticated())
-            .addFilterBefore(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-            .httpBasic(c -> c.disable())
-            .formLogin(c -> c.disable())
-            .logout(c -> c.disable())
-            .build();
+                .headers(c -> c.frameOptions(frame -> frame.disable()))
+                .requestCache(c -> c.disable())
+                .addFilterBefore(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .authorizeExchange(c -> c.anyExchange().authenticated())
+                .httpBasic(c -> c.disable())
+                .formLogin(c -> c.disable())
+                .logout(c -> c.disable())
+                .build();
     }
 
     @Bean
     @Profile("no-auth")
     SecurityWebFilterChain securityWebFilterChainTest(ServerHttpSecurity http) throws Exception {
+        System.out.println("CREATING SECURITY WEB FILTER CHAIN ::: NO_AUTH");
         return http.csrf(c -> c.disable())
-            .headers(c -> c.frameOptions(frame -> frame.disable()))
-            .requestCache(c -> c.disable())
-            .authorizeExchange(c -> c.anyExchange().permitAll())
-            .httpBasic(c -> c.disable())
-            .formLogin(c -> c.disable())
-            .logout(c -> c.disable())
-            .build();
+                .headers(c -> c.frameOptions(frame -> frame.disable()))
+                .requestCache(c -> c.disable())
+                .authorizeExchange(c -> c.anyExchange().permitAll())
+                .httpBasic(c -> c.disable())
+                .formLogin(c -> c.disable())
+                .logout(c -> c.disable())
+                .build();
     }
-    
+
     @Override
     public void addCorsMappings(@NonNull CorsRegistry corsRegistry) {
         corsRegistry.addMapping("/**")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedOriginPatterns("*")
-            .allowedHeaders("*")
-            .maxAge(3600);
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOriginPatterns("*")
+                .allowedHeaders("*")
+                .maxAge(3600);
     }
 
     @Bean
-    TelegramAuthService telegramAuthService() {
+    @Profile("dev")
+    TelegramAuthServiceDev telegramAuthServiceDev() {
+        return new TelegramAuthServiceDev("dev");
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    TelegramAuthService telegramAuthService(@Value("${GLAM_TG_BOT_TOKEN}") String botToken) {
         return new TelegramAuthService(botToken);
     }
 }

@@ -10,7 +10,7 @@ import com.tlback.domain.TelegramUser;
 
 public class TelegramAuthenticationToken implements Authentication {
     private final String hash;
-    private final TelegramUser telegramUser;
+    private final transient TelegramUser telegramUser;
 
     public TelegramAuthenticationToken(String hash, TelegramUser telegramUser) {
         this.hash = hash;
@@ -25,8 +25,7 @@ public class TelegramAuthenticationToken implements Authentication {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(
-                () -> "ROLE_USER"
-        );
+                () -> "ROLE_USER");
     }
 
     @Override
