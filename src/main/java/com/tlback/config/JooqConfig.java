@@ -6,6 +6,8 @@ import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.r2dbc.connection.TransactionAwareConnectionFactoryProxy;
@@ -16,13 +18,34 @@ import io.r2dbc.spi.ConnectionFactory;
 public class JooqConfig {
 
     @Bean
-    DSLContext dslContext(ConnectionFactory connectionFactory) {
-        var settings = new Settings()
+    DSLContext dslContext(org.jooq.Configuration jooqConfiguration) {
+        return DSL.using(jooqConfiguration);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    org.jooq.Configuration jooqConfiguration(ConnectionFactory connectionFactory) {
+        var transactionAwareDataSource = new TransactionAwareConnectionFactoryProxy(connectionFactory);
+
+        return new DefaultConfiguration()
+                .set(transactionAwareDataSource)
+                .set(SQLDialect.POSTGRES)
+                .set(jooqSettings());
+    }
+
+    private Settings jooqSettingsTest() {
+        return new Settings()
                 .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
                 .withRenderNameCase(RenderNameCase.LOWER);
 
-        return DSL.using(
-                new TransactionAwareConnectionFactoryProxy(connectionFactory),
-                SQLDialect.POSTGRES, settings);
+    }
+
+    // Configure jOOQ settings
+    private Settings jooqSettings() {
+        return new Settings()
+                .withRenderNameCase(RenderNameCase.LOWER)
+                .withRenderQuotedNames(RenderQuotedNames.ALWAYS)
+                .withParseDialect(SQLDialect.POSTGRES)
+                .withExecuteLogging(false);
     }
 }

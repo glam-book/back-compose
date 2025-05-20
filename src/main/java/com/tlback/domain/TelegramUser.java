@@ -1,5 +1,7 @@
 package com.tlback.domain;
 
+import java.io.Serializable;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -12,13 +14,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table(schema = "public", name = "telegram_user")
-public class TelegramUser {
+public class TelegramUser implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @Id
     @Transient
-    private TelegramUserPk pk;
+    private transient TelegramUserPk pk;
 
-    // A unique identifier for the user or bot. It has at most 52 significant bits, so a 64-bit integer or a double-precision float type is safe for storing this identifier.
+    // A unique identifier for the user or bot. It has at most 52 significant bits,
+    // so a 64-bit integer or a double-precision float type is safe for storing this
+    // identifier.
     @Column("id")
     private Long id;
 
@@ -44,7 +49,8 @@ public class TelegramUser {
     @Nullable
     private String username;
 
-    // Optional. IETF language tag of the user's language. Returns in user field only.
+    // Optional. IETF language tag of the user's language. Returns in user field
+    // only.
     @Column("language_code")
     @Nullable
     private String languageCode;
@@ -64,7 +70,8 @@ public class TelegramUser {
     @Nullable
     private Boolean allowsWriteToPm;
 
-    // Optional. URL of the user’s profile photo. The photo can be in .jpeg or .svg formats.
+    // Optional. URL of the user’s profile photo. The photo can be in .jpeg or .svg
+    // formats.
     @Column("photo_url")
     @Nullable
     private String photoUrl;

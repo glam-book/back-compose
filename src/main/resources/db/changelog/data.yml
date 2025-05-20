@@ -23,6 +23,9 @@ databaseChangeLog:
 
              INSERT INTO user_role (user_id, role_id) VALUES (3, 2);
 
+             INSERT INTO telegram_user (user_id, id, first_name, last_name, username)
+             VALUES (3, 100, 'Igor', 'Abobenko', 'IgorLoh');
+
              INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, record_limit, time_duration)
              VALUES (1, 'test_resnichkee', 3, true, 'test', 1, 1);
 

@@ -23,10 +23,12 @@ import com.tlback.jooq.gen.tables.ServiceInfo;
 import com.tlback.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JooqRecordRepository {
     public static final Record recordTable = Record.RECORD;
     public static final RecordPending recordPendingTable = RecordPending.RECORD_PENDING;
@@ -54,6 +56,8 @@ public class JooqRecordRepository {
     public Flux<RecordEntity> findByFilter(RecordFilter filter, List<JoinModule> joins) {
         var query = fetch(dsl, joins);
         var filteredQuery = buildFilter(query, filter);
+
+        log.info(filteredQuery.toString());
         return RxUtils.fluxIterable(filteredQuery, this::tryToMapAll);
     }
 

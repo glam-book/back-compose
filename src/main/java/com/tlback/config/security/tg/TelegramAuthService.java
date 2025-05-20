@@ -1,6 +1,5 @@
 package com.tlback.config.security.tg;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -58,29 +57,20 @@ public class TelegramAuthService {
             return Optional.empty();
 
         try {
-            var params = parseQueryString(new String(telegramHeader));
+            var params = parseQueryString(telegramHeader);
             var userBody = params.get("user");
             var hash = params.get("hash");
 
-            if (StringUtils.isNotBlank(userBody) && StringUtils.isNotBlank(hash))
-                if (validateTelegramAuth(params, hash)) {
-                    var telegramUser = objectMapper.readValue(userBody, TelegramUser.class);
-                    var auth = new TelegramAuthenticationToken(hash, telegramUser);
-                    return Optional.of(auth);
-                }
+            if (StringUtils.isNotBlank(userBody) && StringUtils.isNotBlank(hash)
+                    && validateTelegramAuth(params, hash)) {
+                var telegramUser = objectMapper.readValue(userBody, TelegramUser.class);
+                var auth = new TelegramAuthenticationToken(hash, telegramUser);
+                return Optional.of(auth);
+            }
         } catch (Exception e) {
             log.error("[TELEGRAM_AUTH_FILTER_ERROR] telegram user ", e);
         }
         return Optional.empty();
-    }
-
-    public Optional<TelegramAuthenticationToken> authMock() {
-        var telegramUser = new TelegramUser();
-        telegramUser.setId(1L);
-        telegramUser.setFirstName("Ivan");
-        telegramUser.setLastName("Ivanov");
-        var auth = new TelegramAuthenticationToken("hash", telegramUser);
-        return Optional.of(auth);
     }
 
     private boolean validateTelegramAuth(Map<String, String> paramMap, String receivedHash) throws Exception {
@@ -112,7 +102,7 @@ public class TelegramAuthService {
         return sha256HMAC.doFinal(botToken.getBytes());
     }
 
-    private Map<String, String> parseQueryString(String queryString) throws UnsupportedEncodingException {
+    private Map<String, String> parseQueryString(String queryString) {
         var result = new HashMap<String, String>();
         var pairs = queryString.split("&");
 

@@ -3,6 +3,7 @@ package com.tlback.service;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.dao.jooq.JooqUserRepository;
@@ -24,11 +25,12 @@ public class UserService {
         return jooqUserRepository.findById(id);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Mono<DomainUserEntity> findByTgId(Long id) {
-        return jooqUserRepository.findById(id);
+        return jooqUserRepository.findByTgId(id);
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE, label = "auth")
     public Mono<DomainUserEntity> createFromTgUser(TelegramUser user) {
         var entity = new DomainUserEntity();
         entity.setTgUser(Optional.of(user));
