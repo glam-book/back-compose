@@ -20,21 +20,6 @@ java {
 	}
 }
 
-compileJava {
-    options.compilerArgs += [
-        '-Amapstruct.suppressGeneratorTimestamp=true',
-        '-Amapstruct.suppressGeneratorVersionInfoComment=true',
-        '-Amapstruct.verbose=true'
-    ]
-}
-
-tasks.withType(JavaCompile) {
-    options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated/sources/annotationProcessor/java/main")
-    options.compilerArgs += [
-        "-Amapstruct.defaultComponentModel=spring" // если хочешь использовать @Component и внедрение
-    ]
-}
-
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor

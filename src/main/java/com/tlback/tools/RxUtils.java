@@ -5,8 +5,6 @@ import java.util.function.Function;
 
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.SelectOnConditionStep;
-import org.springframework.data.relational.core.sql.SelectBuilder.SelectOnCondition;
 
 import reactor.core.publisher.Flux;
 
