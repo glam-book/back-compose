@@ -9,17 +9,19 @@ import org.jooq.SelectOnConditionStep;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import com.tlback.domain.DomainUserEntity;
-import com.tlback.domain.ServiceInfoEntity;
-import com.tlback.domain.utils.RecordSupplier;
-import com.tlback.domain.utils.ServiceOwneraAware;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.ServiceInfo;
+import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
+import com.tlback.model.DomainUserEntity;
+import com.tlback.model.ServiceInfoEntity;
+import com.tlback.model.utils.RecordSupplier;
+import com.tlback.model.utils.ServiceOwneraAware;
 import com.tlback.tools.RxUtils;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +51,7 @@ public class JooqServiceInfoRepository {
             var serviceInfo = entities.computeIfAbsent(rec.get(serviceInfoTable.ID),
                     k -> rec.into(serviceInfoTable.fields()).into(clazz));
 
-            serviceInfo.getRecords().add(rec.into(recordTable.fields()).into(com.tlback.domain.RecordEntity.class));
+            serviceInfo.getRecords().add(rec.into(recordTable.fields()).into(com.tlback.model.RecordEntity.class));
 
             if (userMapper != null && serviceInfo.getServiceOwner() == null) {
                 var user = userMapper.apply(records);
@@ -57,6 +59,19 @@ public class JooqServiceInfoRepository {
             }
         });
         return entities;
+    }
+
+    public static Mono<ServiceInfoRecord> insert(ServiceInfoEntity entity, DSLContext dsl) {
+        return Mono.from(dsl.insertInto(serviceInfoTable)
+                .set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
+                .set(serviceInfoTable.TIME_DURATION, entity.getTimeDuration())
+                .set(serviceInfoTable.SERVICE_DESCRIPTION, entity.getServiceDescription())
+                .onDuplicateKeyUpdate()
+                .set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
+                .set(serviceInfoTable.TIME_DURATION, entity.getTimeDuration())
+                .set(serviceInfoTable.SERVICE_DESCRIPTION, entity.getServiceDescription())
+                .returningResult(serviceInfoTable.fields()))
+                .map(it -> it.into(ServiceInfoRecord.class));
     }
 
     public static SelectOnConditionStep<org.jooq.Record> fetchFull(DSLContext dsl) {

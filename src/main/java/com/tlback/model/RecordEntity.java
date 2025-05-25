@@ -1,4 +1,4 @@
-package com.tlback.domain;
+package com.tlback.model;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -28,7 +28,7 @@ public class RecordEntity {
     private Long recordOwnerId;
 
     @Column("is_public")
-    private Boolean isPublic;
+    private Boolean isPublic = true;
 
     @Column("ts_from")
     private OffsetDateTime tsFrom;

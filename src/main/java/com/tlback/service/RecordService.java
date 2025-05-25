@@ -10,10 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.common.daofilter.RecordFilter;
 import com.tlback.dao.jooq.JooqRecordRepository;
-import com.tlback.domain.RecordEntity;
+import com.tlback.model.RecordEntity;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -49,4 +50,18 @@ public class RecordService {
                 List.of(JooqRecordRepository.JOIN_SERVICE_INFO, JooqRecordRepository.JOIN_RECORD_PENDINGS));
     }
 
+    /**
+     * Создать или обновить запись (шаблон)
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Mono<RecordEntity> createOrUpdateRecord(RecordEntity recordEntity, long userId) {
+        if (recordEntity.getId() != null) {
+            // then update (TODO)
+        } else {
+            return recordRepository.createNew(recordEntity)
+                    .flatMap(id -> recordRepository.findById(id,
+                            List.of(JooqRecordRepository.JOIN_SERVICE_INFO)));
+        }
+        return Mono.just(null);
+    }
 }

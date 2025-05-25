@@ -17,7 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.tlback.domain.TelegramUser;
+import com.tlback.model.TelegramUser;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

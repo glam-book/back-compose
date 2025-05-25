@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.dao.jooq.JooqServiceInfoRepository;
-import com.tlback.domain.ServiceInfoEntity;
+import com.tlback.model.ServiceInfoEntity;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;

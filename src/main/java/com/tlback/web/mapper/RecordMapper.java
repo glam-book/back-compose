@@ -10,7 +10,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
-import com.tlback.domain.RecordEntity;
+import com.tlback.model.RecordEntity;
+import com.tlback.web.dto.records.RecordCreateOrUpdateRequest;
+import com.tlback.web.dto.records.RecordPreviewResponse;
 import com.tlback.web.dto.records.preview.RecordPendingPreviewDto;
 import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
@@ -22,15 +24,24 @@ public abstract class RecordMapper {
 
     @Mapping(target = "tsFrom", qualifiedByName = "toLocalDateTime")
     @Mapping(target = "tsTo", qualifiedByName = "toLocalDateTime")
-    @Mapping(target = "recordPendings", source = ".", qualifiedByName = "pendingsToPreview")
+    @Mapping(target = "recordPendings", source = "entity", qualifiedByName = "pendingsToPreview")
     @Mapping(target = "serviceInfo", qualifiedByName = "map")
     public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, @Context ZoneOffset offset);
 
     @Named("toLocalDateTime")
-    public LocalDateTime toLocalDateTime(OffsetDateTime timestamp, @Nullable @Context ZoneOffset offset) {
+    public LocalDateTime map(OffsetDateTime timestamp, @Nullable @Context ZoneOffset offset) {
         if (offset == null)
             return timestamp.toLocalDateTime();
         return timestamp.withOffsetSameInstant(offset).toLocalDateTime();
+    }
+
+    public LocalDateTime map(OffsetDateTime timestamp) {
+        return this.map(timestamp, null);
+    }
+
+    @Named("toOffsetDateTime")
+    public OffsetDateTime map(LocalDateTime timestamp, @Context ZoneOffset offset) {
+        return timestamp.atOffset(offset);
     }
 
     @Named("pendingsToPreview")
@@ -43,8 +54,22 @@ public abstract class RecordMapper {
         return tz.toString();
     }
 
+    @Mapping(target = "tsFrom", qualifiedByName = "toLocalDateTime")
     public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity) {
         return toDto(entity, null);
     }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "serviceInfoId", ignore = true)
+    @Mapping(target = "recordPendings", ignore = true)
+    @Mapping(target = "serviceInfo", qualifiedByName = "toEntity")
+    @Mapping(target = "tz", expression = "java(offset)")
+    @Mapping(target = "isPublic", ignore = true)
+    @Mapping(target = "tsTo", qualifiedByName = "toOffsetDateTime")
+    @Mapping(target = "tsFrom", qualifiedByName = "toOffsetDateTime")
+    public abstract RecordEntity toEntity(RecordCreateOrUpdateRequest request, 
+        Long recordOwnerId, @Context ZoneOffset offset);
+
+    public abstract RecordPreviewResponse toPreviewResponse(RecordEntity entity);
 
 }

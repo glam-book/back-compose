@@ -1,4 +1,4 @@
-package com.tlback.web.dto.records.preview;
+package com.tlback.web.dto.service.preview;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

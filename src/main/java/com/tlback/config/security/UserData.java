@@ -5,7 +5,7 @@ import java.util.Collection;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.tlback.domain.DomainUserEntity;
+import com.tlback.model.DomainUserEntity;
 
 import lombok.ToString;
 
@@ -19,7 +19,7 @@ public class UserData implements Authentication {
     private String password;
 
     public UserData(DomainUserEntity details,
-        Collection<? extends GrantedAuthority> authorities) {
+            Collection<? extends GrantedAuthority> authorities) {
         this.details = details;
         this.authorities = authorities;
         isAuthenticated = true;
@@ -59,5 +59,5 @@ public class UserData implements Authentication {
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         this.isAuthenticated = isAuthenticated;
     }
-    
+
 }
