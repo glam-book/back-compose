@@ -36,14 +36,14 @@ public class RecordController {
                 .map(recordMapper::toDto);
     }
 
-    @PostMapping("/create_or_update_record_full")
-    public Mono<RecordPreviewResponse> createOrUpdateRecordFull(
+    @PostMapping
+    public Mono<RecordPreviewResponse> createRecord(
             @RequestBody RecordCreateOrUpdateRequest request,
             @AuthenticationPrincipal UserData userData) {
 
         var owner = userData.getDetails().getId();
         var entity = recordMapper.toEntity(request, owner, ZoneOffsetTools.getCurrentOffset());
-        return service.createOrUpdateRecord(entity, userData.getDetails().getId())
+        return service.createRecord(entity, userData.getDetails().getId())
                 .map(recordMapper::toPreviewResponse);
     }
 }

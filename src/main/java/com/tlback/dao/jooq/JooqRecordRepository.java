@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,7 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import com.tlback.common.daofilter.RecordFilter;
+import com.tlback.dao.jooq.modules.InsertModule;
 import com.tlback.dao.jooq.modules.JoinModule;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
@@ -94,14 +96,20 @@ public class JooqRecordRepository {
      * @param recordEntity
      * @return id записи
      */
-    public Mono<Long> createNew(RecordEntity recordEntity) {
-        var serviceInfo = recordEntity.getServiceInfo();
-        return JooqServiceInfoRepository.insert(serviceInfo, dsl)
-                .flatMap(service -> {
-                    var rec = mapToRecord(recordEntity);
-                    rec.setServiceInfoId(service.getId());
-                    return insert(rec, dsl);
-                }).map(it -> it.getId());
+    public Mono<RecordEntity> createNew(RecordEntity recordEntity,
+            InsertModule<ServiceInfoEntity, Long> serviceInfoInsert, 
+            JoinModule... joins) {
+
+        var serviceInsert = Optional.ofNullable(recordEntity.getServiceInfo())
+                .map(it -> serviceInfoInsert.insert(recordEntity.getServiceInfo(), dsl))
+                .orElse(Mono.empty());
+
+        return serviceInsert.flatMap(serviceId -> {
+            var rec = mapToRecord(recordEntity);
+            rec.setServiceInfoId(serviceId);
+            return insert(rec, dsl);
+        }).map(it -> it.getId())
+        .flatMap(it -> findById(it, joins));
     }
 
     public static RecordRecord mapToRecord(RecordEntity entity) {
@@ -109,7 +117,6 @@ public class JooqRecordRepository {
         rec.setId(entity.getId());
         rec.setRecordOwnerId(entity.getRecordOwnerId());
         rec.setIsPublic(entity.getIsPublic());
-        rec.setServiceInfoId(entity.getServiceInfoId());
         rec.setTz(entity.getTz().toString());
         rec.setTsFrom(entity.getTsFrom().toLocalDateTime());
         rec.setTsTo(entity.getTsTo().toLocalDateTime());
@@ -117,13 +124,18 @@ public class JooqRecordRepository {
     }
 
     public static Mono<RecordRecord> insert(RecordRecord recordEntity, DSLContext dsl) {
-        var sql = dsl.insertInto(recordTable)
-                .set(recordTable.SERVICE_INFO_ID, recordEntity.getServiceInfoId())
-                .set(recordTable.RECORD_OWNER_ID, recordEntity.getRecordOwnerId())
-                .set(recordTable.IS_PUBLIC, recordEntity.getIsPublic())
-                .set(recordTable.TZ, recordEntity.getTz())
-                .set(recordTable.TS_FROM, recordEntity.getTsFrom())
-                .set(recordTable.TS_TO, recordEntity.getTsTo())
+        var insertFields = new HashMap<>();
+        insertFields.put(recordTable.SERVICE_INFO_ID, recordEntity.getServiceInfoId());
+        insertFields.put(recordTable.RECORD_OWNER_ID, recordEntity.getRecordOwnerId());
+        insertFields.put(recordTable.IS_PUBLIC, recordEntity.getIsPublic());
+        insertFields.put(recordTable.TZ, recordEntity.getTz());
+        insertFields.put(recordTable.TS_FROM, recordEntity.getTsFrom());
+        insertFields.put(recordTable.TS_TO, recordEntity.getTsTo());
+
+        var insert = dsl.insertInto(recordTable)
+                .set(insertFields);
+
+        var sql = insert
                 .returningResult(recordTable.fields());
 
         log.info("Insert query: {}", sql.toString());
@@ -195,7 +207,6 @@ public class JooqRecordRepository {
 
             var entity = new RecordEntity();
             entity.setId(rec.get(recordTable.ID));
-            entity.setServiceInfoId(rec.get(recordTable.SERVICE_INFO_ID));
             entity.setRecordOwnerId(rec.get(recordTable.RECORD_OWNER_ID));
             entity.setIsPublic(rec.get(recordTable.IS_PUBLIC));
             entity.setTsFrom(timeFrom.atOffset(tz));
@@ -216,5 +227,10 @@ public class JooqRecordRepository {
             mainFetch = join.apply(mainFetch);
 
         return mainFetch;
+    }
+
+    public Mono<RecordEntity> update(RecordEntity recordEntity) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'update'");
     }
 }

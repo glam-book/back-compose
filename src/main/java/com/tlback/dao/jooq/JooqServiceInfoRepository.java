@@ -9,6 +9,7 @@ import org.jooq.SelectOnConditionStep;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
+import com.tlback.dao.jooq.modules.InsertModule;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.ServiceInfo;
@@ -29,6 +30,12 @@ public class JooqServiceInfoRepository {
     private static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
     private static final DomainUser userTable = DomainUser.DOMAIN_USER;
     private static final Record recordTable = Record.RECORD;
+
+    public static final InsertModule<ServiceInfoEntity, ServiceInfoRecord> insertModule =
+        (e, ctx) -> insert(e, ctx);
+
+    public static final InsertModule<ServiceInfoEntity, Long> insertModuleId =
+        (e, ctx) -> insert(e, ctx).map(it -> it.getId());
 
     private final DSLContext dsl;
 
@@ -63,10 +70,6 @@ public class JooqServiceInfoRepository {
 
     public static Mono<ServiceInfoRecord> insert(ServiceInfoEntity entity, DSLContext dsl) {
         return Mono.from(dsl.insertInto(serviceInfoTable)
-                .set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
-                .set(serviceInfoTable.TIME_DURATION, entity.getTimeDuration())
-                .set(serviceInfoTable.SERVICE_DESCRIPTION, entity.getServiceDescription())
-                .onDuplicateKeyUpdate()
                 .set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
                 .set(serviceInfoTable.TIME_DURATION, entity.getTimeDuration())
                 .set(serviceInfoTable.SERVICE_DESCRIPTION, entity.getServiceDescription())

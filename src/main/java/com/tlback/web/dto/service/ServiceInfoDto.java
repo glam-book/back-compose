@@ -1,11 +1,14 @@
 package com.tlback.web.dto.service;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 
 @Data
 public class ServiceInfoDto {
+    private Optional<Long> id = Optional.empty();
     private String title;
     private String url;
     private String description;

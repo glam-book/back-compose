@@ -17,7 +17,6 @@ public interface ServiceInfoMapper {
     ServicePreviewDto map(ServiceInfoEntity value);
 
     @Named("toEntity")
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "serviceOwnerId", ignore = true)
     @Mapping(target = "serviceName", source = "title")
     @Mapping(target = "editable", ignore = true, defaultValue = "false")

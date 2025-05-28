@@ -60,7 +60,7 @@ public abstract class RecordMapper {
     }
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "serviceInfoId", ignore = true)
+    @Mapping(target = "serviceInfoId", source = "serviceInfo.id")
     @Mapping(target = "recordPendings", ignore = true)
     @Mapping(target = "serviceInfo", qualifiedByName = "toEntity")
     @Mapping(target = "tz", expression = "java(offset)")

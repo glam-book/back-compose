@@ -21,9 +21,6 @@ public class RecordEntity {
     @Column("id")
     private Long id;
 
-    @Column("service_info_id")
-    private Long serviceInfoId;
-
     @Column("record_owner_id")
     private Long recordOwnerId;
 
