@@ -33,13 +33,6 @@ public class JooqConfig {
                 .set(jooqSettings());
     }
 
-    private Settings jooqSettingsTest() {
-        return new Settings()
-                .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
-                .withRenderNameCase(RenderNameCase.LOWER);
-
-    }
-
     // Configure jOOQ settings
     private Settings jooqSettings() {
         return new Settings()
