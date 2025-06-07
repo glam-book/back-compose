@@ -16,6 +16,9 @@ import com.tlback.abac.AbacDecision;
 import com.tlback.abac.impl.JooqAbacServiceImpl;
 import com.tlback.jooq.gen.tables.Record;
 
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 class JooqAbacServiceTest {
     private static final Record RECORD = Record.RECORD;
 
@@ -45,8 +48,11 @@ class JooqAbacServiceTest {
         when(fromStep.where(RECORD.ID.eq(1L))).thenReturn(whereStep);
         when(whereStep.fetchOne()).thenReturn(mockedRecord);
 
-        AbacContext result = abacService.canModifyRecord(42L, 1L).block();
-        assertTrue(result.isAllowed());
+        Mono<AbacContext> result = abacService.canModifyRecord(42L, 1L);
+
+        StepVerifier.create(result)
+                .assertNext(ctx -> assertTrue(ctx.isAllowed()))
+                .verifyComplete();
     }
 
     @Test
@@ -66,9 +72,14 @@ class JooqAbacServiceTest {
         when(fromStep.where(RECORD.ID.eq(2L))).thenReturn(whereStep);
         when(whereStep.fetchOne()).thenReturn(mockedRecord);
 
-        AbacContext result = abacService.canModifyRecord(99L, 2L).block();
-        assertFalse(result.isAllowed());
-        assertEquals(AbacDecision.DENY, result.decision());
+        Mono<AbacContext> result = abacService.canModifyRecord(99L, 2L);
+
+        StepVerifier.create(result)
+                .assertNext(ctx -> {
+                    assertFalse(ctx.isAllowed());
+                    assertEquals(AbacDecision.DENY, ctx.decision());
+                })
+                .verifyComplete();
     }
 
     @Test
@@ -84,7 +95,10 @@ class JooqAbacServiceTest {
         when(fromStep.where(RECORD.ID.eq(3L))).thenReturn(whereStep);
         when(whereStep.fetchOne()).thenReturn(null);
 
-        AbacContext result = abacService.canModifyRecord(1L, 3L).block();
-        assertEquals(AbacDecision.NOT_FOUND, result.decision());
+        Mono<AbacContext> result = abacService.canModifyRecord(1L, 3L);
+
+        StepVerifier.create(result)
+                .assertNext(ctx -> assertEquals(AbacDecision.NOT_FOUND, ctx.decision()))
+                .verifyComplete();
     }
 }
