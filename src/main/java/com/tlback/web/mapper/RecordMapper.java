@@ -11,7 +11,6 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
 import com.tlback.model.RecordEntity;
-import com.tlback.web.dto.records.RecordCreateOrUpdateRequest;
 import com.tlback.web.dto.records.RecordPreviewResponse;
 import com.tlback.web.dto.records.preview.RecordPendingPreviewDto;
 import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
@@ -59,17 +58,7 @@ public abstract class RecordMapper {
         return toDto(entity, null);
     }
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "serviceInfoId", source = "serviceInfo.id")
-    @Mapping(target = "recordPendings", ignore = true)
-    @Mapping(target = "serviceInfo", qualifiedByName = "toEntity")
-    @Mapping(target = "tz", expression = "java(offset)")
-    @Mapping(target = "isPublic", ignore = true)
-    @Mapping(target = "tsTo", qualifiedByName = "toOffsetDateTime")
-    @Mapping(target = "tsFrom", qualifiedByName = "toOffsetDateTime")
-    public abstract RecordEntity toEntity(RecordCreateOrUpdateRequest request, 
-        Long recordOwnerId, @Context ZoneOffset offset);
-
     public abstract RecordPreviewResponse toPreviewResponse(RecordEntity entity);
 
 }

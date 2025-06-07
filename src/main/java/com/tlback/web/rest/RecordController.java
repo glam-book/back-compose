@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tlback.config.security.UserData;
 import com.tlback.service.RecordService;
-import com.tlback.tools.ZoneOffsetTools;
-import com.tlback.web.dto.records.RecordCreateOrUpdateRequest;
+import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.web.dto.records.RecordPreviewResponse;
 import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 import com.tlback.web.mapper.RecordMapper;
@@ -26,24 +25,23 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1/record")
 @RequiredArgsConstructor
 public class RecordController {
-    private final RecordService service;
+    private final RecordService recordService;
     private final RecordMapper recordMapper;
 
     @GetMapping
     public Flux<RecordPendingsServiceResponsePreviewDto> entity(UserData userDetail, @RequestParam LocalDate date) {
         var details = userDetail.getDetails();
-        return service.getRecordsWithPendingsAndServiceByUserdId(details.getId(), date)
+        return recordService.getRecordsWithPendingsAndServiceByUserdId(details.getId(), date)
                 .map(recordMapper::toDto);
     }
 
     @PostMapping
     public Mono<RecordPreviewResponse> createRecord(
-            @RequestBody RecordCreateOrUpdateRequest request,
+            @RequestBody OptionalRecordCreateOrUpdateRequest request,
             @AuthenticationPrincipal UserData userData) {
 
         var owner = userData.getDetails().getId();
-        var entity = recordMapper.toEntity(request, owner, ZoneOffsetTools.getCurrentOffset());
-        return service.createRecord(entity, userData.getDetails().getId())
+        return recordService.saveOrUpdate(request, owner)
                 .map(recordMapper::toPreviewResponse);
     }
 }

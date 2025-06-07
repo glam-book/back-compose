@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import org.jooq.DSLContext;
 import org.jooq.SelectOnConditionStep;
+import org.jooq.impl.DSL;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +32,10 @@ public class JooqServiceInfoRepository {
     private static final DomainUser userTable = DomainUser.DOMAIN_USER;
     private static final Record recordTable = Record.RECORD;
 
-    public static final InsertModule<ServiceInfoEntity, ServiceInfoRecord> insertModule =
-        (e, ctx) -> insert(e, ctx);
+    public static final InsertModule<ServiceInfoEntity, ServiceInfoRecord> insertModule = (e, ctx) -> insert(e, ctx);
 
-    public static final InsertModule<ServiceInfoEntity, Long> insertModuleId =
-        (e, ctx) -> insert(e, ctx).map(it -> it.getId());
+    public static final InsertModule<ServiceInfoEntity, Long> insertModuleId = (e, ctx) -> insert(e, ctx)
+            .map(it -> it.getId());
 
     private final DSLContext dsl;
 
@@ -66,6 +66,39 @@ public class JooqServiceInfoRepository {
             }
         });
         return entities;
+    }
+
+    public Mono<ServiceInfoEntity> findById(Long id) {
+        return Mono.from(
+                dsl.selectFrom(serviceInfoTable)
+                   .where(serviceInfoTable.ID.eq(id))
+        )
+        .map(r -> r.into(ServiceInfoEntity.class));
+    }
+
+    public Mono<ServiceInfoRecord> update(ServiceInfoRecord record) {
+        return Mono.from(
+                dsl.update(serviceInfoTable)
+                   .set(serviceInfoTable.SERVICE_NAME, DSL.coalesce(DSL.val(record.getServiceName()), serviceInfoTable.SERVICE_NAME))
+                   .set(serviceInfoTable.SERVICE_DESCRIPTION, DSL.coalesce(DSL.val(record.getServiceDescription()), serviceInfoTable.SERVICE_DESCRIPTION))
+                   .set(serviceInfoTable.RECORD_LIMIT, DSL.coalesce(DSL.val(record.getRecordLimit()), serviceInfoTable.RECORD_LIMIT))
+                   .set(serviceInfoTable.EDITABLE, DSL.coalesce(DSL.val(record.getEditable()), serviceInfoTable.EDITABLE))
+                   .where(serviceInfoTable.ID.eq(record.getId()))
+                   .returning(serviceInfoTable.fields()))
+                .map(r -> r.into(ServiceInfoRecord.class));
+    }
+
+    public Mono<ServiceInfoRecord> save(ServiceInfoRecord rec) {
+        return Mono.from(
+                dsl.insertInto(serviceInfoTable)
+                        .set(serviceInfoTable.SERVICE_NAME, rec.getServiceName())
+                        .set(serviceInfoTable.SERVICE_OWNER_ID, rec.getServiceOwnerId())
+                        .set(serviceInfoTable.EDITABLE, rec.getEditable())
+                        .set(serviceInfoTable.SERVICE_DESCRIPTION, rec.getServiceDescription())
+                        .set(serviceInfoTable.RECORD_LIMIT, rec.getRecordLimit())
+                        .set(serviceInfoTable.TIME_DURATION, rec.getTimeDuration())
+                        .returning(serviceInfoTable.fields()))
+                .map(r -> r.into(ServiceInfoRecord.class));
     }
 
     public static Mono<ServiceInfoRecord> insert(ServiceInfoEntity entity, DSLContext dsl) {

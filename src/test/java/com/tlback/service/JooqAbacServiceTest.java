@@ -45,7 +45,7 @@ class JooqAbacServiceTest {
         when(fromStep.where(RECORD.ID.eq(1L))).thenReturn(whereStep);
         when(whereStep.fetchOne()).thenReturn(mockedRecord);
 
-        AbacContext result = abacService.canModifyRecord(42L, 1L);
+        AbacContext result = abacService.canModifyRecord(42L, 1L).block();
         assertTrue(result.isAllowed());
     }
 
@@ -66,7 +66,7 @@ class JooqAbacServiceTest {
         when(fromStep.where(RECORD.ID.eq(2L))).thenReturn(whereStep);
         when(whereStep.fetchOne()).thenReturn(mockedRecord);
 
-        AbacContext result = abacService.canModifyRecord(99L, 2L);
+        AbacContext result = abacService.canModifyRecord(99L, 2L).block();
         assertFalse(result.isAllowed());
         assertEquals(AbacDecision.DENY, result.decision());
     }
@@ -84,7 +84,7 @@ class JooqAbacServiceTest {
         when(fromStep.where(RECORD.ID.eq(3L))).thenReturn(whereStep);
         when(whereStep.fetchOne()).thenReturn(null);
 
-        AbacContext result = abacService.canModifyRecord(1L, 3L);
+        AbacContext result = abacService.canModifyRecord(1L, 3L).block();
         assertEquals(AbacDecision.NOT_FOUND, result.decision());
     }
 }

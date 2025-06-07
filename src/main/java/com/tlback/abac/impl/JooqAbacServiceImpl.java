@@ -1,7 +1,6 @@
 package com.tlback.abac.impl;
 
 import org.jooq.DSLContext;
-import org.jooq.Record1;
 import org.springframework.stereotype.Service;
 
 import com.tlback.abac.AbacContext;
@@ -10,9 +9,12 @@ import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.ServiceInfo;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JooqAbacServiceImpl implements AbacService {
     private static final Record RECORD_TABLE = Record.RECORD;
     private static final ServiceInfo SERVICE_INFO_TABLE = ServiceInfo.SERVICE_INFO;
@@ -20,46 +22,86 @@ public class JooqAbacServiceImpl implements AbacService {
     private final DSLContext dsl;
 
     @Override
-    public AbacContext canModifyRecord(Long userId, Long recordId) {
-        Record1<Long> record = dsl
-            .select(RECORD_TABLE.RECORD_OWNER_ID)
-            .from(RECORD_TABLE)
-            .where(RECORD_TABLE.ID.eq(recordId))
-            .fetchOne();
+    public Mono<AbacContext> canModifyRecord(Long userId, Long recordId) {
+        return Mono.from(dsl
+                .select(RECORD_TABLE.RECORD_OWNER_ID)
+                .from(RECORD_TABLE)
+                .where(RECORD_TABLE.ID.eq(recordId))).map(record -> {
+                    if (record == null) {
+                        return AbacContext.notFound("Record");
+                    }
 
-        if (record == null) {
-            return AbacContext.notFound("Record");
-        }
+                    Long ownerId = record.value1();
+                    var decision = ownerId.equals(userId)
+                            ? AbacContext.allow()
+                            : AbacContext.deny("You do not own this record");
 
-        Long ownerId = record.value1();
-        return ownerId.equals(userId)
-            ? AbacContext.allow()
-            : AbacContext.deny("You do not own this record");
+                    log.info("Modifying record attempt. Decision: {}, User: {}, Record: {}", decision, userId,
+                            recordId);
+                    return decision;
+                });
+
     }
 
     @Override
-    public AbacContext canAttachToService(Long userId, Long serviceId) {
-        var service = dsl
-            .select(SERVICE_INFO_TABLE.SERVICE_OWNER_ID, SERVICE_INFO_TABLE.EDITABLE)
-            .from(SERVICE_INFO_TABLE)
-            .where(SERVICE_INFO_TABLE.ID.eq(serviceId))
-            .fetchOne();
+    public Mono<AbacContext> canAttachToService(Long userId, Long serviceId) {
+        return Mono.from(dsl
+                .select(SERVICE_INFO_TABLE.SERVICE_OWNER_ID, SERVICE_INFO_TABLE.EDITABLE)
+                .from(SERVICE_INFO_TABLE)
+                .where(SERVICE_INFO_TABLE.ID.eq(serviceId)))
+                .map(service -> {
+                    if (service == null) {
+                        return AbacContext.notFound("Service");
+                    }
 
-        if (service == null) {
-            return AbacContext.notFound("Service");
-        }
+                    Long ownerId = service.get(SERVICE_INFO_TABLE.SERVICE_OWNER_ID);
+                    Boolean editable = service.get(SERVICE_INFO_TABLE.EDITABLE);
 
-        Long ownerId = service.get(SERVICE_INFO_TABLE.SERVICE_OWNER_ID);
-        Boolean editable = service.get(SERVICE_INFO_TABLE.EDITABLE);
+                    AbacContext decision = null;
 
-        if (ownerId.equals(userId)) {
-            return AbacContext.allow();
-        }
+                    if (ownerId.equals(userId)) {
+                        decision = AbacContext.allow();
+                    } else if (Boolean.TRUE.equals(editable)) {
+                        decision = AbacContext.allow();
+                    } else {
+                        decision = AbacContext.deny("You cannot attach records to this service");
+                    }
 
-        if (Boolean.TRUE.equals(editable)) {
-            return AbacContext.allow();
-        }
+                    log.info("Attaching to service attempt. Decision: {}, User: {}, Service: {}", decision, userId,
+                            serviceId);
+                    return decision;
+                });
 
-        return AbacContext.deny("You cannot attach records to this service");
+    }
+
+    @Override
+    public Mono<AbacContext> canUseService(Long userId, Long serviceId) {
+        return Mono.from(dsl
+                .select(SERVICE_INFO_TABLE.SERVICE_OWNER_ID, SERVICE_INFO_TABLE.EDITABLE)
+                .from(SERVICE_INFO_TABLE)
+                .where(SERVICE_INFO_TABLE.ID.eq(serviceId)))
+                .map(service -> {
+
+                    if (service == null) {
+                        return AbacContext.notFound("Service: " + serviceId);
+                    }
+
+                    Long ownerId = service.get(SERVICE_INFO_TABLE.SERVICE_OWNER_ID);
+                    Boolean editable = service.get(SERVICE_INFO_TABLE.EDITABLE);
+
+                    AbacContext decision;
+                    if (ownerId.equals(userId)) {
+                        decision = AbacContext.allow();
+                    } else if (Boolean.TRUE.equals(editable)) {
+                        decision = AbacContext.allow();
+                    } else {
+                        decision = AbacContext.deny("You do not have access to this service");
+                    }
+
+                    log.info("Using service attempt. Decision: {}, User: {}, Service: {}", decision, userId,
+                            serviceId);
+                    return decision;
+                });
+
     }
 }

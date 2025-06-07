@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class ServiceInfoDto {
+public class OptionalServiceInfoDto {
+
+    @JsonProperty("id")
     private Optional<Long> id = Optional.empty();
     private String title;
     private String url;

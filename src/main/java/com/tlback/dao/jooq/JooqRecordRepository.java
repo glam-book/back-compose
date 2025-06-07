@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -16,7 +15,6 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import com.tlback.common.daofilter.RecordFilter;
-import com.tlback.dao.jooq.modules.InsertModule;
 import com.tlback.dao.jooq.modules.JoinModule;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.Record;
@@ -87,29 +85,6 @@ public class JooqRecordRepository {
                         .from(recordTable)
                         .where(recordTable.ID.eq(recordId))
                         .and(recordTable.RECORD_OWNER_ID.eq(userId))));
-    }
-
-    /**
-     * Сохранить запись
-     * 
-     * @param serviceInfoRecord
-     * @param recordEntity
-     * @return id записи
-     */
-    public Mono<RecordEntity> createNew(RecordEntity recordEntity,
-            InsertModule<ServiceInfoEntity, Long> serviceInfoInsert, 
-            JoinModule... joins) {
-
-        var serviceInsert = Optional.ofNullable(recordEntity.getServiceInfo())
-                .map(it -> serviceInfoInsert.insert(recordEntity.getServiceInfo(), dsl))
-                .orElse(Mono.empty());
-
-        return serviceInsert.flatMap(serviceId -> {
-            var rec = mapToRecord(recordEntity);
-            rec.setServiceInfoId(serviceId);
-            return insert(rec, dsl);
-        }).map(it -> it.getId())
-        .flatMap(it -> findById(it, joins));
     }
 
     public static RecordRecord mapToRecord(RecordEntity entity) {
@@ -229,8 +204,36 @@ public class JooqRecordRepository {
         return mainFetch;
     }
 
-    public Mono<RecordEntity> update(RecordEntity recordEntity) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
+    public Mono<RecordEntity> update(RecordRecord record, JoinModule... joinModules) {
+        // Обновляем запись по ID, возвращаем обновлённую сущность с нужными join-ами
+        var update = dsl.update(recordTable)
+                .set(recordTable.SERVICE_INFO_ID, DSL.coalesce(DSL.val(record.getServiceInfoId()), recordTable.SERVICE_INFO_ID))
+                .set(recordTable.RECORD_OWNER_ID, DSL.coalesce(DSL.val(record.getRecordOwnerId()), recordTable.RECORD_OWNER_ID))
+                .set(recordTable.IS_PUBLIC, DSL.coalesce(DSL.val(record.getIsPublic()), recordTable.IS_PUBLIC))
+                .set(recordTable.TZ, DSL.coalesce(DSL.val(record.getTz()), recordTable.TZ))
+                .set(recordTable.TS_FROM, DSL.coalesce(DSL.val(record.getTsFrom()), recordTable.TS_FROM))
+                .set(recordTable.TS_TO, DSL.coalesce(DSL.val(record.getTsTo()), recordTable.TS_TO))
+                .where(recordTable.ID.eq(record.getId()))
+                .returning(recordTable.ID);
+
+        return Mono.from(update)
+                .map(r -> r.get(recordTable.ID))
+                .flatMap(id -> findById(id, joinModules));
+    }
+
+    public Mono<RecordEntity> save(RecordRecord record, JoinModule... joinModules) {
+        // Вставляем новую запись и возвращаем созданную сущность с нужными join-ами
+        var insert = dsl.insertInto(recordTable)
+                .set(recordTable.SERVICE_INFO_ID, record.getServiceInfoId())
+                .set(recordTable.RECORD_OWNER_ID, record.getRecordOwnerId())
+                .set(recordTable.IS_PUBLIC, record.getIsPublic())
+                .set(recordTable.TZ, record.getTz())
+                .set(recordTable.TS_FROM, record.getTsFrom())
+                .set(recordTable.TS_TO, record.getTsTo())
+                .returning(recordTable.ID);
+
+        return Mono.from(insert)
+                .map(r -> r.get(recordTable.ID))
+                .flatMap(id -> findById(id, joinModules));
     }
 }
