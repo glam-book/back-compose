@@ -125,6 +125,7 @@ databaseChangeLog:
                    type: bigserial
                    constraints:
                      primaryKey: true
+                     intitiallyDeffered: false
                - column:
                    name: service_info_id
                    type: bigint

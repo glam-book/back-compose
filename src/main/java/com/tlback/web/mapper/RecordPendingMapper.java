@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
-import com.tlback.domain.RecordPending;
+import com.tlback.model.RecordPending;
 import com.tlback.web.dto.records.RecordPendingDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)

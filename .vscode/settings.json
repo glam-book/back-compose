@@ -1,9 +1,6 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.project.sourcePaths": [
-        "src/main/java",
-        "build/generated/sources/annotationProcessor/java/main"
-    ],
-    "java.jdt.ls.javac.enabled": "off"
+    "java.jdt.ls.javac.enabled": "off",
+    "commentTranslate.targetLanguage": "ru"
 }

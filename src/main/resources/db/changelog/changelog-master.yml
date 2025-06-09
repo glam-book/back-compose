@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: data.yml
       relativeToChangelogFile: true
+  - includeAll:
+      path: included/
+      relativeToChangelogFile: true

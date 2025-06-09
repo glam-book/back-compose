@@ -33,7 +33,6 @@ public class SecurityConfig implements WebFluxConfigurer {
         var authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
         authenticationWebFilter.setServerAuthenticationConverter(authenticationConverter);
 
-        System.out.println("CREATING SECURITY WEB FILTER CHAIN !NO_AUTH");
         return http.csrf(c -> c.disable())
                 .headers(c -> c.frameOptions(frame -> frame.disable()))
                 .requestCache(c -> c.disable())
@@ -48,7 +47,6 @@ public class SecurityConfig implements WebFluxConfigurer {
     @Bean
     @Profile("no-auth")
     SecurityWebFilterChain securityWebFilterChainTest(ServerHttpSecurity http) throws Exception {
-        System.out.println("CREATING SECURITY WEB FILTER CHAIN ::: NO_AUTH");
         return http.csrf(c -> c.disable())
                 .headers(c -> c.frameOptions(frame -> frame.disable()))
                 .requestCache(c -> c.disable())

@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.tlback.domain.TelegramUser;
+import com.tlback.model.TelegramUser;
 
 public class TelegramAuthenticationToken implements Authentication {
     private final String hash;

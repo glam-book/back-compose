@@ -3,6 +3,7 @@ package com.tlback.web.dto.records.preview;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tlback.web.dto.service.preview.ServicePreviewDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RecordPendingsServiceResponsePreviewDto {
-
     private Long id;
 
     @JsonProperty(value = "service_info")

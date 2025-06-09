@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.web.server.ServerWebExchange;
 
-import com.tlback.domain.TelegramUser;
+import com.tlback.model.TelegramUser;
 
 public class TelegramAuthServiceDev extends TelegramAuthService {
 

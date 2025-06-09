@@ -1,4 +1,4 @@
-package com.tlback.domain;
+package com.tlback.model;
 
 import java.io.Serializable;
 

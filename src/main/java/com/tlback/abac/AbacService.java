@@ -1,6 +1,9 @@
 package com.tlback.abac;
 
+import reactor.core.publisher.Mono;
+
 public interface AbacService {
-    AbacContext canModifyRecord(Long userId, Long recordId);
-    AbacContext canAttachToService(Long userId, Long serviceId);
+    Mono<AbacContext> canModifyRecord(Long userId, Long recordId);
+    Mono<AbacContext> canAttachToService(Long userId, Long serviceId);
+    Mono<AbacContext> canUseService(Long userId, Long serviceId);
 }

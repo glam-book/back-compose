@@ -1,4 +1,4 @@
-package com.tlback.domain;
+package com.tlback.model;
 
 import org.springframework.data.relational.core.mapping.Column;
 
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecordPendingPk {
-    
+
     @Column("client_id")
     private Long clientId;
 

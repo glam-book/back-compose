@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.dao.jooq.JooqUserRepository;
-import com.tlback.domain.DomainUserEntity;
-import com.tlback.domain.TelegramUser;
+import com.tlback.model.DomainUserEntity;
+import com.tlback.model.TelegramUser;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

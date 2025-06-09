@@ -8,6 +8,11 @@ import java.util.function.Supplier;
 import com.tlback.abac.exception.ForbiddenException;
 import com.tlback.abac.exception.NotFoundException;
 
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@ToString(of = {"decision"})
 public class AbacContext {
     private final AbacDecision decision;
     private final String reason;
@@ -18,10 +23,12 @@ public class AbacContext {
     }
 
     public static AbacContext allow() {
+        log.debug("ABAC allow");
         return new AbacContext(AbacDecision.ALLOW, null);
     }
 
     public static AbacContext deny(String reason) {
+        log.debug("ABAC deny: {}", reason);
         return new AbacContext(AbacDecision.DENY, reason);
     }
 
@@ -33,13 +40,16 @@ public class AbacContext {
         return decision == AbacDecision.ALLOW;
     }
 
-    public AbacContext orThrow() {
-        return orThrow(() ->
-            switch (decision) {
+    public RuntimeException mapException() {
+        return switch (decision) {
                 case NOT_FOUND -> new NotFoundException(reason);
                 case DENY -> new ForbiddenException(reason);
                 default -> new IllegalStateException("Unexpected ABAC state");
-        });
+        };
+    }
+
+    public AbacContext orThrow() {
+        return orThrow(this::mapException);
     }
 
     public AbacContext orThrow(Supplier<? extends RuntimeException> exSupplier) {
@@ -57,11 +67,19 @@ public class AbacContext {
         return this;
     }
 
-    public <T> Optional<T> mapIfAllowed(Supplier<T> mapper) {
+    public <T> Optional<T> onAllowedMap(Supplier<T> mapper) {
         return isAllowed() ? Optional.ofNullable(mapper.get()) : Optional.empty();
     }
 
-    public <T> Optional<T> mapIfDenied(Function<String, T> handler) {
+    public <T> T onAllowedMap(Supplier<T> mapper, Function<AbacDecision, T> onDenied) {
+        return isAllowed() ? mapper.get() : onDenied.apply(decision);
+    }
+
+    public <T> T mapResult(Supplier<T> onSuccess, Function<RuntimeException, T> onError) {
+        return isAllowed() ? onSuccess.get() : onError.apply(mapException());
+    }
+
+    public <T> Optional<T> onDeniedMap(Function<String, T> handler) {
         return decision == AbacDecision.DENY ? Optional.ofNullable(handler.apply(reason)) : Optional.empty();
     }
 
