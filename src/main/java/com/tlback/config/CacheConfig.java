@@ -18,12 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableCaching
 @Configuration
 public class CacheConfig {
+	public static final String RECORD_CACHE_NAME = "record";
 
 	@Bean
 	RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
 		return builder -> builder
-				.withCacheConfiguration("records", createConfig(5))
-				.withCacheConfiguration("record", createConfig(10));
+				.withCacheConfiguration(RECORD_CACHE_NAME, createConfig(1));
 	}
 
 	private RedisCacheConfiguration createConfig(Integer minutes) {

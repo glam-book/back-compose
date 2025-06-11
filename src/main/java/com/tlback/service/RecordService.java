@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.abac.AbacService;
 import com.tlback.common.daofilter.RecordFilter;
+import com.tlback.config.CacheConfig;
 import com.tlback.dao.jooq.JooqRecordRepository;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.model.RecordEntity;
@@ -44,7 +44,7 @@ public class RecordService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    @Cacheable(value = "records", key = "{#userId, #date}")
+    @Cacheable(value = CacheConfig.RECORD_CACHE_NAME, key = "{#userId, #date}")
     public Flux<RecordEntity> getRecordsWithPendingsAndServiceByUserdId(Long userId, LocalDate date) {
         var fromDate = date.atStartOfDay();
         var toDate = date.plusDays(1).atStartOfDay();
@@ -59,7 +59,6 @@ public class RecordService {
     }
 
     @Transactional
-    @CachePut(value = "record", key = "#userId")
     public Mono<RecordEntity> saveOrUpdate(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
         var joinService = JooqRecordRepository.JOIN_SERVICE_INFO;
         var serviceRequest = cmd.getServiceInfo();
