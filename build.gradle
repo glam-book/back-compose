@@ -8,7 +8,7 @@ plugins {
   	id 'eclipse'
 }
 
-def jooqVer = '3.19.16'
+def jooqVer = '3.19.1'
 def mapstructVer = '1.6.3'
 def liquibaseVer = '4.17.0'
 def snakeYmlVer = '1.33'
@@ -147,16 +147,24 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// Develop configs
+task generateEclipseConfig {
+  dependsOn 'generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
+}
+
 eclipse {
   jdt {
+	file {
+      withProperties { props ->
+        props['org.eclipse.jdt.core.compiler.codegen.methodParameters'] = 'generate'
+      }
+    }
     apt {
-      genSrcDir = 'bin/generated-sources/annotations'
-      genTestSrcDir = 'bin/generated-test-sources/annotations'
+      genSrcDir = 'build/generated/sources/annotationProcessor/java/main'
+      genTestSrcDir = 'build/generated/sources/annotationProcessor/java/test'
       reconcileEnabled = true
     }
   }
+  synchronizationTasks generateEclipseConfig
 }
 
-task generateEclipseConfig {
-  dependsOn 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
-}
