@@ -49,6 +49,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -78,6 +79,8 @@ dependencies {
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'io.projectreactor:reactor-test:3.7.6'
 
+	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.2.Final:osx-aarch_64'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 }
 
 def db_host = System.getenv('DB_HOST')

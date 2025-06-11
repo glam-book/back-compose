@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,8 +43,8 @@ public class RecordService {
         return recordRepository.findFullByFilter(filter);
     }
 
-    // TODO add cache
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Cacheable(value = "records", key = "{#userId, #date}")
     public Flux<RecordEntity> getRecordsWithPendingsAndServiceByUserdId(Long userId, LocalDate date) {
         var fromDate = date.atStartOfDay();
         var toDate = date.plusDays(1).atStartOfDay();
@@ -57,6 +59,7 @@ public class RecordService {
     }
 
     @Transactional
+    @CachePut(value = "record", key = "#userId")
     public Mono<RecordEntity> saveOrUpdate(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
         var joinService = JooqRecordRepository.JOIN_SERVICE_INFO;
         var serviceRequest = cmd.getServiceInfo();

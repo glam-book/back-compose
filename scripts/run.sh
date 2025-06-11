@@ -11,6 +11,7 @@ if [ -f "./credentials" ]; then
 fi
 
 ./deploy-db.sh
+./deploy-cache.sh
 sleep 5
 ./gradlew update
 ./gradlew clean bootRun --args="--spring.profiles.active=dev"
