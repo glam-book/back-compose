@@ -4,12 +4,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.abac.AbacService;
 import com.tlback.common.daofilter.RecordFilter;
+import com.tlback.config.CacheConfig;
 import com.tlback.dao.jooq.JooqRecordRepository;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.model.RecordEntity;
@@ -41,8 +43,8 @@ public class RecordService {
         return recordRepository.findFullByFilter(filter);
     }
 
-    // TODO add cache
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Cacheable(value = CacheConfig.RECORD_CACHE_NAME, key = "{#userId, #date}")
     public Flux<RecordEntity> getRecordsWithPendingsAndServiceByUserdId(Long userId, LocalDate date) {
         var fromDate = date.atStartOfDay();
         var toDate = date.plusDays(1).atStartOfDay();

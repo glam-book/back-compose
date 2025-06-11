@@ -21,26 +21,25 @@ public class JooqAbacServiceImpl implements AbacService {
 
     private final DSLContext dsl;
 
-    @Override
-    public Mono<AbacContext> canModifyRecord(Long userId, Long recordId) {
+    public Mono<org.jooq.Record1<Long>> fetchRecordOwnerId(Long recordId) {
         return Mono.from(dsl
                 .select(RECORD_TABLE.RECORD_OWNER_ID)
                 .from(RECORD_TABLE)
-                .where(RECORD_TABLE.ID.eq(recordId))).map(record -> {
-                    if (record == null) {
-                        return AbacContext.notFound("Record");
-                    }
+                .where(RECORD_TABLE.ID.eq(recordId)));
+    }
 
-                    Long ownerId = record.value1();
-                    var decision = ownerId.equals(userId)
-                            ? AbacContext.allow()
-                            : AbacContext.deny("You do not own this record");
-
-                    log.info("Modifying record attempt. Decision: {}, User: {}, Record: {}", decision, userId,
-                            recordId);
-                    return decision;
-                });
-
+    @Override
+    public Mono<AbacContext> canModifyRecord(Long userId, Long recordId) {
+        return fetchRecordOwnerId(recordId)
+            .flatMap(r -> {
+                Long ownerId = r.value1();
+                var decision = ownerId.equals(userId)
+                        ? AbacContext.allow()
+                        : AbacContext.deny("You do not own this record");
+                log.info("Modifying record attempt. Decision: {}, User: {}, Record: {}", decision, userId, recordId);
+                return Mono.just(decision);
+            })
+            .switchIfEmpty(Mono.just(AbacContext.notFound("Record")));
     }
 
     @Override

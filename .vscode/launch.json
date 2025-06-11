@@ -7,24 +7,15 @@
             "request": "launch",
             "mainClass": "com.tlback.TlbackApplication",
             "args": "--spring.profiles.active=dev",
+            "projectName": "tl-back"
+        },
+        {
+            "type": "java",
+            "name": "TlbackApplication",
+            "request": "launch",
+            "mainClass": "com.tlback.TlbackApplication",
+            "args": "--spring.profiles.active=dev",
             "projectName": "back-compose"
-        },
-        {
-            "type": "java",
-            "name": "TlbackApplication",
-            "request": "launch",
-            "mainClass": "com.tlback.TlbackApplication",
-            "projectName": "tl-back-back-compose",
-            "args": "--spring.profiles.active=dev"
-        },
-        {
-            "preLaunchTask": "clean-start",
-            "type": "java",
-            "name": "TlbackApplication",
-            "request": "launch",
-            "mainClass": "com.tlback.TlbackApplication",
-            "projectName": "tl-back",
-            "envFile": "${workspaceFolder}/credentials"
         }
     ]
 }

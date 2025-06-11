@@ -10,7 +10,11 @@ if [ -f "./credentials" ]; then
     export "$(xargs < ./credentials)"
 fi
 
-./deploy-db.sh
+docker compose -f ../docker/docker-compose-middleware.yml down
+docker compose -f ../docker/docker-compose-middleware.yml up -d
+
 sleep 5
+
+cd ..
 ./gradlew update
 ./gradlew clean bootRun --args="--spring.profiles.active=dev"
