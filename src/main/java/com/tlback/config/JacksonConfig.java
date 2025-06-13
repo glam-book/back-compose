@@ -13,7 +13,6 @@ public class JacksonConfig {
 
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
-        System.out.println("asd");
         return jacksonObjectMapperBuilder -> jacksonObjectMapperBuilder
                 .featuresToDisable(
                         DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
