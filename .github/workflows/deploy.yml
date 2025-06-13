@@ -32,15 +32,17 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write glam token to file
-        run: echo "${{ secrets.GLAM_BOT_TOKEN }}" > .credentials
+        run: echo "${{ secrets.GLAM_TG_BOT_TOKEN }}" > .credentials
 
-      - name: Docker Build with Gradle cache
-        run: |
-          docker build \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            -t ghcr.io/${{ github.repository }}:latest .
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Docker Push
         run: docker push ghcr.io/${{ github.repository }}:latest
