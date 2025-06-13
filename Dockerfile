@@ -16,14 +16,14 @@ RUN mkdir -p /home/gradle/.gradle && \
 
 ENV GRADLE_USER_HOME=/home/gradle/.gradle
 
-# Добавляем пустой .credentials (будет заменён при билде)
-COPY .credentials /app/.credentials
-
 # Кэшируем зависимости (если поменяется build.gradle — этот слой обновится)
 RUN ./gradlew --no-daemon dependencies || true
 
 # Копируем остальной код
 COPY . /app
+
+ARG GLAM_TG_BOT_TOKEN  # Добавляем ARG для использования переменной
+ENV GLAM_TG_BOT_TOKEN=$GLAM_TG_BOT_TOKEN
 
 # Финальная сборка
 RUN ./gradlew --no-daemon build

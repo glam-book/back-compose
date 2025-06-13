@@ -5,10 +5,7 @@ export DB_PORT="${2:-5599}"
 export DB_PASSWORD="${3:-postgres}"
 export DB_USER="${4:-postgres}"
 export DB_HOST="${5:-localhost}"
-
-if [ -f "./credentials" ]; then
-    export "$(xargs < ./credentials)"
-fi
+export GLAM_TG_BOT_TOKEN="${6:-test}"
 
 docker compose -f ../docker/docker-compose-middleware.yml down
 docker compose -f ../docker/docker-compose-middleware.yml up -d
