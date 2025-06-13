@@ -7,7 +7,7 @@ spring:
       host: ${TL_REDIS_HOST:localhost}
       port: ${TL_REDIS_PORT:6379}
   r2dbc:
-    url: r2dbc:postgresql://${TL_DB_HOST:localhost}:${DB_PORT:5599}/${TL_DB_NAME:tl_back}
+    url: r2dbc:postgresql://${TL_DB_HOST:localhost}:${TL_DB_PORT:5599}/${TL_DB_NAME:tl_back}
     username: ${TL_DB_USER:postgres}
     password: ${TL_DB_PASSWORD:postgres}
 
