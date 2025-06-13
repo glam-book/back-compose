@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: mock_data_26.12.2024_19:57
+      context: ddl
+      author: owpk
+      changes:
+        - addNotNullConstraint:
+            tableName: record
+            columnName: record_owner_id

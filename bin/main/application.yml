@@ -1,0 +1,14 @@
+server:
+  port: 8095
+
+spring:
+  data:
+    redis:
+      host: ${TL_REDIS_HOST:localhost}
+      port: ${TL_REDIS_PORT:6379}
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5599}/${DB_NAME:tl_back}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+springdoc.api-docs.enabled: true

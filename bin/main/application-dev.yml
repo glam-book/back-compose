@@ -1,0 +1,11 @@
+spring:
+  devtools:
+    livereload:
+      port: 35730
+logging:
+  group.r2dbc: "org.springframework.r2dbc,org.springframework.data.r2dbc,org.jooq"
+  level:
+    "org.springframework.cache": TRACE
+    "org.jooq.tools.LoggerListener": DEBUG
+    r2dbc: DEBUG
+    web: DEBUG
