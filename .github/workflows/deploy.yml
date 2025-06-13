@@ -34,6 +34,9 @@ jobs:
       - name: Write glam token to file
         run: echo "${{ secrets.GLAM_TG_BOT_TOKEN }}" > .credentials
 
+      - name: Check structure
+        run: ls -la
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
