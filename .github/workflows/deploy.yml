@@ -1,0 +1,62 @@
+name: Build and Deploy Java Backend via Docker
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Build with Gradle
+        run: gradle build
+
+      - name: Check repo name
+        run: echo "${{ github.repository }}"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write glam token to file
+        run: echo "${{ secrets.GLAM_BOT_TOKEN }}" > .credentials
+
+      - name: Docker Build with Gradle cache
+        run: |
+          docker build \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            -t ghcr.io/${{ github.repository }}:latest .
+
+      - name: Docker Push
+        run: docker push ghcr.io/${{ github.repository }}:latest
+
+      - name: Move buildx cache to new location
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/tl/back_deploy
+            docker compose pull
+            docker compose up -d --force-recreate

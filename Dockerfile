@@ -1,43 +1,46 @@
-# Use the GraalVM 21 base image
-FROM ghcr.io/graalvm/graalvm-community:21 as graalvm
+# ========== Stage 1: Build ==========
+FROM ghcr.io/graalvm/graalvm-community:21 as builder
 
-# Set environment variables
 ENV GRAALVM_HOME=/opt/graalvm-ce-java21
 ENV PATH="$GRAALVM_HOME/bin:$PATH"
 
-# Optional: Install native-image (if you plan to create native binaries)
-# RUN gu install native-image
-
-# Create a working directory
 WORKDIR /app
 
-# Copy Gradle build files
-COPY build.gradle settings.gradle /app/
+# Копируем gradle wrapper + зависимости
+COPY gradlew settings.gradle build.gradle gradle /app/
 
-# Copy the gradle wrapper to avoid needing to install gradle globally
-COPY gradlew /app/
-COPY gradle /app/gradle
+# Создаём папку для gradle-кеша
+RUN mkdir -p /home/gradle/.gradle && \
+    chmod -R 777 /home/gradle && \
+    chown -R root:root /home/gradle
 
-# Download dependencies (this step helps leverage Docker's cache)
-RUN ./gradlew --no-daemon dependencies
+ENV GRADLE_USER_HOME=/home/gradle/.gradle
 
-# Copy the entire project
+# Добавляем пустой .credentials (будет заменён при билде)
+COPY .credentials /app/.credentials
+
+# Кэшируем зависимости (если поменяется build.gradle — этот слой обновится)
+RUN ./gradlew --no-daemon dependencies || true
+
+# Копируем остальной код
 COPY . /app
 
-# Build the application using Gradle
+# Финальная сборка
 RUN ./gradlew --no-daemon build
 
-# Expose the port your application uses (change as needed)
+# ========== Stage 2: Run ==========
+FROM eclipse-temurin:21-jdk-alpine
+
+WORKDIR /app
+
+# Копируем собранный .jar
+COPY --from=builder /app/build/libs/*.jar /app/app.jar
+
+# Порт, который слушает приложение
 EXPOSE 8080
 
-# Копируем entrypoint.sh в контейнер
-COPY entrypoint.sh /app/entrypoint.sh
-
-# Задаем его как точку входа
-ENTRYPOINT ["/app/entrypoint.sh"]
-
-# Run the application (for standard JVM execution)
-CMD ["./gradlew", "bootRun"]
+# Запуск
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
 # Optional: native build
 #RUN ./gradlew nativeCompile
