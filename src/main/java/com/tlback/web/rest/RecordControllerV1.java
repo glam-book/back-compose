@@ -22,9 +22,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/v1/record")
+@RequestMapping("/v1/record")
 @RequiredArgsConstructor
-public class RecordController {
+public class RecordControllerV1 {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
 
