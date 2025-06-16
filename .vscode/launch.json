@@ -6,15 +6,7 @@
             "name": "TlbackApplication",
             "request": "launch",
             "mainClass": "com.tlback.TlbackApplication",
-            "args": "--spring.profiles.active=dev",
-            "projectName": "tl-back"
-        },
-        {
-            "type": "java",
-            "name": "TlbackApplication",
-            "request": "launch",
-            "mainClass": "com.tlback.TlbackApplication",
-            "args": "--spring.profiles.active=dev",
+            "args": "--spring.profiles.active=dev,no-auth",
             "projectName": "back-compose"
         }
     ]
