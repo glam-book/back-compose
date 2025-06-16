@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.tlback.abac.exception.ForbiddenException;
 import com.tlback.abac.exception.NotFoundException;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 @RestControllerAdvice
+@Hidden
 public class ExceptionAdvice {
 
     @ExceptionHandler(ForbiddenException.class)
