@@ -8,11 +8,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 
 @Configuration
-@OpenAPIDefinition(
-// 	servers = {
-// 		@Server(url = "${swagger.url}${server.servlet.context-path}", description = "Default Server URL")
-// }
-)
+@OpenAPIDefinition
 public class SwaggerConfig {
 
 	@Bean
