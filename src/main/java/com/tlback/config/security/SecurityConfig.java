@@ -36,6 +36,7 @@ public class SecurityConfig implements WebFluxConfigurer {
         return http.csrf(c -> c.disable())
                 .headers(c -> c.frameOptions(frame -> frame.disable()))
                 .requestCache(c -> c.disable())
+                .addFilterBefore(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(
                                 "/swagger",
@@ -46,7 +47,6 @@ public class SecurityConfig implements WebFluxConfigurer {
                                 "/webjars/**")
                         .permitAll()
                         .anyExchange().authenticated())
-                .addFilterBefore(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .httpBasic(c -> c.disable())
                 .formLogin(c -> c.disable())
                 .logout(c -> c.disable())

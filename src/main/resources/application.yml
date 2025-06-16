@@ -2,6 +2,7 @@ server:
   port: ${TL_SERVER_PORT:8095}
 
 spring:
+  webflux.base-path: /api
   data:
     redis:
       host: ${TL_REDIS_HOST:localhost}
@@ -11,7 +12,7 @@ spring:
     username: ${TL_DB_USER:postgres}
     password: ${TL_DB_PASSWORD:postgres}
 
-springdoc.api-docs.enabled: true
 springdoc:
+  api-docs.enabled: true
   swagger-ui:
     path: /swagger
