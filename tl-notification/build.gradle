@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.tlback'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Добавьте зависимости по мере необходимости
+}
