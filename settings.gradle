@@ -1,1 +1,3 @@
 rootProject.name = 'tl-back'
+
+include 'tl-core', 'tl-notification'
