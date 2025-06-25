@@ -1,0 +1,8 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation 'com.github.kshashov:spring-boot-starter-telegram:0.29'
+    implementation 'org.springframework.boot:spring-boot-starter'
+}

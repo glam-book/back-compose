@@ -1,9 +1,7 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
 	id 'nu.studer.jooq' version '9.0'
 	id 'org.liquibase.gradle' version '2.2.2'
+	id 'org.springframework.boot'
 }
 
 def jooqVer = '3.19.1'
@@ -21,16 +19,12 @@ configurations {
 }
 
 dependencies {
-	// exclude swagger annotation and use newer version due conflicts with avro serializer
-	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
+	implementation project(":tl-tg-bot")
 
 	// utils
 	implementation "org.mapstruct:mapstruct:${mapstructVer}"
 	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVer}"
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	implementation 'io.vavr:vavr:0.10.4'
 	// ---
 
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -42,6 +36,7 @@ dependencies {
 
 	// reactive stack w jooq
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-jooq'
 	implementation 'org.postgresql:r2dbc-postgresql'
@@ -69,7 +64,6 @@ dependencies {
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.2.Final:osx-aarch_64'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 
-    implementation project(':tl-notification')
 }
 
 def db_host = System.getenv('DB_HOST')
