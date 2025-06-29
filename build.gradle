@@ -4,56 +4,42 @@ plugins {
   	id 'eclipse'
 }
 
-allprojects {
-	apply plugin: 'java'
-	apply plugin: 'com.diffplug.eclipse.apt'
-	apply plugin: 'eclipse'
+group = 'com.tlback'
+version = '0.0.1-SNAPSHOT'
 
-	group = 'com.tlback'
-	version = '0.0.1-SNAPSHOT'
-
+subprojects {
     repositories {
         mavenCentral()
     }
 
-	java {
+    java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
-
-	dependencies {
-		compileOnly 'org.projectlombok:lombok:1.18.38'
-		annotationProcessor 'org.projectlombok:lombok:1.18.38'
-		implementation 'io.vavr:vavr:0.10.4'
-    }
-
-	eclipse {
-	   	project {
-	    	name = rootProject.name
-	  }
-	  jdt {
-		file {
-	      	withProperties { props ->
-	        	props['org.eclipse.jdt.core.compiler.codegen.methodParameters'] = 'generate'
-	      	}
-	    }
-	    apt {
-	      		genSrcDir = 'build/generated/sources/annotationProcessor/java/main'
-	      		genTestSrcDir = 'build/generated/sources/annotationProcessor/java/test'
-	      		reconcileEnabled = true
-	    	}
-	  	}
-	}
-}
-
-configurations {
-  compileOnly {
-    extendsFrom annotationProcessor
-  }
 }
 
 // Develop configs
 task generateEclipseConfig {
-  	dependsOn 'cleanEclipse', ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
+  	dependsOn ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
 }
+
+eclipse {
+   	project {
+    	name = rootProject.name
+  }
+  jdt {
+	file {
+      	withProperties { props ->
+        	props['org.eclipse.jdt.core.compiler.codegen.methodParameters'] = 'generate'
+      	}
+    }
+    apt {
+      		genSrcDir = 'build/generated/sources/annotationProcessor/java/main'
+      		genTestSrcDir = 'build/generated/sources/annotationProcessor/java/test'
+      		reconcileEnabled = true
+    	}
+  	}
+  	synchronizationTasks generateEclipseConfig
+}
+
