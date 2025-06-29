@@ -17,7 +17,6 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
-import com.tlback.core.config.AppArgs;
 import com.tlback.core.config.security.tg.TelegramAuthService;
 import com.tlback.core.config.security.tg.TelegramAuthServiceDev;
 
@@ -40,7 +39,6 @@ public class SecurityConfig implements WebFluxConfigurer {
                 .addFilterBefore(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(
-                                AppArgs.TG_WEB_HOOK_PATH,
                                 "/swagger",
                                 "/swagger/**",
                                 "/swagger-ui.html",
