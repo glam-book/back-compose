@@ -12,6 +12,9 @@ spring:
     username: ${TL_DB_USER:postgres}
     password: ${TL_DB_PASSWORD:postgres}
 
+app:
+  baseUrl: https://tl.ow-pk.ru
+
 springdoc:
   api-docs.enabled: true
   swagger-ui:

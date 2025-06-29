@@ -4,10 +4,8 @@ plugins {
 }
 
 dependencies {
-    // implementation group: 'org.telegram', name: 'telegrambots-abilities', version: '6.7.0'
-    // implementation group: 'org.telegram', name: 'telegrambots-spring-boot-starter', version: '6.7.0'
+    implementation "org.telegram:telegrambots-webhook:6.7.0"
+    implementation "org.telegram:telegrambots-client:6.7.0"
+    implementation "org.telegram:telegrambots-extensions:6.7.0"
     implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'com.github.kshashov:spring-boot-starter-telegram:0.29'
-    implementation 'org.eclipse.jetty:jetty-server:9.4.53.v20231009'
-    implementation 'org.eclipse.jetty:jetty-util:9.4.53.v20231009'
 }

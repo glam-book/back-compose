@@ -11,6 +11,8 @@ def liquibaseVer = '4.17.0'
 def snakeYmlVer = '1.33'
 
 dependencies {
+	implementation project (':tl-tg-bot')
+
 	// utils
 	implementation "org.mapstruct:mapstruct:${mapstructVer}"
 	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVer}"

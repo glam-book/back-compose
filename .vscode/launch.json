@@ -5,14 +5,7 @@
             "type": "java",
             "name": "TgBotApp",
             "request": "launch",
-            "mainClass": "com.tlback.tg.bot.TgBotApp"
-        },
-        {
-            "type": "java",
-            "name": "TgBotApp",
-            "request": "launch",
             "mainClass": "com.tlback.tg.bot.TgBotApp",
-            "projectName": "tl-tg-bot",
             "envFile": "${workspaceFolder}/.env"
         },
         {
