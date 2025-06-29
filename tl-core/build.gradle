@@ -122,5 +122,5 @@ tasks.named('test') {
 }
 
 bootJar {
-	mainClass = 'com.tlback.core.TlbackApplication'
+	mainClassName = 'com.tlback.core.TlbackApplication'
 }
