@@ -13,7 +13,7 @@ spring:
     password: ${TL_DB_PASSWORD:postgres}
 
 app:
-  baseUrl: https://tl.ow-pk.ru
+  baseUrl: https://tl.ow-pk.ru/api
 
 springdoc:
   api-docs.enabled: true
