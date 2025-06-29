@@ -8,4 +8,5 @@ import com.tlback.tg.bot.TgBotConfiguration;
 @Configuration
 @Import(TgBotConfiguration.class)
 public class TelegramBotConfig {
+    
 }

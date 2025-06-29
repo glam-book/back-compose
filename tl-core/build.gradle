@@ -59,11 +59,11 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-def db_host = System.getenv('DB_HOST')
-def db_port = System.getenv('DB_PORT')
-def db_user = System.getenv('DB_USER')
-def db_pass = System.getenv('DB_PASSWORD')
-def db_name = System.getenv('DB_NAME')
+def db_host = System.getenv('TL_DB_HOST')
+def db_port = System.getenv('TL_DB_PORT')
+def db_user = System.getenv('TL_DB_USER')
+def db_pass = System.getenv('TL_DB_PASSWORD')
+def db_name = System.getenv('TL_DB_NAME')
 
 def psql_url = "jdbc:postgresql://${db_host}:${db_port}/${db_name}?currentSchema=public"
 def psql_pswrd = "${db_pass}"

@@ -26,7 +26,7 @@ ARG GLAM_TG_BOT_TOKEN  # Добавляем ARG для использовани�
 ENV GLAM_TG_BOT_TOKEN=$GLAM_TG_BOT_TOKEN
 
 # Финальная сборка
-RUN ./gradlew --no-daemon build
+RUN ./gradlew --no-daemon bootJar
 
 # ========== Stage 2: Run ==========
 FROM eclipse-temurin:21-jdk-alpine

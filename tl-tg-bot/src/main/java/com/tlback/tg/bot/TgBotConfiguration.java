@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import lombok.extern.slf4j.Slf4j;
@@ -27,23 +26,26 @@ public class TgBotConfiguration {
 	}
 
 	@Bean
-	TgBotInitializer botInitializer(TgGlamBot bot) {
-		return new TgBotInitializer(bot, appBaseUrl + AppArgs.TG_WEB_HOOK_PATH);
+	TgGlamLongPolingBot longPolingBot() {
+		return new TgGlamLongPolingBot(botToken);
+	}
+
+	@Bean
+	TgBotInitializer botInitializer(TgGlamLongPolingBot bot) {
+		return new TgBotInitializer(bot);
 	}
 
 	public static class TgBotInitializer {
-		private final TgGlamBot bot;
-		private final String url;
+		private final TgGlamLongPolingBot bot;
 
-		public TgBotInitializer(TgGlamBot bot, String url) {
+		public TgBotInitializer(TgGlamLongPolingBot bot) {
 			this.bot = bot;
-			this.url = url;
 		}
 
 		@EventListener(ContextRefreshedEvent.class)
 		public void init() throws Exception {
 			var botApis = new TelegramBotsApi(DefaultBotSession.class);
-			botApis.registerBot(bot, new SetWebhook(url));
+			botApis.registerBot(bot);
 		}
 	}
 }
