@@ -48,12 +48,13 @@ allprojects {
 	    	}
 	  	}
 	}
-}
 
-configurations {
-  compileOnly {
-    extendsFrom annotationProcessor
-  }
+	configurations {
+	  compileOnly {
+	    extendsFrom annotationProcessor
+	  }
+	}
+
 }
 
 var tlcore = project(":tl-core")
@@ -70,6 +71,6 @@ task generateEclipseConfig {
   	dependsOn 'cleanEclipse', ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
 }
 
-tasks.getByName "bootJar", {
-    enabled = false
+bootJar {
+	mainClass = 'com.tlback.core.TlbackApplication'
 }
