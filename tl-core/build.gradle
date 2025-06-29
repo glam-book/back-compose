@@ -120,3 +120,7 @@ jooq {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootJar {
+	mainClassName = 'com.tlback.core.TlbackApplication'
+}
