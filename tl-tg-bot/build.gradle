@@ -1,0 +1,7 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api 'org.telegram:telegrambots-spring-boot-starter:6.9.7.1'
+}

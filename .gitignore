@@ -13,6 +13,8 @@ build/
 .settings
 .springBeans
 .sts4-cache
+.gigaide
+
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
@@ -36,3 +38,4 @@ out/
 *.log
 *.error
 .DS_store
+.env

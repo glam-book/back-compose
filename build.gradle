@@ -2,44 +2,74 @@ plugins {
 	id 'java'
 	id 'com.diffplug.eclipse.apt' version '4.3.0'
   	id 'eclipse'
+
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.springframework.boot' version '3.4.1'
 }
 
-group = 'com.tlback'
-version = '0.0.1-SNAPSHOT'
+allprojects {
+	apply plugin: 'java'
+	apply plugin: 'com.diffplug.eclipse.apt'
+	apply plugin: 'eclipse'
 
-subprojects {
+	group = 'com.tlback'
+	version = '0.0.1-SNAPSHOT'
+
     repositories {
         mavenCentral()
     }
 
-    java {
+	java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
+
+	dependencies {
+		compileOnly 'org.projectlombok:lombok:1.18.38'
+		annotationProcessor 'org.projectlombok:lombok:1.18.38'
+		implementation 'io.vavr:vavr:0.10.4'
+    }
+
+	eclipse {
+	   	project {
+	    	name = rootProject.name
+	  }
+	  jdt {
+		file {
+	      	withProperties { props ->
+	        	props['org.eclipse.jdt.core.compiler.codegen.methodParameters'] = 'generate'
+	      	}
+	    }
+	    apt {
+	      		genSrcDir = 'build/generated/sources/annotationProcessor/java/main'
+	      		genTestSrcDir = 'build/generated/sources/annotationProcessor/java/test'
+	      		reconcileEnabled = true
+	    	}
+	  	}
+	}
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+var tlcore = project(":tl-core")
+var tltg = project(":tl-tg-bot")
+
+configure tlcore, {
+	dependencies {
+		implementation tltg
+	}
 }
 
 // Develop configs
 task generateEclipseConfig {
-  	dependsOn ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
+  	dependsOn 'cleanEclipse', ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
 }
 
-eclipse {
-   	project {
-    	name = rootProject.name
-  }
-  jdt {
-	file {
-      	withProperties { props ->
-        	props['org.eclipse.jdt.core.compiler.codegen.methodParameters'] = 'generate'
-      	}
-    }
-    apt {
-      		genSrcDir = 'build/generated/sources/annotationProcessor/java/main'
-      		genTestSrcDir = 'build/generated/sources/annotationProcessor/java/test'
-      		reconcileEnabled = true
-    	}
-  	}
-  	synchronizationTasks generateEclipseConfig
+tasks.getByName "bootJar", {
+    enabled = false
 }
-
