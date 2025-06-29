@@ -70,7 +70,3 @@ configure tlcore, {
 task generateEclipseConfig {
   	dependsOn 'cleanEclipse', ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
 }
-
-bootJar {
-	mainClass = 'com.tlback.core.TlbackApplication'
-}
