@@ -1,28 +1,35 @@
 package com.tlback.tg.bot;
 
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import com.github.kshashov.telegram.config.TelegramBotGlobalPropertiesConfiguration;
-import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SetWebhook;
 
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+
+@Slf4j
+@Configuration
 public class TgBotConfiguration {
+        private static final String WEBHOOK_URL = "https://tl.ow-pk.ru";
 
-    private static final String BOT_TOKEN = "123456789:ABC-DEF...";
-    private static final String BOT_USERNAME = "MyManualWebhookBot";
-    private static final String WEBHOOK_URL = "https://your.domain.com/telegram";
+        @Value("${GLAM_TG_BOT_TOKEN}")
+        private String token;
 
-    @Bean
-    public TelegramBot telegramBot() {
-        return new TelegramBot(BOT_TOKEN);
-    }
+        @Bean
+        public TelegramBotGlobalPropertiesConfiguration configure() {
+                log.info("::::::: {}", token);
+                var okHttp = new OkHttpClient.Builder()
+                                .connectTimeout(12, TimeUnit.SECONDS)
+                                .build();
 
-    @Bean
-    TelegramBotGlobalPropertiesConfiguration configuration() {
-        return builder -> builder
-            .configureBot(BOT_TOKEN, 
-                botBuilder -> botBuilder
-                    .useWebhook(new SetWebhook().url(WEBHOOK_URL)));
-    }
-
+                return builder -> builder
+                                .configureBot(token, botBuilder -> botBuilder
+                                                .useWebhook(new SetWebhook().url(WEBHOOK_URL))
+                                                .configure(builder1 -> builder1.okHttpClient(okHttp)));
+        }
 }

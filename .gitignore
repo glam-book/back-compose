@@ -36,3 +36,4 @@ out/
 *.log
 *.error
 .DS_store
+.env

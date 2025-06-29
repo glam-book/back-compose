@@ -1,7 +1,8 @@
 plugins {
 	id 'nu.studer.jooq' version '9.0'
 	id 'org.liquibase.gradle' version '2.2.2'
-	id 'org.springframework.boot'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.springframework.boot' version '3.4.1'
 }
 
 def jooqVer = '3.19.1'
@@ -9,18 +10,7 @@ def mapstructVer = '1.6.3'
 def liquibaseVer = '4.17.0'
 def snakeYmlVer = '1.33'
 
-group = 'com.tlback'
-version = '0.0.1-SNAPSHOT'
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
 dependencies {
-	implementation project(":tl-tg-bot")
-
 	// utils
 	implementation "org.mapstruct:mapstruct:${mapstructVer}"
 	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVer}"
@@ -64,6 +54,7 @@ dependencies {
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.2.Final:osx-aarch_64'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 def db_host = System.getenv('DB_HOST')
