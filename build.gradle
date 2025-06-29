@@ -2,6 +2,9 @@ plugins {
 	id 'java'
 	id 'com.diffplug.eclipse.apt' version '4.3.0'
   	id 'eclipse'
+
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.springframework.boot' version '3.4.1'
 }
 
 allprojects {
@@ -53,7 +56,20 @@ configurations {
   }
 }
 
+var tlcore = project(":tl-core")
+var tltg = project(":tl-tg-bot")
+
+configure tlcore, {
+	dependencies {
+		implementation tltg
+	}
+}
+
 // Develop configs
 task generateEclipseConfig {
   	dependsOn 'cleanEclipse', ':tl-core:generateJooq', 'eclipse', 'eclipseJdt', 'eclipseJdtApt'
+}
+
+tasks.getByName "bootJar", {
+    enabled = false
 }
