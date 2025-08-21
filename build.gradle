@@ -1,23 +1,17 @@
 plugins {
-	id 'java'
 	id 'com.diffplug.eclipse.apt' version '4.3.0'
   	id 'eclipse'
 
+	id 'java'
 	id 'org.springframework.boot' version '3.4.1' apply false
-	id 'io.spring.dependency-management' version '1.1.7'
+	id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
-allprojects {
+subprojects {
 	apply plugin: 'java'
-	apply plugin: 'com.diffplug.eclipse.apt'
-	apply plugin: 'eclipse'
 
 	group = 'com.tlback'
 	version = '0.0.1-SNAPSHOT'
-
-    repositories {
-        mavenCentral()
-    }
 
 	java {
         toolchain {
@@ -29,6 +23,21 @@ allprojects {
 		compileOnly 'org.projectlombok:lombok:1.18.38'
 		annotationProcessor 'org.projectlombok:lombok:1.18.38'
 		implementation 'io.vavr:vavr:0.10.4'
+    }
+
+	configurations {
+	  compileOnly {
+	    extendsFrom annotationProcessor
+	  }
+	}
+}
+
+allprojects {
+	apply plugin: 'com.diffplug.eclipse.apt'
+	apply plugin: 'eclipse'
+
+    repositories {
+        mavenCentral()
     }
 
 	eclipse {
@@ -48,13 +57,6 @@ allprojects {
 	    	}
 	  	}
 	}
-
-	configurations {
-	  compileOnly {
-	    extendsFrom annotationProcessor
-	  }
-	}
-
 }
 
 var tlcore = project(":tl-core")
