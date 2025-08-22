@@ -1,7 +1,6 @@
 package com.tlback.tg.bot;
 
-import org.telegram.telegrambots.bots.TelegramWebhookBot;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -9,28 +8,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TgGlamBot extends TelegramWebhookBot implements NotificationApi {
-    private final String webHookPath;
+public class TgGlamBot extends TelegramLongPollingBot implements NotificationApi {
 
-    public TgGlamBot(String token, String webHookPath) {
+    public TgGlamBot(String token) {
         super(token);
-        this.webHookPath = webHookPath;
-    }
-
-    @Override
-    public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-        // Пример простой реализации: отправить приветственное сообщение в ответ на
-        // любое обновление
-        if (update.getMessage() != null && update.getMessage().getChatId() != null) {
-            return new SendMessage(update.getMessage().getChatId().toString(), "Hello from Glam Bot!");
-        }
-        return null;
-    }
-
-    // Возвращаем путь вебхука
-    @Override
-    public String getBotPath() {
-        return webHookPath;
     }
 
     @Override
@@ -46,6 +27,12 @@ public class TgGlamBot extends TelegramWebhookBot implements NotificationApi {
         } catch (TelegramApiException e) {
             log.error("Error sending message to chatId: {}", chatId, e);
         }
+    }
+
+    @Override
+    public void onUpdateReceived(Update update) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'onUpdateReceived'");
     }
 
 }
