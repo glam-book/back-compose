@@ -7,11 +7,11 @@ services:
       - "8095:8095"
     environment:
       - SWAGGER_URL=https://owpk.ru
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-tl_back}
+      - TL_DB_HOST=db
+      - TL_DB_PORT=5432
+      - TL_DB_USER=${DB_USER:-postgres}
+      - TL_DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - TL_DB_NAME=${DB_NAME:-tl_back}
     depends_on:
       - db
     networks:
