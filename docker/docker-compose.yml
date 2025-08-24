@@ -9,9 +9,9 @@ services:
       - SWAGGER_URL=https://owpk.ru
       - TL_DB_HOST=db
       - TL_DB_PORT=5432
-      - TL_DB_USER=${DB_USER:-postgres}
-      - TL_DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - TL_DB_NAME=${DB_NAME:-tl_back}
+      - TL_DB_USER=${TL_DB_USER:-postgres}
+      - TL_DB_PASSWORD=${TL_DB_PASSWORD:-postgres}
+      - TL_DB_NAME=${TL_DB_NAME:-tl_back}
     depends_on:
       - db
     networks:
@@ -20,9 +20,9 @@ services:
   db:
     image: postgres:17
     environment:
-      - POSTGRES_DB=${DB_NAME:-tl_back}
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${TL_DB_NAME:-tl_back}
+      - POSTGRES_USER=${TL_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${TL_DB_PASSWORD:-postgres}
     ports:
       - 5599:5432
     networks:
