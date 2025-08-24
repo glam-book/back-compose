@@ -3,19 +3,18 @@
     "configurations": [
         {
             "type": "java",
-            "name": "TgBotApp",
+            "name": "TlbackApplication",
             "request": "launch",
-            "mainClass": "com.tlback.tg.bot.TgBotApp",
-            "envFile": "${workspaceFolder}/.env"
+            "mainClass": "com.tlback.core.TlbackApplication"
         },
         {
             "type": "java",
             "name": "TlbackApplication",
             "request": "launch",
             "mainClass": "com.tlback.core.TlbackApplication",
-            "args": "--spring.profiles.active=dev",
-            "projectName": "tl-core",
-            "envFile": "${workspaceFolder}/.env"
+            "projectName": "back-compose",
+            "envFile": "${workspaceFolder}/.env",
+            "args": "--spring.profiles.active=dev"
         }
     ]
 }

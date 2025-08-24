@@ -1,4 +1,4 @@
-package com.tlback.core.web.mapper;
+package com.tlback.core.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
