@@ -20,9 +20,9 @@ services:
     image: postgres:latest
     container_name: tldb_container
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${TL_DB_USER}
+      POSTGRES_PASSWORD: ${TL_DB_PASSWORD}
+      POSTGRES_DB: ${TL_DB_NAME}
     ports:
       - "5599:5432"
     volumes:

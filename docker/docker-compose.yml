@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    name: tl_backend
     ports:
       - "8095:8095"
     environment:
@@ -19,6 +20,7 @@ services:
 
   db:
     image: postgres:17
+    name: tl_db
     environment:
       - POSTGRES_DB=${TL_DB_NAME:-tl_back}
       - POSTGRES_USER=${TL_DB_USER:-postgres}
