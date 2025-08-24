@@ -40,3 +40,4 @@ out/
 *.error
 .DS_store
 .env
+*.env

@@ -4,19 +4,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.core.abac.AbacService;
 import com.tlback.core.common.daofilter.RecordFilter;
-import com.tlback.core.config.CacheConfig;
 import com.tlback.core.dao.jooq.JooqRecordRepository;
 import com.tlback.core.model.RecordEntity;
+import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
-import com.tlback.core.tools.ZoneOffsetTools;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -44,7 +42,7 @@ public class RecordService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    @Cacheable(value = CacheConfig.RECORD_CACHE_NAME, key = "{#userId, #date}")
+    // @Cacheable(value = CacheConfig.RECORD_CACHE_NAME, key = "{#userId, #date}")
     public Flux<RecordEntity> getRecordsWithPendingsAndServiceByUserdId(Long userId, LocalDate date) {
         var fromDate = date.atStartOfDay();
         var toDate = date.plusDays(1).atStartOfDay();
@@ -69,7 +67,7 @@ public class RecordService {
                 .map(recId -> abac.canModifyRecord(userId, recId)
                         // TODO block hooligan user
                         .flatMap(abacResult -> abacResult.mapResult(
-                                () -> recordRepository.update(mapToRecord(cmd, recId, userId), joinService), 
+                                () -> recordRepository.update(mapToRecord(cmd, recId, userId), joinService),
                                 Mono::error)))
                 // or else create new one
                 .orElseGet(() -> recordRepository.save(mapToRecord(cmd, userId, userId), joinService)));
