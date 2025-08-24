@@ -1,4 +1,4 @@
-package com.tlback.core.web.mapper;
+package com.tlback.core.mapper;
 
 import java.util.SortedSet;
 import java.util.TreeSet;

@@ -207,8 +207,10 @@ public class JooqRecordRepository {
     public Mono<RecordEntity> update(RecordRecord record, JoinModule... joinModules) {
         // Обновляем запись по ID, возвращаем обновлённую сущность с нужными join-ами
         var update = dsl.update(recordTable)
-                .set(recordTable.SERVICE_INFO_ID, DSL.coalesce(DSL.val(record.getServiceInfoId()), recordTable.SERVICE_INFO_ID))
-                .set(recordTable.RECORD_OWNER_ID, DSL.coalesce(DSL.val(record.getRecordOwnerId()), recordTable.RECORD_OWNER_ID))
+                .set(recordTable.SERVICE_INFO_ID,
+                        DSL.coalesce(DSL.val(record.getServiceInfoId()), recordTable.SERVICE_INFO_ID))
+                .set(recordTable.RECORD_OWNER_ID,
+                        DSL.coalesce(DSL.val(record.getRecordOwnerId()), recordTable.RECORD_OWNER_ID))
                 .set(recordTable.IS_PUBLIC, DSL.coalesce(DSL.val(record.getIsPublic()), recordTable.IS_PUBLIC))
                 .set(recordTable.TZ, DSL.coalesce(DSL.val(record.getTz()), recordTable.TZ))
                 .set(recordTable.TS_FROM, DSL.coalesce(DSL.val(record.getTsFrom()), recordTable.TS_FROM))
