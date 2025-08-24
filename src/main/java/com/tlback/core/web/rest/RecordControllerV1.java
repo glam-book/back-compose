@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,11 +29,13 @@ public class RecordControllerV1 {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
 
-    @GetMapping
-    public Flux<RecordPendingsServiceResponsePreviewDto> entity(UserData userDetail, @RequestParam LocalDate date) {
+    @GetMapping("/list/{userId}")
+    public Flux<RecordPendingsServiceResponsePreviewDto> list(UserData userDetail,
+            @PathVariable Long userId, @RequestParam LocalDate date) {
         var details = userDetail.getDetails();
-        return recordService.getRecordsWithPendingsAndServiceByUserdId(details.getId(), date)
-                .map(recordMapper::toDto);
+        var isOwner = details.getId().equals(userId);
+        return recordService.getRecordsWithPendingsAndServiceByUserdId(userId, date)
+                .map(it -> recordMapper.toDto(it, isOwner));
     }
 
     @PostMapping

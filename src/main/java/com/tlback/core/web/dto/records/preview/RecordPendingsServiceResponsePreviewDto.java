@@ -2,7 +2,6 @@ package com.tlback.core.web.dto.records.preview;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tlback.core.web.dto.service.preview.ServicePreviewDto;
 
 import lombok.AllArgsConstructor;
@@ -14,17 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RecordPendingsServiceResponsePreviewDto {
     private Long id;
-
-    @JsonProperty(value = "service_info")
+    private boolean isOwner;
     private ServicePreviewDto serviceInfo;
-
-    @JsonProperty(value = "ts_from")
     private LocalDateTime tsFrom;
-
-    @JsonProperty(value = "ts_to")
     private LocalDateTime tsTo;
-
-    @JsonProperty(value = "pendings")
     private RecordPendingPreviewDto recordPendings;
-
 }

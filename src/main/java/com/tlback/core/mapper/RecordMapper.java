@@ -25,7 +25,10 @@ public abstract class RecordMapper {
     @Mapping(target = "tsTo", qualifiedByName = "toLocalDateTime")
     @Mapping(target = "recordPendings", source = "entity", qualifiedByName = "pendingsToPreview")
     @Mapping(target = "serviceInfo", qualifiedByName = "map")
-    public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, @Context ZoneOffset offset);
+    @Mapping(target = "owner", source = "isOwner")
+    public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity,
+            @Context ZoneOffset offset,
+            boolean isOwner);
 
     @Named("toLocalDateTime")
     public LocalDateTime map(OffsetDateTime timestamp, @Nullable @Context ZoneOffset offset) {
@@ -54,8 +57,8 @@ public abstract class RecordMapper {
     }
 
     @Mapping(target = "tsFrom", qualifiedByName = "toLocalDateTime")
-    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity) {
-        return toDto(entity, null);
+    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, boolean isOwner) {
+        return toDto(entity, null, isOwner);
     }
 
     @Mapping(target = "serviceInfoId", source = "serviceInfo.id")

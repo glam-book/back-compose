@@ -2,8 +2,6 @@ package com.tlback.core.web.dto.records;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,16 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RecordPendingDto implements Comparable<RecordPendingDto> {
 
-    @JsonProperty(value = "requester_id")
     private Long requesterId;
-
-    @JsonProperty(value = "requester_login")
     private String requesterLogin;
-
-    @JsonProperty(value = "request_time")
     private LocalDateTime requestTime;
-
-    @JsonProperty(value = "confirmed")
     private Boolean confirmed;
 
     @Override
