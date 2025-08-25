@@ -67,10 +67,11 @@ public class RecordService {
                 .map(recId -> abac.canModifyRecord(userId, recId)
                         // TODO block hooligan user
                         .flatMap(abacResult -> abacResult.mapResult(
-                                () -> recordRepository.update(mapToRecord(cmd, recId, userId), joinService),
+                                () -> recordRepository.update(mapToRecord(cmd, serviceMono.getId(), userId),
+                                        joinService),
                                 Mono::error)))
                 // or else create new one
-                .orElseGet(() -> recordRepository.save(mapToRecord(cmd, userId, userId), joinService)));
+                .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), joinService)));
     }
 
     private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long serviceId, Long userId) {
