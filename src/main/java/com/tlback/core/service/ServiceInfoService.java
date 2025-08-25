@@ -10,11 +10,13 @@ import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ServiceInfoService {
     private final JooqServiceInfoRepository jooqServiceInfoRepository;
     private final AbacService abac;
@@ -25,6 +27,8 @@ public class ServiceInfoService {
     }
 
     public Mono<ServiceInfoRecord> saveOrUpdate(OptionalServiceInfoDto dto, Long userId) {
+        log.info("Save or update service request: {}", dto.toString());
+
         return dto.getId()
         //@formatter:off
             .map(id -> abac.canUseService(userId, id)

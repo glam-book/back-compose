@@ -48,6 +48,6 @@ public class RecordControllerV1 {
                 .map(it -> {
                     System.out.println("Saved record: " + it.toString());
                     return recordMapper.toPreviewResponse(it);
-                });
+                }).log();
     }
 }
