@@ -42,9 +42,12 @@ public class RecordControllerV1 {
     public Mono<RecordPreviewResponse> createRecord(
             @RequestBody OptionalRecordCreateOrUpdateRequest request,
             @AuthenticationPrincipal UserData userData) {
-
+        System.out.println("Save or update request: " + request.toString());
         var owner = userData.getDetails().getId();
         return recordService.saveOrUpdate(request, owner)
-                .map(recordMapper::toPreviewResponse);
+                .map(it -> {
+                    System.out.println("Saved record: " + it.toString());
+                    return recordMapper.toPreviewResponse(it);
+                });
     }
 }
