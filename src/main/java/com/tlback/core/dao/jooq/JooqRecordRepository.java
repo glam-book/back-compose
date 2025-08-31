@@ -238,4 +238,10 @@ public class JooqRecordRepository {
                 .map(r -> r.get(recordTable.ID))
                 .flatMap(id -> findById(id, joinModules));
     }
+
+    public Mono<Boolean> delete(Long id) {
+        var deleteSql = dsl.delete(recordTable)
+            .where(recordTable.ID.eq(id));
+        return Mono.from(deleteSql).map(it -> it != 0);
+    }
 }

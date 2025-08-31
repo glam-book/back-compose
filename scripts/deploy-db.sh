@@ -23,4 +23,6 @@ docker run --name $CONTAINER \
     -e POSTGRES_DB=$TL_DB_NAME \
     -d --rm postgres:17
 
+sleep 3
+
 ./gradlew update
