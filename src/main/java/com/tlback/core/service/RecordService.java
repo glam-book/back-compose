@@ -74,6 +74,12 @@ public class RecordService {
                 .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), joinService)));
     }
 
+    @Transactional
+    public Mono<Boolean> deleteCascadeWithPendings(Long id, Long owner) {
+        return abac.canModifyRecord(owner, id)
+                .flatMap(abacResult -> recordRepository.delete(id));
+    }
+
     private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long serviceId, Long userId) {
         var newRecord = new RecordRecord();
         cmd.getId().ifPresent(newRecord::setId);
@@ -85,4 +91,5 @@ public class RecordService {
         newRecord.setRecordOwnerId(userId);
         return newRecord;
     }
+
 }

@@ -226,3 +226,17 @@ databaseChangeLog:
              baseColumnNames: client_id
              referencedTableName: domain_user
              referencedColumnNames: id
+  - changeSet:
+      id: make-record-pending-cascade
+      author: owpk
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: record_pending
+            constraintName: "fk_record_pending_record_id"
+        - addForeignKeyConstraint:
+            constraintName: "fk_record_pending_record_id"
+            baseTableName: record_pending
+            baseColumnNames: record_id
+            referencedTableName: record
+            referencedColumnNames: id
+            onDelete: CASCADE

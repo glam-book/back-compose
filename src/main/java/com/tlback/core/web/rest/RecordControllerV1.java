@@ -3,6 +3,7 @@ package com.tlback.core.web.rest;
 import java.time.LocalDate;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tlback.core.config.security.UserData;
 import com.tlback.core.mapper.RecordMapper;
 import com.tlback.core.service.RecordService;
+import com.tlback.core.web.dto.records.DeleteSuccess;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.core.web.dto.records.RecordPreviewResponse;
 import com.tlback.core.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
@@ -49,5 +51,14 @@ public class RecordControllerV1 {
                     System.out.println("Saved record: " + it.toString());
                     return recordMapper.toPreviewResponse(it);
                 });
+    }
+
+    @DeleteMapping("/{id}")
+    public Mono<DeleteSuccess> deleteRecord(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserData userData) {
+        var owner = userData.getDetails().getId();
+        var result = recordService.deleteCascadeWithPendings(id, owner);
+        return result.map(it -> new DeleteSuccess(it));
     }
 }
