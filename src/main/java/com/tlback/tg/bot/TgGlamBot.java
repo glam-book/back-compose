@@ -1,35 +1,40 @@
 package com.tlback.tg.bot;
 
+import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+
+import com.tlback.tg.balancer.TelegramClientBalanced;
+import com.tlback.tg.handlers.TgMessageHandler;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TgGlamBot {
-    // extends TelegramLongPollingBot implements NotificationApi {
+@RequiredArgsConstructor
+public class TgGlamBot implements LongPollingSingleThreadUpdateConsumer, NotificationApi {
 
-    // public TgGlamBot(String token) {
-    // super(token);
-    // }
+    private final TelegramClientBalanced telegramClient;
+    private final TgMessageHandler messageHandler;
 
-    // @Override
-    // public String getBotUsername() {
-    // return "Glam Bot";
-    // }
+    @Override
+    public void sendNotification(String chatId, String message) {
+        var msg = new SendMessage(chatId, message);
+        telegramClient.execute(msg);
+    }
 
-    // @Override
-    // public void sendNotification(String chatId, String message) {
-    // var msg = new SendMessage(chatId, message);
-    // try {
-    // super.execute(msg);
-    // } catch (TelegramApiException e) {
-    // log.error("Error sending message to chatId: {}", chatId, e);
-    // }
-    // }
+    @Override
+    public void consume(Update update) {
+        log.info("Accepting telegram update...");
+        if (update.hasMessage()) {
+            var msg = update.getMessage();
 
-    // @Override
-    // public void onUpdateReceived(Update update) {
-    // // TODO Auto-generated method stub
-    // throw new UnsupportedOperationException("Unimplemented method
-    // 'onUpdateReceived'");
-    // }
+            if (msg != null) {
+                var result = messageHandler.onMessage(msg);
+                result.stream()
+                        .forEach(it -> telegramClient.execute(it));
+            }
+        }
+    }
 
 }
