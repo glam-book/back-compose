@@ -42,7 +42,7 @@ public class JooqRecordRepository {
     public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch.join(serviceInfoTable)
             .on(recordTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
 
-    public static final JoinModule JOIN_RECORD_PENDINGS = mainFetch -> mainFetch.join(recordPendingTable)
+    public static final JoinModule JOIN_RECORD_PENDINGS = mainFetch -> mainFetch.leftJoin(recordPendingTable)
             .on(recordTable.ID.eq(recordPendingTable.RECORD_ID));
 
     public static final JoinModule JOIN_RECORD_PENDING_USER_INFO = mainFetch -> mainFetch.join(userTable)
