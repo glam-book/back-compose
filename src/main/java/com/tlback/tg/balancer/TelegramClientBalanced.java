@@ -10,8 +10,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
@@ -26,7 +27,7 @@ public class TelegramClientBalanced {
     private final LinkedBlockingQueue<Runnable> buffer = new LinkedBlockingQueue<>();
     private final ExecutorService executor = Executors.newFixedThreadPool(30);
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
+    private final Consumer<TelegramApiException> defaultErrorHandler = e -> log.error("Telegram api exception: ", e);
     private final TelegramClient tgClient;
 
     @PostConstruct
@@ -47,7 +48,25 @@ public class TelegramClientBalanced {
         }, 0, 1, TimeUnit.SECONDS);
     }
 
-    public <T extends Serializable> void execute(BotApiMethod<T> method,
+    public void executeGeneric(SendPhoto photo,
+            Consumer<TelegramApiException> tgErrorConsumer, 
+            Consumer<Message> responseConsumer) {
+        Runnable runnable = () -> {
+            try {
+                var rs = tgClient.execute(photo);
+                responseConsumer.accept(rs);
+            } catch (TelegramApiException e) {
+                tgErrorConsumer.accept(e);
+            }
+        };
+        buffer.offer(runnable);
+    }
+
+    public void executeGeneric(SendPhoto photo) {
+        this.executeGeneric(photo, defaultErrorHandler, r -> {});
+    }
+
+    public <T extends Serializable, Method extends BotApiMethod<T>> void executeGeneric(Method method,
             Consumer<TelegramApiException> tgErrorConsumer,
             Consumer<T> responseHandler) {
         Runnable runnable = () -> {
@@ -58,11 +77,10 @@ public class TelegramClientBalanced {
                 tgErrorConsumer.accept(e);
             }
         };
-
         buffer.offer(runnable);
     }
 
-    public <T extends Serializable> void execute(BotApiMethod<T> method) {
-        this.execute(method, e -> {}, r -> {});
+    public <T extends Serializable, Method extends BotApiMethod<T>> void executeGeneric(Method method) {
+        this.executeGeneric(method, defaultErrorHandler, r -> {});
     }
 }

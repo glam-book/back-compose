@@ -6,6 +6,8 @@ import java.util.Map;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
+import com.tlback.tg.balancer.TelegramClientBalanced;
+
 public abstract class TgAbsMessageHandler implements TgMessageHandler {
     private Map<String, CommandHandler> commandHandler;
 
@@ -24,21 +26,20 @@ public abstract class TgAbsMessageHandler implements TgMessageHandler {
     protected abstract Map<String, CommandHandler> registerCommandHandlers();
 
     @Override
-    public List<SendMessage> onMessage(Message msg) {
+    public void onMessage(Message msg, TelegramClientBalanced tgClient) {
         if (msg.hasText()) {
             var chatId = msg.getChatId().toString();
             var txt = msg.getText();
             if (txt.startsWith("/")) {
                 var commandHandler = this.commandHandler.get(txt);
-                if (commandHandler != null)
-                    return commandHandler.handle(msg);
+                // if (commandHandler != null)
+                    // return commandHandler.handle(msg);
             } else {
-                return handleSimpleText(txt, chatId);
+                handleSimpleText(txt, chatId, tgClient);
             }
         }
-        return List.of();
     }
 
-    protected abstract List<SendMessage> handleSimpleText(String txt, String chatId);
+    protected abstract void handleSimpleText(String txt, String chatId, TelegramClientBalanced tgClient);
 
 }

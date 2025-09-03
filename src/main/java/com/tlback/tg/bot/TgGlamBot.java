@@ -20,7 +20,7 @@ public class TgGlamBot implements LongPollingSingleThreadUpdateConsumer, Notific
     @Override
     public void sendNotification(String chatId, String message) {
         var msg = new SendMessage(chatId, message);
-        telegramClient.execute(msg);
+        telegramClient.executeGeneric(msg);
     }
 
     @Override
@@ -30,9 +30,7 @@ public class TgGlamBot implements LongPollingSingleThreadUpdateConsumer, Notific
             var msg = update.getMessage();
 
             if (msg != null) {
-                var result = messageHandler.onMessage(msg);
-                result.stream()
-                        .forEach(it -> telegramClient.execute(it));
+                messageHandler.onMessage(msg, telegramClient);
             }
         }
     }

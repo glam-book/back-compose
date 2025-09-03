@@ -1,11 +1,25 @@
 package com.tlback.tg.handlers;
 
-import java.util.List;
-
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
-public interface TgMessageHandler {
+import com.tlback.tg.balancer.TelegramClientBalanced;
 
-    List<SendMessage> onMessage(Message msg);
+public interface TgMessageHandler {
+    static final String pattern = "";
+
+    void onMessage(Message msg, TelegramClientBalanced tgClient);
+
+    default String format(String msg) {
+        StringBuilder result = new StringBuilder();
+        
+        for (char c : msg.toCharArray()) {
+            if (c == '.' || c == ',' || c == '#' || c == '-') {
+                result.append("\\").append(c);
+            } else {
+                result.append(c);
+            }
+        }
+
+        return result.toString();
+    }
 }

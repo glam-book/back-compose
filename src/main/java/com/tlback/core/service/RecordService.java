@@ -71,7 +71,10 @@ public class RecordService {
                                         joinService),
                                 Mono::error)))
                 // or else create new one
-                .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), joinService)));
+                .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), joinService)))
+                .doOnSuccess(it -> {
+                    // TODO send record create event
+                });
     }
 
     @Transactional
