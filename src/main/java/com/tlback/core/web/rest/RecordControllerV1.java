@@ -19,6 +19,7 @@ import com.tlback.core.web.dto.records.DeleteSuccess;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.core.web.dto.records.RecordPreviewResponse;
 import com.tlback.core.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
+import com.tlback.tg.balancer.TelegramClientBalanced;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -30,6 +31,7 @@ import reactor.core.publisher.Mono;
 public class RecordControllerV1 {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
+    private final TelegramClientBalanced tgClient;
 
     @GetMapping("/list/{userId}")
     public Flux<RecordPendingsServiceResponsePreviewDto> list(UserData userDetail,

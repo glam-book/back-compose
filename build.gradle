@@ -72,7 +72,7 @@ dependencies {
 	// ---
 
 	// telegram
-	implementation 'org.telegram:telegrambots-spring-boot-starter:6.9.7.1'
+	implementation 'org.telegram:telegrambots-springboot-longpolling-starter:9.0.0'
 	implementation 'org.telegram:telegrambots-client:9.0.0'
 	// ---
 
