@@ -40,6 +40,12 @@ public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware {
     @Column("time_duration")
     private Integer timeDuration;
 
+    @Column("url")
+    private String url;
+
+    @Column("icon")
+    private String icon;
+
     private DomainUserEntity serviceOwner;
 
     private List<RecordEntity> records = new ArrayList<>();
