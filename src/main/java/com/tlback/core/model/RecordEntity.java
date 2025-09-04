@@ -36,6 +36,9 @@ public class RecordEntity {
     @Column("tz")
     private ZoneOffset tz;
 
+    @Column("comment")
+    private String comment;
+
     private List<RecordPending> recordPendings = new ArrayList<>();
 
     private ServiceInfoEntity serviceInfo;

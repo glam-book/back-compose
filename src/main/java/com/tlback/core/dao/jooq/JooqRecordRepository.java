@@ -95,6 +95,7 @@ public class JooqRecordRepository {
         rec.setTz(entity.getTz().toString());
         rec.setTsFrom(entity.getTsFrom().toLocalDateTime());
         rec.setTsTo(entity.getTsTo().toLocalDateTime());
+        rec.setComment(entity.getComment());
         return rec;
     }
 
@@ -106,6 +107,7 @@ public class JooqRecordRepository {
         insertFields.put(recordTable.TZ, recordEntity.getTz());
         insertFields.put(recordTable.TS_FROM, recordEntity.getTsFrom());
         insertFields.put(recordTable.TS_TO, recordEntity.getTsTo());
+        insertFields.put(recordTable.COMMENT, recordEntity.getComment());
 
         var insert = dsl.insertInto(recordTable)
                 .set(insertFields);
@@ -186,6 +188,7 @@ public class JooqRecordRepository {
             entity.setIsPublic(rec.get(recordTable.IS_PUBLIC));
             entity.setTsFrom(timeFrom.atOffset(tz));
             entity.setTsTo(timeTo.atOffset(tz));
+            entity.setComment(rec.get(recordTable.COMMENT));
             entity.setTz(tz);
             return entity;
         });
@@ -215,6 +218,7 @@ public class JooqRecordRepository {
                 .set(recordTable.TZ, DSL.coalesce(DSL.val(record.getTz()), recordTable.TZ))
                 .set(recordTable.TS_FROM, DSL.coalesce(DSL.val(record.getTsFrom()), recordTable.TS_FROM))
                 .set(recordTable.TS_TO, DSL.coalesce(DSL.val(record.getTsTo()), recordTable.TS_TO))
+                .set(recordTable.COMMENT, DSL.coalesce(DSL.val(record.getComment()), recordTable.COMMENT))
                 .where(recordTable.ID.eq(record.getId()))
                 .returning(recordTable.ID);
 
@@ -232,6 +236,7 @@ public class JooqRecordRepository {
                 .set(recordTable.TZ, record.getTz())
                 .set(recordTable.TS_FROM, record.getTsFrom())
                 .set(recordTable.TS_TO, record.getTsTo())
+                .set(recordTable.COMMENT, record.getComment())
                 .returning(recordTable.ID);
 
         return Mono.from(insert)

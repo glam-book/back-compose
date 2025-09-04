@@ -9,5 +9,6 @@ public class RecordPreviewResponse {
     private Long id;
     private LocalDateTime tsFrom;
     private LocalDateTime tsTo;
+    private String comment;
     private Long serviceInfoId;
 }

@@ -68,10 +68,11 @@ public class RecordService {
                         // TODO block hooligan user
                         .flatMap(abacResult -> abacResult.mapResult(
                                 () -> recordRepository.update(mapToRecord(cmd, serviceMono.getId(), userId),
-                                        joinService),
+                                        joinService, JooqRecordRepository.JOIN_RECORD_PENDINGS),
                                 Mono::error)))
                 // or else create new one
-                .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), joinService)))
+                .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), 
+                    joinService, JooqRecordRepository.JOIN_RECORD_PENDINGS)))
                 .doOnSuccess(it -> {
                     // TODO send record create event
                 });
@@ -90,6 +91,7 @@ public class RecordService {
         newRecord.setIsPublic(true);
         newRecord.setTsFrom(cmd.getTsFrom());
         newRecord.setTsTo(cmd.getTsTo());
+        newRecord.setComment(cmd.getComment());
         newRecord.setServiceInfoId(serviceId);
         newRecord.setRecordOwnerId(userId);
         return newRecord;

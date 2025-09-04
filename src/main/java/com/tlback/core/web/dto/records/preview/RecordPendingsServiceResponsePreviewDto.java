@@ -17,5 +17,6 @@ public class RecordPendingsServiceResponsePreviewDto {
     private ServicePreviewDto serviceInfo;
     private LocalDateTime tsFrom;
     private LocalDateTime tsTo;
+    private String comment;
     private RecordPendingPreviewDto recordPendings;
 }

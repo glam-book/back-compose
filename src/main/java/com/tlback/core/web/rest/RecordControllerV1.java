@@ -43,7 +43,7 @@ public class RecordControllerV1 {
     }
 
     @PostMapping
-    public Mono<RecordPreviewResponse> createRecord(
+    public Mono<RecordPendingsServiceResponsePreviewDto> createRecord(
             @RequestBody OptionalRecordCreateOrUpdateRequest request,
             @AuthenticationPrincipal UserData userData) {
         System.out.println("Save or update request: " + request.toString());
@@ -51,7 +51,7 @@ public class RecordControllerV1 {
         return recordService.saveOrUpdate(request, owner)
                 .map(it -> {
                     System.out.println("Saved record: " + it.toString());
-                    return recordMapper.toPreviewResponse(it);
+                    return recordMapper.toDto(it, true);
                 });
     }
 

@@ -12,5 +12,6 @@ public class OptionalRecordCreateOrUpdateRequest {
     private Optional<Long> id = Optional.empty();
     private LocalDateTime tsFrom;
     private LocalDateTime tsTo;
+    private String comment;
     private OptionalServiceInfoDto serviceInfo;
 }
