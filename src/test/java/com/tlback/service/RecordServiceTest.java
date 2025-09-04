@@ -20,6 +20,9 @@ import com.tlback.core.service.RecordService;
 import com.tlback.core.service.ServiceInfoService;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
+import com.tlback.events.core.EventPublisher;
+import com.tlback.events.impl.SpringEventPublisher;
+import com.tlback.events.impl.record.RecordCreatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
@@ -32,13 +35,15 @@ class RecordServiceTest {
     private ServiceInfoService serviceInfoService;
     private AbacService abac;
     private RecordService recordService;
+    private EventPublisher eventPublisher;
 
     @BeforeEach
     void setUp() {
         recordRepository = mock(JooqRecordRepository.class);
         serviceInfoService = mock(ServiceInfoService.class);
         abac = mock(AbacService.class);
-        recordService = new RecordService(recordRepository, serviceInfoService, abac);
+        eventPublisher = mock(SpringEventPublisher.class);
+        recordService = new RecordService(recordRepository, serviceInfoService,  eventPublisher, abac);
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.tlback.core.service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +15,8 @@ import com.tlback.core.dao.jooq.JooqRecordRepository;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
+import com.tlback.events.core.EventPublisher;
+import com.tlback.events.impl.record.RecordCreatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import reactor.core.publisher.Mono;
 public class RecordService {
     private final JooqRecordRepository recordRepository;
     private final ServiceInfoService serviceInfoService;
+    private final EventPublisher eventPublisher;
     private final AbacService abac;
 
     @Transactional(readOnly = true)
@@ -74,7 +78,7 @@ public class RecordService {
                 .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), 
                     joinService, JooqRecordRepository.JOIN_RECORD_PENDINGS)))
                 .doOnSuccess(it -> {
-                    // TODO send record create event
+                    eventPublisher.publish(new RecordCreatedEvent(userId, it.getId(), it.getTsFrom(), it.getTsTo(), Instant.now()));
                 });
     }
 
