@@ -253,3 +253,20 @@ databaseChangeLog:
                   remarks: "Комментарий к записи"
                   constraints:
                     nullable: true
+  - changeSet:
+      id: add_service_colls
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: service_info
+            columns:
+              - column:
+                  name: url
+                  type: text
+                  constraints:
+                    nullable: true
+              - column:
+                  name: icon
+                  type: text
+                  constraints:
+                    nullable: true

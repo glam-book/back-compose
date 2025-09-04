@@ -189,7 +189,7 @@ public class JooqRecordRepository {
             entity.setTsFrom(timeFrom.atOffset(tz));
             entity.setTsTo(timeTo.atOffset(tz));
             entity.setComment(rec.get(recordTable.COMMENT));
-            entity.setTz(tz);
+            entity.setTz(tz.toString());
             return entity;
         });
     }

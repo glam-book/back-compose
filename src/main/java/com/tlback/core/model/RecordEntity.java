@@ -1,7 +1,6 @@
 package com.tlback.core.model;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class RecordEntity {
     private OffsetDateTime tsTo;
 
     @Column("tz")
-    private ZoneOffset tz;
+    private String tz;
 
     @Column("comment")
     private String comment;

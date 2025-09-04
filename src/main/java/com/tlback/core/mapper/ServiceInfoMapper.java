@@ -1,11 +1,14 @@
 package com.tlback.core.mapper;
 
+import java.util.Optional;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
 import com.tlback.core.model.ServiceInfoEntity;
+import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
 import com.tlback.core.web.dto.service.preview.ServicePreviewDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
@@ -15,4 +18,13 @@ public interface ServiceInfoMapper {
     @Mapping(target = "title", source = "serviceName")
     ServicePreviewDto map(ServiceInfoEntity value);
 
+    @Mapping(target = "title", source = "serviceName")
+    @Mapping(target = "description", source = "serviceDescription")
+    @Mapping(target = "id", source = "id", qualifiedByName = "toOptionalLong")
+    OptionalServiceInfoDto toDto(ServiceInfoEntity value);
+
+    @Named("toOptionalLong")
+    default Optional<Long> toOptionalLong(Long value) {
+        return Optional.ofNullable(value);
+    }
 }
