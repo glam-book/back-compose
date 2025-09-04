@@ -26,6 +26,7 @@ public abstract class RecordMapper {
     @Mapping(target = "recordPendings", source = "entity", qualifiedByName = "pendingsToPreview")
     @Mapping(target = "serviceInfo", qualifiedByName = "map")
     @Mapping(target = "owner", source = "isOwner")
+    @Mapping(target = "comment", expression = "java(isOwner ? entity.getComment() : null)")
     public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity,
             @Context ZoneOffset offset,
             boolean isOwner);
