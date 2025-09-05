@@ -16,9 +16,10 @@ public abstract class AbstractEventHandler<T extends DomainEvent>
     @Override
     @SuppressWarnings("unchecked")
     public void onApplicationEvent(@NonNull ApplicationEvent applicationEvent) {
-        if (applicationEvent instanceof DomainEvent event && getEventType().isInstance(event)) {
+        log.info("Accepting event: " + applicationEvent.getClass());
+        if (applicationEvent instanceof DomainEvent event && getEventType().isInstance(applicationEvent)) {
             try {
-                handle(getEventType().cast(event));
+                handle(getEventType().cast(applicationEvent));
             } catch (Exception e) {
                 log.error("Error handling event: {}", event.getEventType(), e);
                 handleError((T) event, e);
