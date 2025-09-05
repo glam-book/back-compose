@@ -1,11 +1,13 @@
 package com.tlback.core.service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tlback.core.abac.exception.NotFoundException;
 import com.tlback.core.dao.jooq.JooqUserRepository;
 import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.TelegramUser;
@@ -22,12 +24,16 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Mono<DomainUserEntity> findById(Long id) {
-        return jooqUserRepository.findById(id);
+        return jooqUserRepository.findById(id)
+                .filter(Objects::nonNull)
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Mono<DomainUserEntity> findByTgId(Long id) {
-        return jooqUserRepository.findByTgId(id);
+        return jooqUserRepository.findByTgId(id)
+                .filter(Objects::nonNull)
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, label = "auth")

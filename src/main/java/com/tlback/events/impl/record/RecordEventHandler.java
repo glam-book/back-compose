@@ -19,7 +19,7 @@ public class RecordEventHandler extends AbstractEventHandler<RecordCreatedEvent>
     public void handle(RecordCreatedEvent event) {
         log.info("Handling event: " + event.getEventType());
         var userId = event.getUserId();
-        userService.findByTgId(userId)
+        userService.findById(userId)
                 .doOnSuccess(domainUser -> {
                     log.info("Trying to publish notification...");
                     domainUser.getTgUser().ifPresent(tgUser -> {
