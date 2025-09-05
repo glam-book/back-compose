@@ -27,7 +27,6 @@ public class UserService {
         return jooqUserRepository.findById(id)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
-
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
