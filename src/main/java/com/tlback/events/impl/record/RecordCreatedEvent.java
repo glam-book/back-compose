@@ -1,25 +1,37 @@
 package com.tlback.events.impl.record;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 
 import com.tlback.events.core.DomainEvent;
 
-import lombok.Builder;
+import lombok.Getter;
 
-@Builder
-public record RecordCreatedEvent(Long userId, Long recId, 
-    OffsetDateTime start, OffsetDateTime end, Instant timestamp) implements DomainEvent {
+@Getter
+public class RecordCreatedEvent extends DomainEvent {
+
     public static final String TYPE = "RECORD_CREATED_EVENT";
+
+    private final Long userId;
+    private final Long recId;
+    private final OffsetDateTime start;
+    private final OffsetDateTime end;
+
+    public RecordCreatedEvent(Object source, 
+        Long userId, 
+        Long recId, 
+        OffsetDateTime start, 
+        OffsetDateTime end) {
+
+        super(source);
+        this.userId = userId;
+        this.recId = recId;
+        this.start = start;
+        this.end = end;
+    }
 
     @Override
     public String getEventType() {
         return TYPE;
     }
 
-    @Override
-    public Instant getTimestamp() {
-        return timestamp;
-    }
-    
 }

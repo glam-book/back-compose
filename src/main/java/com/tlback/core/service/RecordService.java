@@ -20,11 +20,13 @@ import com.tlback.events.impl.record.RecordCreatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RecordService {
     private final JooqRecordRepository recordRepository;
     private final ServiceInfoService serviceInfoService;
@@ -78,7 +80,7 @@ public class RecordService {
                 .orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId), 
                     joinService, JooqRecordRepository.JOIN_RECORD_PENDINGS)))
                 .doOnSuccess(it -> {
-                    eventPublisher.publish(new RecordCreatedEvent(userId, it.getId(), it.getTsFrom(), it.getTsTo(), Instant.now()));
+                    eventPublisher.publish(new RecordCreatedEvent(this, userId, it.getId(), it.getTsFrom(), it.getTsTo()));
                 });
     }
 

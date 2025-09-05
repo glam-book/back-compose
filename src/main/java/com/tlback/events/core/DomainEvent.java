@@ -1,8 +1,12 @@
 package com.tlback.events.core;
 
-import java.time.Instant;
+import org.springframework.context.ApplicationEvent;
 
-public interface DomainEvent {
-    String getEventType();
-    Instant getTimestamp();
+public abstract class DomainEvent extends ApplicationEvent {
+
+    public DomainEvent(Object source) {
+        super(source);
+    }
+
+    public abstract String getEventType();
 }
