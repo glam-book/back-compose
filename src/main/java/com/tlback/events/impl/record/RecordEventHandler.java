@@ -1,7 +1,5 @@
 package com.tlback.events.impl.record;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-
 import com.tlback.core.service.UserService;
 import com.tlback.events.impl.AbstractEventHandler;
 import com.tlback.tg.balancer.TelegramClientBalanced;
@@ -17,22 +15,6 @@ public class RecordEventHandler extends AbstractEventHandler<RecordCreatedEvent>
 
     @Override
     public void handle(RecordCreatedEvent event) {
-        log.info("Handling event: " + event.getEventType());
-        var userId = event.getUserId();
-        userService.findById(userId)
-                .doOnSuccess(domainUser -> {
-                    log.info("Trying to publish notification...");
-                    domainUser.getTgUser().ifPresent(tgUser -> {
-                        var tgId = tgUser.getId();
-                        var sendMsg = new SendMessage(tgId.toString(),
-                                String.format("""
-                                        🎯 Запись успешно создана!
-                                        ⏰ Время: %s : %s
-                                        """, event.getStart(), event.getEnd()));
-                        tgClient.executeGeneric(sendMsg);
-                    });
-                })
-                .subscribe();
     }
 
     @Override

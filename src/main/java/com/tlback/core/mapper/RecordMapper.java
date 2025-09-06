@@ -25,11 +25,11 @@ public abstract class RecordMapper {
     @Mapping(target = "tsTo", qualifiedByName = "toLocalDateTime")
     @Mapping(target = "recordPendings", source = "entity", qualifiedByName = "pendingsToPreview")
     @Mapping(target = "serviceInfo", qualifiedByName = "map")
-    @Mapping(target = "owner", source = "isOwner")
-    @Mapping(target = "comment", expression = "java(isOwner ? entity.getComment() : null)")
+    @Mapping(target = "comment", expression = "java(owner ? entity.getComment() : null)")
     public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity,
             @Context ZoneOffset offset,
-            boolean isOwner);
+            boolean pendigable, 
+            boolean owner);
 
     @Named("toLocalDateTime")
     public LocalDateTime map(OffsetDateTime timestamp, @Nullable @Context ZoneOffset offset) {
@@ -58,8 +58,10 @@ public abstract class RecordMapper {
     }
 
     @Mapping(target = "tsFrom", qualifiedByName = "toLocalDateTime")
-    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, boolean isOwner) {
-        return toDto(entity, null, isOwner);
+    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, 
+            boolean pendigable, 
+            boolean owner) {
+        return toDto(entity, null, pendigable, owner);
     }
 
     @Mapping(target = "serviceInfoId", source = "serviceInfo.id")
