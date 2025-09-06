@@ -18,7 +18,6 @@ import com.tlback.core.service.RecordService;
 import com.tlback.core.web.dto.records.DeleteSuccess;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.core.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
-import com.tlback.tg.balancer.TelegramClientBalanced;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -30,7 +29,6 @@ import reactor.core.publisher.Mono;
 public class RecordControllerV1 {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
-    private final TelegramClientBalanced tgClient;
 
     @GetMapping("/list/{userId}")
     public Flux<RecordPendingsServiceResponsePreviewDto> list(UserData userDetail,
@@ -38,19 +36,23 @@ public class RecordControllerV1 {
         var details = userDetail.getDetails();
         var isOwner = details.getId().equals(userId);
         return recordService.getRecordsWithPendingsAndServiceByUserdId(userId, date)
-                .map(it -> recordMapper.toDto(it, isOwner));
+                .map(it -> {
+                    var hasPendings = it.getRecordPendings() != null &&
+                        it.getRecordPendings().stream()
+                            .anyMatch(pending -> pending.getClientId().equals(userId));
+                    return recordMapper.toDto(it, !(hasPendings && isOwner), isOwner);
+                });
     }
 
     @PostMapping
     public Mono<RecordPendingsServiceResponsePreviewDto> createRecord(
             @RequestBody OptionalRecordCreateOrUpdateRequest request,
             @AuthenticationPrincipal UserData userData) {
-        System.out.println("Save or update request: " + request.toString());
         var owner = userData.getDetails().getId();
         return recordService.saveOrUpdate(request, owner)
                 .map(it -> {
                     System.out.println("Saved record: " + it.toString());
-                    return recordMapper.toDto(it, true);
+                    return recordMapper.toDto(it, false, true);
                 });
     }
 

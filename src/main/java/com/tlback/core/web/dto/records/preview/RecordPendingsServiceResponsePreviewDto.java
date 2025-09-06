@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RecordPendingsServiceResponsePreviewDto {
     private Long id;
+    private boolean pendigable;
     private boolean isOwner;
     private ServicePreviewDto serviceInfo;
     private LocalDateTime tsFrom;
