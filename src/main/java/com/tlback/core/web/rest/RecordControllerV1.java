@@ -68,7 +68,7 @@ public class RecordControllerV1 {
         var userId = userDetail.getPrincipal();
         var isOwner = details.getId().equals(userId);
 
-        return recordService.createPending(userId, recordId)
+        return recordService.createPendingAtomic(userId, recordId)
             .map(it -> map(it, isOwner, userId));
     }
 

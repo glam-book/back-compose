@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.jooq.exception.IntegrityConstraintViolationException;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +24,12 @@ import com.tlback.events.impl.pending.RecordPendingCreatedEvent;
 import com.tlback.events.impl.record.RecordCreatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 
+import io.r2dbc.spi.R2dbcDataIntegrityViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Service
 @RequiredArgsConstructor
@@ -109,27 +113,19 @@ public class RecordService {
 				.flatMap(abacResult -> recordRepository.delete(id));
 	}
 
-	@Transactional
-	public Mono<RecordEntity> createPending(Long initiatorId, Long targetRecordId) {
-		return recordRepository.findById(targetRecordId,
-				JooqRecordRepository.JOIN_SERVICE_INFO,
-				JooqRecordRepository.JOIN_RECORD_PENDINGS,
-				JooqRecordRepository.JOIN_RECORD_PENDING_USER_INFO)
-				.flatMap(record -> {
-					var pendings = record.getRecordPendings();
-					if (pendings.stream().count() > record.getServiceInfo().getRecordLimit()) {
-						return Mono.error(new RecordPendingException("Reached pending limit for this service"));
-					} else if (pendings.stream().anyMatch(p -> p.getPendingOwner().getId().equals(initiatorId)))
-						return Mono.error(new RecordPendingException("Pending already exists"));
-					else
-						return Mono.just(record);
-				})
-				.flatMap(record -> {
-					return pendingRepository.createPending(initiatorId, targetRecordId)
-						.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId));
-				}).doOnSuccess(it ->
-					eventPublisher.publish(new RecordPendingCreatedEvent(this, it.getRecordOwnerId(), it.getId()))
-				);
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId) {
+		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId)
+				.switchIfEmpty(Mono.error(new RecordPendingException("Limit reached")))
+				.onErrorMap(
+						ex -> ex instanceof IntegrityConstraintViolationException
+								|| ex instanceof R2dbcDataIntegrityViolationException,
+						ex -> new RecordPendingException("Pending already exists", ex))
+				.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId))
+				.doOnSuccess(it -> eventPublisher
+						.publish(new RecordPendingCreatedEvent(this, it.getRecordOwnerId(), it.getId())))
+				.retryWhen(Retry.max(3)
+						.filter(ex -> ex instanceof SerializationFailedException));
 	}
 
 	private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long serviceId, Long userId) {
