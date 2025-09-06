@@ -46,7 +46,7 @@ public class JooqRecordRepository {
             .on(recordTable.ID.eq(recordPendingTable.RECORD_ID));
 
     public static final JoinModule JOIN_RECORD_PENDING_USER_INFO = mainFetch -> mainFetch.join(userTable)
-            .on(recordTable.RECORD_OWNER_ID.eq(userTable.ID));
+            .on(recordPendingTable.CLIENT_ID.eq(userTable.ID));
 
     public static final List<JoinModule> FULL_JOIN = List.of(JOIN_SERVICE_INFO, JOIN_RECORD_PENDINGS,
             JOIN_RECORD_PENDING_USER_INFO);
@@ -137,8 +137,11 @@ public class JooqRecordRepository {
 
     private RecordEntity tryToMap(org.jooq.Record rec) {
         var recordEntity = mapJustRecEntity(rec);
-        var pending = rec.into(recordPendingTable.fields()).into(com.tlback.core.model.RecordPending.class);
-        if (pending != null && pending.getId() != null && pending.getPendingOwner() == null)
+
+        var pending = rec.into(recordPendingTable.fields())
+            .into(com.tlback.core.model.RecordPending.class);
+
+        if (pending != null && pending.getPendingOwner() == null)
             pending.setPendingOwner(
                     rec.into(userTable.fields()).into(DomainUserEntity.class));
 
@@ -170,6 +173,9 @@ public class JooqRecordRepository {
 
         if (filter.getIsPublic() != null)
             query = query.and(recordTable.IS_PUBLIC.eq(filter.getIsPublic()));
+
+        if (filter.getRecordId() != null)
+            query = query.and(recordTable.ID.eq(filter.getRecordId()));
 
         return query;
     }

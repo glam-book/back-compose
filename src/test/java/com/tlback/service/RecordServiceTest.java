@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tlback.core.abac.AbacContext;
 import com.tlback.core.abac.AbacService;
+import com.tlback.core.dao.jooq.JooqPendingRepository;
 import com.tlback.core.dao.jooq.JooqRecordRepository;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.service.RecordService;
@@ -22,7 +23,6 @@ import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
 import com.tlback.events.core.EventPublisher;
 import com.tlback.events.impl.SpringEventPublisher;
-import com.tlback.events.impl.record.RecordCreatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
@@ -32,6 +32,7 @@ import reactor.test.StepVerifier;
 class RecordServiceTest {
 
     private JooqRecordRepository recordRepository;
+    private JooqPendingRepository pendingRepository;
     private ServiceInfoService serviceInfoService;
     private AbacService abac;
     private RecordService recordService;
@@ -42,8 +43,9 @@ class RecordServiceTest {
         recordRepository = mock(JooqRecordRepository.class);
         serviceInfoService = mock(ServiceInfoService.class);
         abac = mock(AbacService.class);
+        pendingRepository = mock(JooqPendingRepository.class);
         eventPublisher = mock(SpringEventPublisher.class);
-        recordService = new RecordService(recordRepository, serviceInfoService,  eventPublisher, abac);
+        recordService = new RecordService(recordRepository, serviceInfoService, pendingRepository, eventPublisher, abac);
     }
 
     @Test

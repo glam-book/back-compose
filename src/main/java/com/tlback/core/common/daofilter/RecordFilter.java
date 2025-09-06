@@ -10,6 +10,7 @@ import lombok.Data;
 public class RecordFilter {
     private Long serviceInfoId;
     private Long recordOwnerId;
+    private Long recordId;
     private Long clientId;
     private LocalDateTime dateFrom;
     private LocalDateTime dateTo;
