@@ -40,5 +40,5 @@ public class RecordEntity {
 
     private List<RecordPending> recordPendings = new ArrayList<>();
 
-    private ServiceInfoEntity serviceInfo;
+    private List<ServiceInfoEntity> serviceInfo = new ArrayList<>();
 }

@@ -39,6 +39,9 @@ public class JooqRecordRepository {
     public static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
     public static final com.tlback.jooq.gen.tables.DomainUser userTable = com.tlback.jooq.gen.tables.DomainUser.DOMAIN_USER;
 
+    // public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch.join(serviceInfoTable)
+    //         .on(recordTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
+
     public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch.join(serviceInfoTable)
             .on(recordTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
 
@@ -145,8 +148,9 @@ public class JooqRecordRepository {
             pending.setPendingOwner(
                     rec.into(userTable.fields()).into(DomainUserEntity.class));
 
-        if (recordEntity.getServiceInfo() == null)
-            recordEntity.setServiceInfo(rec.into(serviceInfoTable.fields()).into(ServiceInfoEntity.class));
+        // if (recordEntity.getServiceInfo() == null)
+        //     recordEntity.setServiceInfo(rec.into(serviceInfoTable.fields())
+        //         .into(ServiceInfoEntity.class));
 
         recordEntity.getRecordPendings().add(pending);
         return recordEntity;

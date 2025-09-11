@@ -133,6 +133,11 @@ jooq {
 
  		                properties {
 
+                            property {
+                                key = "changeLogParameters.contexts"
+                                value = "ddl"
+                            }
+
 							property {
         						key = "rootPath"
         					  	value = liquibaseRoot
