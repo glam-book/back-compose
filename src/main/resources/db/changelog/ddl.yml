@@ -128,7 +128,7 @@ databaseChangeLog:
                      type: integer
                      constraints:
                        nullable: true
-                     defaultValue: "0"
+                     defaultValue: "1"
                  - column:
                      name: record_owner_id
                      type: bigint
