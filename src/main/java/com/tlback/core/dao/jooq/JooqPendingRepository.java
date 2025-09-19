@@ -36,27 +36,22 @@ public class JooqPendingRepository {
     }
 
     public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId) {
-        // var query = dsl.insertInto(pendingTable)
-        //         .columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
-        //                 pendingTable.REQUEST_TIME)
-        //         .select(
-        //                 DSL.select(DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
-        //                         DSL.val(LocalDateTime.now()))
-        //                         .where(
-        //                                 DSL.selectCount()
-        //                                         .from(pendingTable)
-        //                                         .where(pendingTable.RECORD_ID.eq(recordId))
-        //                                         .lt(
-        //                                                 DSL.select(serviceTable.RECORD_LIMIT)
-        //                                                         .from(serviceTable)
-        //                                                         .where(serviceTable.ID.eq(
-        //                                                                 DSL.select(recordTable.SERVICE_INFO_ID)
-        //                                                                         .from(recordTable)
-        //                                                                         .where(recordTable.ID.eq(recordId)))))))
-        //         .returning();
-        // log.info(query.toString());
-        // return Mono.from(query)
-        //         .map(rec -> rec.into(RecordPending.class));
-        return Mono.empty();
+        var query = dsl.insertInto(pendingTable)
+                .columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
+                        pendingTable.REQUEST_TIME)
+                .select(
+                        DSL.select(DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
+                                DSL.val(LocalDateTime.now()))
+                                .where(
+                                        DSL.selectCount()
+                                                .from(pendingTable)
+                                                .where(pendingTable.RECORD_ID.eq(recordId))
+                                                .lt(DSL.select(recordTable.RECORD_LIMIT)
+                                                        .from(recordTable))))
+                .returning();
+
+        log.info(query.toString());
+        return Mono.from(query)
+                .map(rec -> rec.into(RecordPending.class));
     }
 }
