@@ -113,14 +113,6 @@ liquibase {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs 'src/main/java', 'build/generated/sources/annotations/java/main' // Example path
-        }
-    }
-}
-
 jooq {
  	version "${jooqVer}"
 	configurations {
@@ -157,6 +149,11 @@ jooq {
  		    }
 		}
 	}
+}
+
+// // If using Lombok with MapStruct, configure annotation processing for both
+tasks.withType(JavaCompile) {
+    options.annotationProcessorPath = configurations.annotationProcessor
 }
 
 tasks.named('test') {

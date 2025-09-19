@@ -11,7 +11,6 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
 import com.tlback.core.model.RecordEntity;
-import com.tlback.core.web.dto.records.RecordPreviewResponse;
 import com.tlback.core.web.dto.records.preview.RecordPendingPreviewDto;
 import com.tlback.core.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
@@ -49,7 +48,7 @@ public abstract class RecordMapper {
 
     @Named("pendingsToPreview")
     public RecordPendingPreviewDto pendingsToPreview(RecordEntity recordEntity) {
-        return new RecordPendingPreviewDto(recordEntity.getServiceInfo().getRecordLimit(),
+        return new RecordPendingPreviewDto(recordEntity.getRecordLimit(),
                 recordEntity.getRecordPendings().size());
     }
 
@@ -63,8 +62,5 @@ public abstract class RecordMapper {
             boolean owner) {
         return toDto(entity, null, pendigable, owner);
     }
-
-    @Mapping(target = "serviceInfoId", source = "serviceInfo.id")
-    public abstract RecordPreviewResponse toPreviewResponse(RecordEntity entity);
 
 }

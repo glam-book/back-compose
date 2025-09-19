@@ -15,14 +15,15 @@ import com.tlback.core.abac.exception.NotFoundException;
 import com.tlback.core.common.daofilter.RecordFilter;
 import com.tlback.core.dao.jooq.JooqPendingRepository;
 import com.tlback.core.dao.jooq.JooqRecordRepository;
+import com.tlback.core.dao.jooq.JooqRecordToServiceRepository;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.service.exception.RecordPendingException;
 import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.events.core.EventPublisher;
 import com.tlback.events.impl.pending.RecordPendingCreatedEvent;
-import com.tlback.events.impl.record.RecordCreatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
+import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class RecordService {
 	private final JooqRecordRepository recordRepository;
 	private final ServiceInfoService serviceInfoService;
 	private final JooqPendingRepository pendingRepository;
+	private final JooqRecordToServiceRepository recordToServiceRepository;
 	private final EventPublisher eventPublisher;
 	private final AbacService abac;
 
@@ -84,26 +86,32 @@ public class RecordService {
 				.switchIfEmpty(Mono.error(new NotFoundException("Record not found: " + recordId)));
 	}
 
-	@Transactional
 	public Mono<RecordEntity> saveOrUpdate(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
 		var joinService = JooqRecordRepository.JOIN_SERVICE_INFO;
 		var serviceRequest = cmd.getServiceInfo();
-		var service = serviceInfoService.saveOrUpdate(serviceRequest, userId);
 
-		return service.flatMap(serviceMono -> cmd.getId()
-				// if record id exists - check access and update record if allowed
-				.map(recId -> abac.canModifyRecord(userId, recId)
-						// TODO block hooligan user
-						.flatMap(abacResult -> abacResult.mapResult(
-								() -> recordRepository.update(mapToRecord(cmd, serviceMono.getId(), userId),
-										joinService, JooqRecordRepository.JOIN_RECORD_PENDINGS),
-								Mono::error)))
-				// or else create new one
-				.orElseGet(() -> recordRepository.save(mapToRecord(cmd, serviceMono.getId(), userId),
-						joinService, JooqRecordRepository.JOIN_RECORD_PENDINGS)))
-				.doOnSuccess(it -> {
-					eventPublisher
-							.publish(new RecordCreatedEvent(this, userId, it.getId(), it.getTsFrom(), it.getTsTo()));
+		return serviceInfoService.saveOrUpdate(serviceRequest, userId)
+				.collectList()
+				.flatMap(list -> {
+					var recordMono = cmd.getId()
+							// if record id exists - check access and update record if allowed
+							.map(recId -> abac.canModifyRecord(userId, recId)
+									.flatMap(abacResult -> abacResult.mapResult(
+											() -> recordRepository.update(
+													mapToRecord(cmd, userId)),
+											Mono::error)))
+							// or else create new one
+							.orElseGet(() -> recordRepository.save(
+									mapToRecord(cmd, userId)));
+
+					// После того как рекорд создан/обновлён, линкуем сервисы
+					return recordMono.flatMap(record -> recordToServiceRepository
+							.linkRecordToService(record.getId(), list.stream()
+									.map(ServiceInfoRecord::getId)
+									.toList())
+							.then(recordRepository.findById(record.getId(), 
+								joinService, 
+								JooqRecordRepository.JOIN_RECORD_PENDINGS)));
 				});
 	}
 
@@ -128,7 +136,7 @@ public class RecordService {
 						.filter(ex -> ex instanceof SerializationFailedException));
 	}
 
-	private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long serviceId, Long userId) {
+	private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
 		var newRecord = new RecordRecord();
 		cmd.getId().ifPresent(newRecord::setId);
 		newRecord.setTz(ZoneOffsetTools.DEFAULT_OFFSET); // TODO get from client in future
@@ -136,7 +144,6 @@ public class RecordService {
 		newRecord.setTsFrom(cmd.getTsFrom());
 		newRecord.setTsTo(cmd.getTsTo());
 		newRecord.setComment(cmd.getComment());
-		newRecord.setServiceInfoId(serviceId);
 		newRecord.setRecordOwnerId(userId);
 		return newRecord;
 	}

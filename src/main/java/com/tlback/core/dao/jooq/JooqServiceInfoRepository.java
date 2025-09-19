@@ -11,15 +11,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.tlback.core.dao.jooq.modules.InsertModule;
-import com.tlback.jooq.gen.tables.DomainUser;
-import com.tlback.jooq.gen.tables.Record;
-import com.tlback.jooq.gen.tables.ServiceInfo;
-import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.core.model.utils.RecordSupplier;
 import com.tlback.core.model.utils.ServiceOwneraAware;
 import com.tlback.core.tools.RxUtils;
+import com.tlback.jooq.gen.tables.DomainUser;
+import com.tlback.jooq.gen.tables.Record;
+import com.tlback.jooq.gen.tables.ServiceInfo;
+import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -81,7 +81,6 @@ public class JooqServiceInfoRepository {
                 dsl.update(serviceInfoTable)
                    .set(serviceInfoTable.SERVICE_NAME, DSL.coalesce(DSL.val(record.getServiceName()), serviceInfoTable.SERVICE_NAME))
                    .set(serviceInfoTable.SERVICE_DESCRIPTION, DSL.coalesce(DSL.val(record.getServiceDescription()), serviceInfoTable.SERVICE_DESCRIPTION))
-                   .set(serviceInfoTable.RECORD_LIMIT, DSL.coalesce(DSL.val(record.getRecordLimit()), serviceInfoTable.RECORD_LIMIT))
                    .set(serviceInfoTable.EDITABLE, DSL.coalesce(DSL.val(record.getEditable()), serviceInfoTable.EDITABLE))
                    .where(serviceInfoTable.ID.eq(record.getId()))
                    .returning(serviceInfoTable.fields()))
@@ -95,7 +94,6 @@ public class JooqServiceInfoRepository {
                         .set(serviceInfoTable.SERVICE_OWNER_ID, rec.getServiceOwnerId())
                         .set(serviceInfoTable.EDITABLE, rec.getEditable())
                         .set(serviceInfoTable.SERVICE_DESCRIPTION, rec.getServiceDescription())
-                        .set(serviceInfoTable.RECORD_LIMIT, rec.getRecordLimit())
                         .set(serviceInfoTable.TIME_DURATION, rec.getTimeDuration())
                         .returning(serviceInfoTable.fields()))
                 .map(r -> r.into(ServiceInfoRecord.class));
@@ -113,7 +111,6 @@ public class JooqServiceInfoRepository {
     public static SelectOnConditionStep<org.jooq.Record> fetchFull(DSLContext dsl) {
         return dsl.select(JooqUserRepository.fetch(dsl).asMultiset()).select(serviceInfoTable.fields())
                 .select(userTable.fields()).select(recordTable.fields()).from(serviceInfoTable).join(userTable)
-                .on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID)).join(recordTable)
-                .on(serviceInfoTable.ID.eq(recordTable.SERVICE_INFO_ID));
+                .on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID));
     }
 }

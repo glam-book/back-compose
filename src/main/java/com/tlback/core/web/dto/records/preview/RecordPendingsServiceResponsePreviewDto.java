@@ -1,6 +1,7 @@
 package com.tlback.core.web.dto.records.preview;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.tlback.core.web.dto.service.preview.ServicePreviewDto;
 
@@ -15,7 +16,7 @@ public class RecordPendingsServiceResponsePreviewDto {
     private Long id;
     private boolean pendigable;
     private boolean isOwner;
-    private ServicePreviewDto serviceInfo;
+    private List<ServicePreviewDto> serviceInfo;
     private LocalDateTime tsFrom;
     private LocalDateTime tsTo;
     private String comment;

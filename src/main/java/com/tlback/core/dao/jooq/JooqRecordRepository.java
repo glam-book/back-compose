@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jooq.DSLContext;
@@ -22,6 +21,7 @@ import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.core.tools.RxUtils;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.RecordPending;
+import com.tlback.jooq.gen.tables.RecordToService;
 import com.tlback.jooq.gen.tables.ServiceInfo;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 
@@ -37,13 +37,13 @@ public class JooqRecordRepository {
     public static final Record recordTable = Record.RECORD;
     public static final RecordPending recordPendingTable = RecordPending.RECORD_PENDING;
     public static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
+    public static final RecordToService recToServiceTable = RecordToService.RECORD_TO_SERVICE;
+
     public static final com.tlback.jooq.gen.tables.DomainUser userTable = com.tlback.jooq.gen.tables.DomainUser.DOMAIN_USER;
 
-    // public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch.join(serviceInfoTable)
-    //         .on(recordTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
-
-    public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch.join(serviceInfoTable)
-            .on(recordTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
+    public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch
+            .leftJoin(recToServiceTable).on(recordTable.ID.eq(recToServiceTable.RECORD_ID))
+            .leftJoin(serviceInfoTable).on(serviceInfoTable.ID.eq(recToServiceTable.SERVICE_ID));
 
     public static final JoinModule JOIN_RECORD_PENDINGS = mainFetch -> mainFetch.leftJoin(recordPendingTable)
             .on(recordTable.ID.eq(recordPendingTable.RECORD_ID));
@@ -76,7 +76,13 @@ public class JooqRecordRepository {
         var query = fetch(dsl, joins).where(recordTable.ID.eq(id));
 
         log.info(query.toString());
-        return Mono.from(query).map(this::tryToMap);
+
+        return Flux.from(query) // все строки из jOOQ-результата
+                .collectList() // собираем в List<Record>
+                .map(records -> {
+                    var rec = tryToMapAll(records);
+                    return rec.get(id);
+                });
     }
 
     /**
@@ -104,7 +110,6 @@ public class JooqRecordRepository {
 
     public static Mono<RecordRecord> insert(RecordRecord recordEntity, DSLContext dsl) {
         var insertFields = new HashMap<>();
-        insertFields.put(recordTable.SERVICE_INFO_ID, recordEntity.getServiceInfoId());
         insertFields.put(recordTable.RECORD_OWNER_ID, recordEntity.getRecordOwnerId());
         insertFields.put(recordTable.IS_PUBLIC, recordEntity.getIsPublic());
         insertFields.put(recordTable.TZ, recordEntity.getTz());
@@ -123,45 +128,51 @@ public class JooqRecordRepository {
                 .map(it -> it.into(RecordRecord.class));
     }
 
-    private Map<Long, RecordEntity> tryToMapAll(List<org.jooq.Record> it) {
-        var cache = new HashMap<Long, RecordEntity>();
-        Function<org.jooq.Record, Long> id = rec -> rec.get(recordTable.ID);
-
-        return it.stream()
-                .filter(rec -> id.apply(rec) != null)
+    private Map<Long, RecordEntity> tryToMapAll(List<org.jooq.Record> records) {
+        return records.stream()
+                .filter(rec -> rec.get(recordTable.ID) != null)
                 .collect(Collectors.toMap(
-                        id::apply,
-                        rec -> cache.computeIfAbsent(id.apply(rec), ind -> tryToMap(rec)),
-                        (rec1, rec2) -> {
-                            rec1.getRecordPendings().addAll(rec2.getRecordPendings());
-                            return rec1;
+                        rec -> rec.get(recordTable.ID),
+                        rec -> {
+                            RecordEntity e = mapJustRecEntity(rec);
+                            enrich(e, rec); // тот же метод enrich
+                            return e;
+                        },
+                        (existing, fresh) -> {
+                            var pendings = fresh.getRecordPendings().stream().filter(it -> it.getId() != null).toList();
+                            var services = fresh.getServiceInfo().stream().filter(it -> it.getId() != null).toList();
+
+                            if (!pendings.isEmpty())
+                                existing.getRecordPendings().addAll(pendings);
+                            if (!services.isEmpty())
+                                existing.getServiceInfo().addAll(services);
+                            return existing;
                         }));
     }
 
-    private RecordEntity tryToMap(org.jooq.Record rec) {
-        var recordEntity = mapJustRecEntity(rec);
+    private void enrich(RecordEntity recordEntity, org.jooq.Record rec) {
 
-        var pending = rec.into(recordPendingTable.fields())
-            .into(com.tlback.core.model.RecordPending.class);
+        // RecordPending
+        if (rec.get(recordPendingTable.RECORD_ID) != null) {
+            var pending = rec.into(recordPendingTable.fields())
+                    .into(com.tlback.core.model.RecordPending.class);
 
-        if (pending != null && pending.getPendingOwner() == null)
-            pending.setPendingOwner(
-                    rec.into(userTable.fields()).into(DomainUserEntity.class));
+            if (pending != null && pending.getPendingOwner() == null) {
+                pending.setPendingOwner(
+                        rec.into(userTable.fields()).into(DomainUserEntity.class));
+            }
+        }
 
-        // if (recordEntity.getServiceInfo() == null)
-        //     recordEntity.setServiceInfo(rec.into(serviceInfoTable.fields())
-        //         .into(ServiceInfoEntity.class));
-
-        recordEntity.getRecordPendings().add(pending);
-        return recordEntity;
+        // ServiceInfo
+        if (rec.get(serviceInfoTable.ID) != null) {
+            recordEntity.getServiceInfo().add(
+                    rec.into(serviceInfoTable.fields()).into(ServiceInfoEntity.class));
+        }
     }
 
     public static SelectConditionStep<org.jooq.Record> buildFilter(SelectJoinStep<org.jooq.Record> select,
             RecordFilter filter) {
         var query = select.where(DSL.noCondition());
-
-        if (filter.getServiceInfoId() != null)
-            query = query.and(recordTable.SERVICE_INFO_ID.eq(filter.getServiceInfoId()));
 
         if (filter.getRecordOwnerId() != null)
             query = query.and(recordTable.RECORD_OWNER_ID.eq(filter.getRecordOwnerId()));
@@ -199,6 +210,7 @@ public class JooqRecordRepository {
             entity.setTsFrom(timeFrom.atOffset(tz));
             entity.setTsTo(timeTo.atOffset(tz));
             entity.setComment(rec.get(recordTable.COMMENT));
+            entity.setRecordLimit(rec.get(recordTable.RECORD_LIMIT));
             entity.setTz(tz.toString());
             return entity;
         });
@@ -217,11 +229,9 @@ public class JooqRecordRepository {
         return mainFetch;
     }
 
-    public Mono<RecordEntity> update(RecordRecord record, JoinModule... joinModules) {
+    public Mono<RecordRecord> update(RecordRecord record) {
         // Обновляем запись по ID, возвращаем обновлённую сущность с нужными join-ами
         var update = dsl.update(recordTable)
-                .set(recordTable.SERVICE_INFO_ID,
-                        DSL.coalesce(DSL.val(record.getServiceInfoId()), recordTable.SERVICE_INFO_ID))
                 .set(recordTable.RECORD_OWNER_ID,
                         DSL.coalesce(DSL.val(record.getRecordOwnerId()), recordTable.RECORD_OWNER_ID))
                 .set(recordTable.IS_PUBLIC, DSL.coalesce(DSL.val(record.getIsPublic()), recordTable.IS_PUBLIC))
@@ -232,15 +242,12 @@ public class JooqRecordRepository {
                 .where(recordTable.ID.eq(record.getId()))
                 .returning(recordTable.ID);
 
-        return Mono.from(update)
-                .map(r -> r.get(recordTable.ID))
-                .flatMap(id -> findById(id, joinModules));
+        return Mono.from(update);
     }
 
-    public Mono<RecordEntity> save(RecordRecord record, JoinModule... joinModules) {
+    public Mono<RecordRecord> save(RecordRecord record) {
         // Вставляем новую запись и возвращаем созданную сущность с нужными join-ами
         var insert = dsl.insertInto(recordTable)
-                .set(recordTable.SERVICE_INFO_ID, record.getServiceInfoId())
                 .set(recordTable.RECORD_OWNER_ID, record.getRecordOwnerId())
                 .set(recordTable.IS_PUBLIC, record.getIsPublic())
                 .set(recordTable.TZ, record.getTz())
@@ -249,14 +256,13 @@ public class JooqRecordRepository {
                 .set(recordTable.COMMENT, record.getComment())
                 .returning(recordTable.ID);
 
-        return Mono.from(insert)
-                .map(r -> r.get(recordTable.ID))
-                .flatMap(id -> findById(id, joinModules));
+        log.info("Inserting new record: {}", insert);
+        return Mono.from(insert);
     }
 
     public Mono<Boolean> delete(Long id) {
         var deleteSql = dsl.delete(recordTable)
-            .where(recordTable.ID.eq(id));
+                .where(recordTable.ID.eq(id));
         return Mono.from(deleteSql).map(it -> it != 0);
     }
 }
