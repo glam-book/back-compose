@@ -1,6 +1,7 @@
 package com.tlback.core.web.dto.records;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
@@ -13,5 +14,5 @@ public class OptionalRecordCreateOrUpdateRequest {
     private LocalDateTime tsFrom;
     private LocalDateTime tsTo;
     private String comment;
-    private OptionalServiceInfoDto serviceInfo;
+    private List<OptionalServiceInfoDto> serviceInfo;
 }

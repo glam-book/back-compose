@@ -2,7 +2,9 @@ package com.tlback.core.model;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -38,7 +40,10 @@ public class RecordEntity {
     @Column("comment")
     private String comment;
 
+    @Column("record_limit")
+    private Integer recordLimit;
+
     private List<RecordPending> recordPendings = new ArrayList<>();
 
-    private ServiceInfoEntity serviceInfo;
+    private Set<ServiceInfoEntity> serviceInfo = new HashSet<>();
 }

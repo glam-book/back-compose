@@ -75,7 +75,7 @@ public class RecordControllerV1 {
     private RecordPendingsServiceResponsePreviewDto map(RecordEntity entity, boolean isOwner, Long userId) {
         var hasPendings = entity.getRecordPendings() != null &&
                 entity.getRecordPendings().stream()
-                        .anyMatch(pending -> pending.getClientId().equals(userId));
+                        .anyMatch(pending -> pending.getClientId() != null && pending.getClientId().equals(userId));
         return recordMapper.toDto(entity, !(hasPendings && isOwner), isOwner);
     }
 }

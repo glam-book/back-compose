@@ -1,5 +1,7 @@
 package com.tlback.core.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,18 @@ public class ServiceInfoService {
         return jooqServiceInfoRepository.findAllByUserId(userId);
     }
 
+    public Flux<ServiceInfoRecord> saveOrUpdate(List<OptionalServiceInfoDto> dtos, Long userId) {
+        log.info("Save or update service request: {}", dtos.toString());
+
+        return Flux.fromIterable(dtos)
+            .flatMap(dto -> dto.getId()
+                    .map(id -> abac.canUseService(userId, id)
+                            .flatMap(abacResult -> abacResult.mapResult(
+                                    () -> jooqServiceInfoRepository.update(mapInfoRecord(dto, userId)),
+                                    Mono::error)))
+                    .orElseGet(() -> jooqServiceInfoRepository.save(mapInfoRecord(dto, userId))));
+    }
+
     public Mono<ServiceInfoRecord> saveOrUpdate(OptionalServiceInfoDto dto, Long userId) {
         log.info("Save or update service request: {}", dto.toString());
 
@@ -45,7 +59,6 @@ public class ServiceInfoService {
         dto.getId().ifPresent(rec::setId);
         rec.setServiceName(dto.getTitle());
         rec.setEditable(false);
-        rec.setRecordLimit(dto.getRecordLimit());
         rec.setServiceDescription(dto.getDescription());
         rec.setServiceOwnerId(userId);
         return rec;

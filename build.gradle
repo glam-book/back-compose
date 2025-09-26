@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
+	id "com.diffplug.eclipse.apt" version "4.3.0"
 
-	id 'com.diffplug.eclipse.apt' version '4.3.0'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'nu.studer.jooq' version '9.0'
@@ -113,14 +113,6 @@ liquibase {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs 'src/main/java', 'build/generated/sources/annotations/java/main' // Example path
-        }
-    }
-}
-
 jooq {
  	version "${jooqVer}"
 	configurations {
@@ -132,6 +124,11 @@ jooq {
 						inputSchema = 'PUBLIC'
 
  		                properties {
+
+                            property {
+                                key = "changeLogParameters.contexts"
+                                value = "ddl"
+                            }
 
 							property {
         						key = "rootPath"
@@ -152,6 +149,11 @@ jooq {
  		    }
 		}
 	}
+}
+
+// // If using Lombok with MapStruct, configure annotation processing for both
+tasks.withType(JavaCompile) {
+    options.annotationProcessorPath = configurations.annotationProcessor
 }
 
 tasks.named('test') {
