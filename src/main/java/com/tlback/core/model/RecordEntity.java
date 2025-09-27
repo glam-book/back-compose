@@ -43,6 +43,9 @@ public class RecordEntity {
     @Column("record_limit")
     private Integer recordLimit;
 
+    @Column("record_permissions")
+    private byte[] recordPermissions;
+
     private List<RecordPending> recordPendings = new ArrayList<>();
 
     private Set<ServiceInfoEntity> serviceInfo = new HashSet<>();
