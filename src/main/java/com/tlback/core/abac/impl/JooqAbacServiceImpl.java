@@ -1,10 +1,14 @@
 package com.tlback.core.abac.impl;
 
 import org.jooq.DSLContext;
+import org.jooq.Record1;
+import org.jooq.Record2;
 import org.springframework.stereotype.Service;
 
 import com.tlback.core.abac.AbacContext;
 import com.tlback.core.abac.AbacService;
+import com.tlback.core.abac.PermissionMask;
+import com.tlback.core.abac.PermissionMask.Rights;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.ServiceInfo;
 
@@ -21,7 +25,14 @@ public class JooqAbacServiceImpl implements AbacService {
 
     private final DSLContext dsl;
 
-    public Mono<org.jooq.Record1<Long>> fetchRecordOwnerId(Long recordId) {
+    public Mono<Record2<byte[], Long>> fetchRecordPermissions(Long recordId) {
+        return Mono.from(dsl
+                .select(RECORD_TABLE.RECORD_PERMISSIONS, RECORD_TABLE.RECORD_OWNER_ID)
+                .from(RECORD_TABLE)
+                .where(RECORD_TABLE.ID.eq(recordId)));
+    }
+
+    public Mono<Record1<Long>> fetchRecordOwnerId(Long recordId) {
         return Mono.from(dsl
                 .select(RECORD_TABLE.RECORD_OWNER_ID)
                 .from(RECORD_TABLE)
@@ -30,12 +41,20 @@ public class JooqAbacServiceImpl implements AbacService {
 
     @Override
     public Mono<AbacContext> canModifyRecord(Long userId, Long recordId) {
-        return fetchRecordOwnerId(recordId)
+        return fetchRecordPermissions(recordId)
             .flatMap(r -> {
-                Long ownerId = r.value1();
-                var decision = ownerId.equals(userId)
-                        ? AbacContext.allow()
-                        : AbacContext.deny("You do not own this record");
+                byte[] recordPermissions = r.value1();
+                var ownerId = r.value2();
+                Rights parsedRights = PermissionMask.getRights(recordPermissions);
+                AbacContext decision = AbacContext.deny("No permissions detected, deny by default");
+
+                if (ownerId.equals(userId)) {
+                    var ownerRights = parsedRights.canOwnerWrite();
+                    decision = ownerRights ? AbacContext.allow() : AbacContext.deny("You do not have permission to modify this record");
+                } else {
+                    var otherRights = parsedRights.canOtherWrite();
+                    decision = otherRights ? AbacContext.allow() : AbacContext.deny("Owner does not allow you to modify this record");
+                }
                 log.info("Modifying record attempt. Decision: {}, User: {}, Record: {}", decision, userId, recordId);
                 return Mono.just(decision);
             })
@@ -70,7 +89,6 @@ public class JooqAbacServiceImpl implements AbacService {
                             serviceId);
                     return decision;
                 });
-
     }
 
     @Override

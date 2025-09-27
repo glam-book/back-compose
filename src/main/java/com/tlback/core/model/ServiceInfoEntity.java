@@ -46,6 +46,9 @@ public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware {
     @Column("icon")
     private String icon;
 
+    @Column("service_permissions")
+    private byte[] servicePermissions;
+
     private DomainUserEntity serviceOwner;
 
     private List<RecordEntity> records = new ArrayList<>();

@@ -334,3 +334,27 @@ databaseChangeLog:
             columns:
             - column:
                 name: service_id
+
+    - changeSet:
+        id: add_persmissions_rights
+        author: owpk
+        context: ddl
+        changes:
+          - addColumn:
+              tableName: service_info
+              columns:
+                - column:
+                    name: service_permissions
+                    type: bytea
+                    defaultValue: '\x0300'
+                    constraints:
+                      nullable: false
+          - addColumn:
+              tableName: record
+              columns:
+                - column:
+                    name: record_permissions
+                    type: bytea
+                    defaultValue: '\x0300'
+                    constraints:
+                      nullable: false
