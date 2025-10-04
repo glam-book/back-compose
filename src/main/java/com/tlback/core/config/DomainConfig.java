@@ -8,7 +8,7 @@ import com.tlback.core.service.UserService;
 import com.tlback.events.core.EventPublisher;
 import com.tlback.events.impl.SpringEventPublisher;
 import com.tlback.events.impl.record.RecordEventHandler;
-import com.tlback.tg.balancer.TelegramClientBalanced;
+import com.tlback.tg.balancer.TelegramClientGroupping;
 
 @Configuration
 public class DomainConfig {
@@ -19,7 +19,7 @@ public class DomainConfig {
     }
 
     @Bean
-    RecordEventHandler recordEventHandler(TelegramClientBalanced tgClient, UserService userService) {
+    RecordEventHandler recordEventHandler(TelegramClientGroupping tgClient, UserService userService) {
         return new RecordEventHandler(tgClient, userService);
     }
 }

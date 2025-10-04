@@ -4,7 +4,7 @@ import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateC
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import com.tlback.tg.balancer.TelegramClientBalanced;
+import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgMessageHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TgGlamBot implements LongPollingSingleThreadUpdateConsumer, NotificationApi {
 
-    private final TelegramClientBalanced telegramClient;
+    private final TelegramClientGroupping telegramClient;
     private final TgMessageHandler messageHandler;
 
     @Override
