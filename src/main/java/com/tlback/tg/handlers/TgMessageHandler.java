@@ -2,12 +2,12 @@ package com.tlback.tg.handlers;
 
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
-import com.tlback.tg.balancer.TelegramClientBalanced;
+import com.tlback.tg.balancer.TelegramClientGroupping;
 
 public interface TgMessageHandler {
     static final String pattern = "";
 
-    void onMessage(Message msg, TelegramClientBalanced tgClient);
+    void onMessage(Message msg, TelegramClientGroupping tgClient);
 
     default String format(String msg) {
         StringBuilder result = new StringBuilder();

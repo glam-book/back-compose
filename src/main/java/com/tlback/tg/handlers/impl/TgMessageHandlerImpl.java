@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
-import com.tlback.tg.balancer.TelegramClientBalanced;
+import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgAbsMessageHandler;
 
 public class TgMessageHandlerImpl extends TgAbsMessageHandler {
@@ -16,7 +16,7 @@ public class TgMessageHandlerImpl extends TgAbsMessageHandler {
 
     @Override
     protected void handleSimpleText(String txt,
-            String chatId, TelegramClientBalanced tgClient) {
+            String chatId, TelegramClientGroupping tgClient) {
         var msg1 = new SendMessage(chatId, format("""
                 Добро пожаловать в `glam bot` 🌱
                 - Что делает приложение

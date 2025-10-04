@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import com.tlback.tg.balancer.TelegramClientBalanced;
+import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgMessageHandler;
 import com.tlback.tg.handlers.impl.TgMessageHandlerImpl;
 
@@ -27,11 +27,6 @@ public class TelegramBotConfig {
     @Bean
     TgMessageHandler tgMessageHandler() {
         return new TgMessageHandlerImpl();
-    }
-
-    @Bean
-    TelegramClientBalanced clientBalanced(TelegramClient client) {
-        return new TelegramClientBalanced(client);
     }
 
 }
