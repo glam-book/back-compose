@@ -1,6 +1,7 @@
 package com.tlback.core.dao.jooq;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,8 +48,18 @@ public class JooqUserRepository {
         return flux(query);
     }
 
+    public Flux<DomainUserEntity> findByIds(List<Long> ids) {
+        var query = fetchWhere(userTable.ID.in(ids));
+        return flux(query);
+    }
+
     public Flux<DomainUserEntity> findAll(int offset, int limit) {
         var query = fetch(dsl).offset(offset).limit(limit);
+        return flux(query);
+    }
+
+    public Flux<DomainUserEntity> findAll() {
+        var query = fetch(dsl);
         return flux(query);
     }
 

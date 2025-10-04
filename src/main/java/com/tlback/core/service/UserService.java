@@ -1,5 +1,6 @@
 package com.tlback.core.service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ import com.tlback.core.model.TelegramUser;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -44,5 +46,14 @@ public class UserService {
         entity.setName(user.getFirstName());
         entity.setLastName(user.getLastName());
         return jooqUserRepository.save(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Flux<DomainUserEntity> findByIds(List<Long> userIds) {
+        return jooqUserRepository.findByIds(userIds);
+    }
+
+    public Flux<DomainUserEntity> findAll() {
+        return jooqUserRepository.findAll();
     }
 }
