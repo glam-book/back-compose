@@ -26,6 +26,7 @@ public class MainReactiveAuthManager implements ReactiveAuthenticationManager {
         if (authentication instanceof TelegramAuthenticationToken tgToken) {
             var tgUser = tgToken.getDetails();
 
+            System.out.println("");
             return userService.findByTgId(tgUser.getId())
                     .onErrorResume(NotFoundException.class, it -> userService.createFromTgUser(tgUser))
                     .map(it -> new UserData(it, List.of(new SimpleGrantedAuthority("ROLE_USER"))));

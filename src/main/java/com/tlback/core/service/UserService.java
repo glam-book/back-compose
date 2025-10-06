@@ -40,6 +40,7 @@ public class UserService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE, label = "auth")
     public Mono<DomainUserEntity> createFromTgUser(TelegramUser user) {
+        log.info("Creating default user from tg user: {}", user);
         var entity = new DomainUserEntity();
         entity.setTgUser(Optional.of(user));
         entity.setLogin(user.getUsername());
