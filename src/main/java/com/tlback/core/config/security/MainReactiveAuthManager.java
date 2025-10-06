@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.tlback.core.abac.exception.NotFoundException;
 import com.tlback.core.config.security.tg.TelegramAuthenticationToken;
 import com.tlback.core.service.UserService;
 
@@ -26,9 +27,10 @@ public class MainReactiveAuthManager implements ReactiveAuthenticationManager {
             var tgUser = tgToken.getDetails();
 
             return userService.findByTgId(tgUser.getId())
-                    .switchIfEmpty(userService.createFromTgUser(tgUser))
+                    .onErrorResume(NotFoundException.class, it -> userService.createFromTgUser(tgUser))
                     .map(it -> new UserData(it, List.of(new SimpleGrantedAuthority("ROLE_USER"))));
         }
+
         return Mono.error(new UnsupportedOperationException());
     }
 

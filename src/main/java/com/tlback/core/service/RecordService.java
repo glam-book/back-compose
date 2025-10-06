@@ -17,6 +17,7 @@ import com.tlback.core.dao.jooq.JooqPendingRepository;
 import com.tlback.core.dao.jooq.JooqRecordRepository;
 import com.tlback.core.dao.jooq.JooqRecordToServiceRepository;
 import com.tlback.core.model.RecordEntity;
+import com.tlback.core.model.RecordPending;
 import com.tlback.core.service.exception.RecordPendingException;
 import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
@@ -97,8 +98,12 @@ public class RecordService {
 							// if record id exists - check access and update record if allowed
 							.map(recId -> abac.canModifyRecord(userId, recId)
 									.flatMap(abacResult -> abacResult.mapResult(
-											() -> recordRepository.update(
-													mapToRecord(cmd, userId)),
+											() -> {
+												var updatedRecord = recordRepository.update(
+													mapToRecord(cmd, userId));
+												eventPublisher.publish(null);
+												return updatedRecord;
+											},
 											Mono::error)))
 							// or else create new one
 							.orElseGet(() -> recordRepository.save(
@@ -134,6 +139,10 @@ public class RecordService {
 						.publish(new RecordPendingCreatedEvent(this, it.getRecordOwnerId(), it.getId())))
 				.retryWhen(Retry.max(3)
 						.filter(ex -> ex instanceof SerializationFailedException));
+	}
+
+	public Flux<RecordPending> getRecordPendings(Long recordId) {
+		return pendingRepository.findById(recordId);
 	}
 
 	private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {

@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -29,8 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-@Component
-public class TelegramClientGroupBalanced implements TelegramClientGroupping {
+public class TelegramClientImpl implements TelegramClientGroupping {
     private static final int TASK_LIMIT = 30;
     private static final String UNGROUPED_STRING = "ungrouped";
 
