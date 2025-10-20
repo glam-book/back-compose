@@ -71,19 +71,22 @@ public class JooqServiceInfoRepository {
     public Mono<ServiceInfoEntity> findById(Long id) {
         return Mono.from(
                 dsl.selectFrom(serviceInfoTable)
-                   .where(serviceInfoTable.ID.eq(id))
-        )
-        .map(r -> r.into(ServiceInfoEntity.class));
+                        .where(serviceInfoTable.ID.eq(id)))
+                .map(r -> r.into(ServiceInfoEntity.class));
     }
 
     public Mono<ServiceInfoRecord> update(ServiceInfoRecord record) {
         return Mono.from(
                 dsl.update(serviceInfoTable)
-                   .set(serviceInfoTable.SERVICE_NAME, DSL.coalesce(DSL.val(record.getServiceName()), serviceInfoTable.SERVICE_NAME))
-                   .set(serviceInfoTable.SERVICE_DESCRIPTION, DSL.coalesce(DSL.val(record.getServiceDescription()), serviceInfoTable.SERVICE_DESCRIPTION))
-                   .set(serviceInfoTable.EDITABLE, DSL.coalesce(DSL.val(record.getEditable()), serviceInfoTable.EDITABLE))
-                   .where(serviceInfoTable.ID.eq(record.getId()))
-                   .returning(serviceInfoTable.fields()))
+                        .set(serviceInfoTable.SERVICE_NAME,
+                                DSL.coalesce(DSL.val(record.getServiceName()), serviceInfoTable.SERVICE_NAME))
+                        .set(serviceInfoTable.SERVICE_DESCRIPTION,
+                                DSL.coalesce(DSL.val(record.getServiceDescription()),
+                                        serviceInfoTable.SERVICE_DESCRIPTION))
+                        .set(serviceInfoTable.EDITABLE,
+                                DSL.coalesce(DSL.val(record.getEditable()), serviceInfoTable.EDITABLE))
+                        .where(serviceInfoTable.ID.eq(record.getId()))
+                        .returning(serviceInfoTable.fields()))
                 .map(r -> r.into(ServiceInfoRecord.class));
     }
 
@@ -99,6 +102,14 @@ public class JooqServiceInfoRepository {
                 .map(r -> r.into(ServiceInfoRecord.class));
     }
 
+    public Mono<Boolean> delete(Long serviceId) {
+        var query = dsl.deleteFrom(serviceInfoTable)
+                .where(serviceInfoTable.ID.eq(serviceId));
+
+        return Mono.from(query)
+                .map(it -> it != 0);
+    }
+
     public static Mono<ServiceInfoRecord> insert(ServiceInfoEntity entity, DSLContext dsl) {
         return Mono.from(dsl.insertInto(serviceInfoTable)
                 .set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
@@ -109,8 +120,12 @@ public class JooqServiceInfoRepository {
     }
 
     public static SelectOnConditionStep<org.jooq.Record> fetchFull(DSLContext dsl) {
-        return dsl.select(JooqUserRepository.fetch(dsl).asMultiset()).select(serviceInfoTable.fields())
-                .select(userTable.fields()).select(recordTable.fields()).from(serviceInfoTable).join(userTable)
+        return dsl.select(JooqUserRepository.fetch(dsl).asMultiset())
+                .select(serviceInfoTable.fields())
+                .select(userTable.fields())
+                .from(serviceInfoTable)
+                .join(userTable)
                 .on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID));
     }
+
 }
