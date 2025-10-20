@@ -1,9 +1,10 @@
 package com.tlback.events.impl.record;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 import com.tlback.events.core.DomainEvent;
 
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
@@ -13,14 +14,15 @@ public class RecordUpdatedEvent extends DomainEvent {
 
     private final Long userId;
     private final Long recId;
-    private final OffsetDateTime start;
-    private final OffsetDateTime end;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
 
+    @Builder
     public RecordUpdatedEvent(Object source, 
         Long userId, 
         Long recId, 
-        OffsetDateTime start, 
-        OffsetDateTime end) {
+        LocalDateTime start, 
+        LocalDateTime end) {
 
         super(source);
         this.userId = userId;

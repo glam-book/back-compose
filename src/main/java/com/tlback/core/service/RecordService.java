@@ -23,6 +23,7 @@ import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.events.core.EventPublisher;
 import com.tlback.events.impl.pending.RecordPendingCreatedEvent;
+import com.tlback.events.impl.record.RecordUpdatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
@@ -98,12 +99,16 @@ public class RecordService {
 							// if record id exists - check access and update record if allowed
 							.map(recId -> abac.canModifyRecord(userId, recId)
 									.flatMap(abacResult -> abacResult.mapResult(
-											() -> {
-												var updatedRecord = recordRepository.update(
-													mapToRecord(cmd, userId));
-												eventPublisher.publish(null);
-												return updatedRecord;
-											},
+											() -> recordRepository.update(mapToRecord(cmd, userId))
+													.doOnSuccess(it -> {
+														eventPublisher.publish(RecordUpdatedEvent.builder()
+																.source(this)
+																.recId(recId)
+																.end(it.getTsTo())
+																.start(it.getTsFrom())
+																.userId(userId)
+																.build());
+													}),
 											Mono::error)))
 							// or else create new one
 							.orElseGet(() -> recordRepository.save(
@@ -114,9 +119,9 @@ public class RecordService {
 							.linkRecordToService(record.getId(), list.stream()
 									.map(ServiceInfoRecord::getId)
 									.toList())
-							.then(recordRepository.findById(record.getId(), 
-								joinService, 
-								JooqRecordRepository.JOIN_RECORD_PENDINGS)));
+							.then(recordRepository.findById(record.getId(),
+									joinService,
+									JooqRecordRepository.JOIN_RECORD_PENDINGS)));
 				});
 	}
 
