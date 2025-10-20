@@ -10,6 +10,7 @@ import org.mapstruct.Named;
 import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
 import com.tlback.core.web.dto.service.preview.ServicePreviewDto;
+import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ServiceInfoMapper {
@@ -27,4 +28,9 @@ public interface ServiceInfoMapper {
     default Optional<Long> toOptionalLong(Long value) {
         return Optional.ofNullable(value);
     }
+
+    @Mapping(target = "title", source = "serviceName")
+    @Mapping(target = "description", source = "serviceDescription")
+    @Mapping(target = "id", source = "id", qualifiedByName = "toOptionalLong")
+    OptionalServiceInfoDto toDto(ServiceInfoRecord it);
 }

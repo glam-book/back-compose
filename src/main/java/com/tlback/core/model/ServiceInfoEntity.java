@@ -34,9 +34,6 @@ public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware {
     @Column("service_description")
     private String serviceDescription;
 
-    @Column("record_limit")
-    private Integer recordLimit;
-
     @Column("time_duration")
     private Integer timeDuration;
 

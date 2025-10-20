@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.core.abac.AbacService;
 import com.tlback.core.dao.jooq.JooqServiceInfoRepository;
+import com.tlback.core.mapper.ServiceInfoMapper;
 import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
@@ -28,6 +29,13 @@ public class ServiceInfoService {
         return jooqServiceInfoRepository.findAllByUserId(userId);
     }
 
+    @Transactional
+    public Mono<Boolean> deleteCascadeWithRecords(Long serviceId, Long userId) {
+		return abac.canUseService(serviceId, userId)
+				.flatMap(abacResult -> jooqServiceInfoRepository.delete(serviceId));
+    }
+
+    @Transactional
     public Flux<ServiceInfoRecord> saveOrUpdate(List<OptionalServiceInfoDto> dtos, Long userId) {
         log.info("Save or update service request: {}", dtos.toString());
 
@@ -40,6 +48,7 @@ public class ServiceInfoService {
                     .orElseGet(() -> jooqServiceInfoRepository.save(mapInfoRecord(dto, userId))));
     }
 
+    @Transactional
     public Mono<ServiceInfoRecord> saveOrUpdate(OptionalServiceInfoDto dto, Long userId) {
         log.info("Save or update service request: {}", dto.toString());
 

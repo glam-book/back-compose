@@ -7,7 +7,7 @@
             "request": "launch",
             "mainClass": "com.tlback.core.TlbackApplication",
             "envFile": "${workspaceFolder}/.dev.env",
-            "args": "--spring.profiles.active="
+            "args": "--spring.profiles.active=dev"
         }
     ]
 }
