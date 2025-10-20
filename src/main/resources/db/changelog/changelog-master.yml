@@ -2,9 +2,9 @@ databaseChangeLog:
   - include:
       file: ddl.yml
       relativeToChangelogFile: true
-  - include:
-      file: data.yml
-      relativeToChangelogFile: true
+#   - include:
+#       file: data.yml
+#       relativeToChangelogFile: true
   - includeAll:
       path: included/
       relativeToChangelogFile: true
