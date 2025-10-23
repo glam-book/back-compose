@@ -1,11 +1,9 @@
 package com.tlback.notifier;
 
-import java.util.List;
-
 import com.tlback.notifier.model.NotificationRequest;
 
-public interface UserNotifier {
-    void sendNotification(Long userId, NotificationRequest request);
+public interface UserNotifier<T> {
     void sendToAll(NotificationRequest request);
-    void sendInBatch(List<Long> userIds, NotificationRequest request);
+    void sendNotification(T domainUser, NotificationRequest request);
+    void sendInBatch(Iterable<T> domainUsers, NotificationRequest request);
 }

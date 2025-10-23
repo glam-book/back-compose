@@ -1,15 +1,17 @@
-package com.tlback.notifier.impl;
+package com.tlback.tg;
 
 import java.util.Optional;
 
-import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 import com.tlback.core.model.DomainUserEntity;
+import com.tlback.core.model.TelegramUser;
+import com.tlback.notifier.impl.NotificationAdapter;
 import com.tlback.notifier.model.NotificationAttachment;
+import com.tlback.tg.balancer.PerfProps;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 
 import io.vavr.CheckedConsumer;
@@ -17,9 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Service
 @Slf4j
-public class TelegramNotifierAdapter extends NotificationAdapter {
+public class TelegramNotifierAdapter extends NotificationAdapter<DomainUserEntity> {
     private final TelegramClientGroupping client;
 
     private InputFile buildInputFile(NotificationAttachment attachment) {
@@ -28,15 +29,17 @@ public class TelegramNotifierAdapter extends NotificationAdapter {
 
     @Override
     protected void sendMessage(DomainUserEntity user, String message) {
-        tgUserHandler(user, tgId -> {
+        var tgUser = user.getTgUser();
+        tgUserHandler(tgUser, tgId -> {
             var msg = new SendMessage(tgId, message);
-            client.executeGeneric(tgId, msg);
+            client.executeGeneric(PerfProps.of(tgId), msg);
         });
     }
 
     @Override
     protected void photoHandler(DomainUserEntity user, NotificationAttachment att) {
-        tgUserHandler(user, tgId -> {
+        var tgUser = user.getTgUser();
+        tgUserHandler(tgUser, tgId -> {
             var sendPhoto = SendPhoto.builder();
             sendPhoto.chatId(tgId);
             sendPhoto.photo(buildInputFile(att));
@@ -44,13 +47,14 @@ public class TelegramNotifierAdapter extends NotificationAdapter {
             if (att.hasAttamentText())
                 sendPhoto.caption(att.getAttachmentText());
 
-            client.executeGeneric(tgId, sendPhoto.build());
+            client.executeGeneric(PerfProps.of(tgId), sendPhoto.build());
         });
     }
 
     @Override
     protected void defaultHandler(DomainUserEntity user, NotificationAttachment att) {
-        tgUserHandler(user, tgId -> {
+        var tgUser = user.getTgUser();
+        tgUserHandler(tgUser, tgId -> {
             var sendDocument = SendDocument.builder();
             sendDocument.chatId(tgId);
             sendDocument.document(buildInputFile(att));
@@ -58,19 +62,20 @@ public class TelegramNotifierAdapter extends NotificationAdapter {
             if (att.hasAttamentText())
                 sendDocument.caption(att.getAttachmentText());
 
-            client.executeGeneric(tgId, sendDocument.build());
+            client.executeGeneric(PerfProps.of(tgId), sendDocument.build());
         });
     }
 
-    private void tgUserHandler(DomainUserEntity user, CheckedConsumer<String> action) {
-        Optional.ofNullable(user).flatMap(it -> it.getTgUser())
-                .map(it -> it.getId()).ifPresentOrElse(tgId -> {
-                    var tgIdString = tgId.toString();
-                    try {
-                        action.accept(tgIdString);
-                    } catch (Throwable e) {
-                        log.warn("Exception while notifing telegram user {}", e);
-                    }
-                }, () -> log.warn("No user present to send notification, or something went wrong: {}", user));
+    private void tgUserHandler(Optional<TelegramUser> user, CheckedConsumer<String> action) {
+        var opt = user.map(it -> it.getId());
+
+        opt.ifPresentOrElse(tgId -> {
+            var tgIdString = tgId.toString();
+            try {
+                action.accept(tgIdString);
+            } catch (Throwable e) {
+                log.warn("Exception while notifing telegram user {}", e);
+            }
+        }, () -> log.warn("No user present to send notification, or something went wrong: {}", user));
     }
 }

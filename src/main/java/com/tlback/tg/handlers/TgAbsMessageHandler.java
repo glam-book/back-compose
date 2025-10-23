@@ -1,18 +1,17 @@
 package com.tlback.tg.handlers;
 
-import java.util.List;
 import java.util.Map;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import com.tlback.tg.balancer.TelegramClientGroupping;
+
 
 public abstract class TgAbsMessageHandler implements TgMessageHandler {
     private Map<String, CommandHandler> commandHandler;
 
     public static interface CommandHandler {
-        List<SendMessage> handle(Message cmd);
+        void handle(Message cmd, TelegramClientGroupping tgClient);
     }
 
     public TgAbsMessageHandler(Map<String, CommandHandler> commandHandler) {
@@ -32,8 +31,8 @@ public abstract class TgAbsMessageHandler implements TgMessageHandler {
             var txt = msg.getText();
             if (txt.startsWith("/")) {
                 var commandHandler = this.commandHandler.get(txt);
-                // if (commandHandler != null)
-                    // return commandHandler.handle(msg);
+                if (commandHandler != null)
+                    commandHandler.handle(msg, tgClient);
             } else {
                 handleSimpleText(txt, chatId, tgClient);
             }

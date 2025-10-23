@@ -4,21 +4,21 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.tlback.core.model.DomainUserEntity;
 import com.tlback.notifier.model.NotificationAttachment;
 
-public class AsyncDelegatingNotificationAdapter extends NotificationAdapter {
 
-    private final List<NotificationAdapter> delegates;
+public class AsyncDelegatingNotificationAdapter<T> extends NotificationAdapter<T> {
+
+    private final List<NotificationAdapter<T>> delegates;
     private final ExecutorService executorService;
 
-    public AsyncDelegatingNotificationAdapter(List<NotificationAdapter> delegates) {
+    public AsyncDelegatingNotificationAdapter(List<NotificationAdapter<T>> delegates) {
         this.delegates = delegates;
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     @Override
-    protected void sendMessage(DomainUserEntity user, String message) {
+    protected void sendMessage(T user, String message) {
         delegates.forEach(delegate -> {
             executorService.submit(() -> {
                 delegate.sendMessage(user, message);
@@ -27,7 +27,7 @@ public class AsyncDelegatingNotificationAdapter extends NotificationAdapter {
     }
 
     @Override
-    protected void photoHandler(DomainUserEntity user, NotificationAttachment att) {
+    protected void photoHandler(T user, NotificationAttachment att) {
         delegates.forEach(delegate -> {
             executorService.submit(() -> {
                 delegate.photoHandler(user, att);
@@ -36,12 +36,11 @@ public class AsyncDelegatingNotificationAdapter extends NotificationAdapter {
     }
 
     @Override
-    protected void defaultHandler(DomainUserEntity user, NotificationAttachment att) {
+    protected void defaultHandler(T user, NotificationAttachment att) {
         delegates.forEach(delegate -> {
             executorService.submit(() -> {
                 delegate.defaultHandler(user, att);
             });
         });
     }
-    
 }

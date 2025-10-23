@@ -8,7 +8,6 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgMessageHandler;
-import com.tlback.tg.handlers.impl.TgMessageHandlerImpl;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,11 +21,6 @@ public class TelegramBotConfig {
     @Bean
     TelegramClient telegramClient() {
         return new OkHttpTelegramClient(tgBotToken);
-    }
-
-    @Bean
-    TgMessageHandler tgMessageHandler() {
-        return new TgMessageHandlerImpl();
     }
 
 }
