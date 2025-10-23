@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.service.RecordService;
 import com.tlback.core.service.UserService;
 import com.tlback.events.core.EventPublisher;
@@ -15,7 +16,8 @@ import com.tlback.events.impl.record.RecordEventHandler;
 import com.tlback.events.impl.record.RecordUpdateHandler;
 import com.tlback.notifier.UserNotifier;
 import com.tlback.notifier.impl.AsyncDelegatingNotificationAdapter;
-import com.tlback.notifier.impl.TelegramNotifierAdapter;
+import com.tlback.notifier.impl.NotificationAdapter;
+import com.tlback.tg.TelegramNotifierAdapter;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.balancer.TelegramClientImpl;
 
@@ -33,7 +35,7 @@ public class DomainConfig {
     }
 
     @Bean
-    RecordUpdateHandler recordUpdateHandler(TelegramClientGroupping tgClient, UserNotifier userNotifier, RecordService recordService) {
+    RecordUpdateHandler recordUpdateHandler(TelegramClientGroupping tgClient, UserNotifier<DomainUserEntity> userNotifier, RecordService recordService) {
         return new RecordUpdateHandler(recordService, userNotifier);
     }
 
@@ -43,9 +45,10 @@ public class DomainConfig {
     }
 
     @Bean
-    UserNotifier userNotifier(TelegramClientGroupping tgClient) {
+    UserNotifier<DomainUserEntity> userNotifier(TelegramClientGroupping tgClient) {
         var tgAdapter = new TelegramNotifierAdapter(tgClient);
-        var asyncAdapter = new AsyncDelegatingNotificationAdapter(List.of(tgAdapter));
+        List<NotificationAdapter<DomainUserEntity>> list = List.of(tgAdapter);
+        var asyncAdapter = new AsyncDelegatingNotificationAdapter<>(list);
         return asyncAdapter;
     }
 }
