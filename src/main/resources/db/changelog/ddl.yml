@@ -135,6 +135,7 @@ databaseChangeLog:
                  - column:
                      name: is_public
                      type: boolean
+                     defaultValue: "true"
                  - column:
                      name: ts_from
                      type: timestamp
@@ -144,19 +145,21 @@ databaseChangeLog:
                  - column:
                      name: tz
                      type: varchar(8)
+                     defaultValue: "+00:00"
            - createTable:
                tableName: record_pending
                columns:
                  - column:
-                     name: record_id
-                     type: bigint
+                     name: id
+                     type: bigserial
                      constraints:
                        primaryKey: true
                  - column:
+                     name: record_id
+                     type: bigint
+                 - column:
                      name: client_id
                      type: bigint
-                     constraints:
-                       primaryKey: true
                  - column:
                      name: request_time
                      type: timestamp

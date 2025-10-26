@@ -1,6 +1,8 @@
-package com.tlback.core.web.rest;
+package com.tlback.web.rest;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,9 +19,9 @@ import com.tlback.core.config.security.UserData;
 import com.tlback.core.mapper.RecordMapper;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.service.RecordService;
-import com.tlback.core.web.dto.records.DeleteSuccess;
-import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
-import com.tlback.core.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
+import com.tlback.web.dto.records.DeleteSuccess;
+import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
+import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -38,7 +40,7 @@ public class RecordControllerV1 {
         var details = userDetail.getDetails();
         var isOwner = details.getId().equals(userId);
         return recordService.getRecordsWithPendingsAndServiceByUserdId(userId, date)
-                .map(it -> map(it, isOwner, userId));
+                .map(it -> mapRecord(it, isOwner, userDetail.getPrincipal()));
     }
 
     @PostMapping
@@ -63,19 +65,27 @@ public class RecordControllerV1 {
 
     @PutMapping("/pending/{recordId}")
     public Mono<RecordPendingsServiceResponsePreviewDto> craetePending(UserData userDetail,
-            @PathVariable Long recordId) {
+            @PathVariable Long recordId, 
+            @RequestBody List<Long> serviceId) {
+
         var details = userDetail.getDetails();
         var userId = userDetail.getPrincipal();
         var isOwner = details.getId().equals(userId);
 
-        return recordService.createPendingAtomic(userId, recordId)
-            .map(it -> map(it, isOwner, userId));
+        return recordService.createPendingAtomic(userId, recordId, serviceId)
+            .map(it -> mapRecord(it, isOwner, userId));
     }
 
-    private RecordPendingsServiceResponsePreviewDto map(RecordEntity entity, boolean isOwner, Long userId) {
-        var hasPendings = entity.getRecordPendings() != null &&
-                entity.getRecordPendings().stream()
-                        .anyMatch(pending -> pending.getClientId() != null && pending.getClientId().equals(userId));
-        return recordMapper.toDto(entity, !(hasPendings && isOwner), isOwner);
+    private RecordPendingsServiceResponsePreviewDto mapRecord(RecordEntity entity, boolean isOwner, Long userId) {
+        var isFitByPendings = Optional.ofNullable(entity.getRecordPendings())
+            .map(pendingds -> {
+                var hasMyPendings = pendingds.stream()
+                                .anyMatch(pending -> pending.getClientId() != null && pending.getClientId().equals(userId));
+                return !hasMyPendings && (pendingds.size() < entity.getRecordLimit());
+            }).orElse(false);
+
+        var isPendingable = isOwner && isFitByPendings;
+
+        return recordMapper.toDto(entity, isPendingable, isOwner);
     }
 }

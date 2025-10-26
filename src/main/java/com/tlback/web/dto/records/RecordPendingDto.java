@@ -1,6 +1,10 @@
-package com.tlback.core.web.dto.records;
+package com.tlback.web.dto.records;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+
+import com.tlback.web.dto.Permissions;
+import com.tlback.web.dto.service.preview.ServicePreviewDto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +17,8 @@ public class RecordPendingDto implements Comparable<RecordPendingDto> {
     private String requesterLogin;
     private LocalDateTime requestTime;
     private Boolean confirmed;
+    private Set<ServicePreviewDto> services;
+    private Permissions permissions;
 
     @Override
     public int compareTo(RecordPendingDto o) {

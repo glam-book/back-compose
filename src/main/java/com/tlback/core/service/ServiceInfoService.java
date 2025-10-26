@@ -7,10 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tlback.core.abac.AbacService;
 import com.tlback.core.dao.jooq.JooqServiceInfoRepository;
-import com.tlback.core.mapper.ServiceInfoMapper;
 import com.tlback.core.model.ServiceInfoEntity;
-import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
+import com.tlback.web.dto.service.OptionalServiceInfoDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

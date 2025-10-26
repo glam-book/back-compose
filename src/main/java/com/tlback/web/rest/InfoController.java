@@ -1,4 +1,4 @@
-package com.tlback.core.web.rest;
+package com.tlback.web.rest;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tlback.core.config.security.UserData;
 import com.tlback.core.mapper.UserMapper;
 import com.tlback.core.service.UserService;
-import com.tlback.core.web.dto.user.UserDto;
+import com.tlback.web.dto.user.UserDto;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;

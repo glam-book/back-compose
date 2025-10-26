@@ -1,6 +1,9 @@
-package com.tlback.core.web.dto.service;
+package com.tlback.web.dto.service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
+
+import com.tlback.web.dto.Permissions;
 
 import lombok.Data;
 
@@ -13,4 +16,7 @@ public class OptionalServiceInfoDto {
     private String description;
     private String icon;
     private Integer recordLimit = 1;
+    private BigDecimal price;
+    private Boolean isHourlyPrice;
+    private Permissions permissions;
 }

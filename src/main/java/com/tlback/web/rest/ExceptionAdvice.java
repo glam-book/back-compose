@@ -1,4 +1,4 @@
-package com.tlback.core.web.rest;
+package com.tlback.web.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_price_cols
+      context: ddl
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: "service_info"
+            columns:
+              - column:
+                  name: "price"
+                  type: numeric(19,4)
+                  defaultValueNumeric: 0
+              - column:
+                  name: is_hourly_price
+                  type: boolean
+                  defaultValueBoolean: false
+  - changeSet:
+      id: service_infos_to_pendings
+      context: ddl
+      author: owpk
+      changes:
+        - createTable:
+            tableName: servcie_info_to_pending
+            columns:
+              - column:
+                  name: service_info_id
+                  type: bigint
+              - column:
+                  name: pending_id
+                  type: bigint
+  - changeSet:
+      id: service_infos_to_pendings_idxs
+      context: indx
+      author: owpk
+      changes:
+        - addNotNullConstraint:
+            tableName: servcie_info_to_pending
+            columnName: service_info_id
+        - addNotNullConstraint:
+            tableName: servcie_info_to_pending
+            columnName: pending_id
+        - addUniqueConstraint:
+            tableName: servcie_info_to_pending
+            columnNames: service_info_id, pending_id
+        - addPrimaryKey:
+            tableName: servcie_info_to_pending
+            columnNames: service_info_id, pending_id
+            constraintName: pk_servcie_info_to_pending
+        - addForeignKeyConstraint:
+            onDelete: CASCADE
+            deferrable: true
+            initiallyDeferred: true
+            constraintName: fk_sitp_service_info_id
+            baseTableName: servcie_info_to_pending
+            baseColumnNames: service_info_id
+            referencedTableName: service_info
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            onDelete: CASCADE
+            deferrable: true
+            initiallyDeferred: true
+            constraintName: fk_sitp_pending_id
+            baseTableName: servcie_info_to_pending
+            baseColumnNames: pending_id
+            referencedTableName: record_pending
+            referencedColumnNames: id

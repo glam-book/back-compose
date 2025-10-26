@@ -1,9 +1,9 @@
 package com.tlback.core.model;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -16,8 +16,7 @@ import lombok.NoArgsConstructor;
 public class RecordPending {
 
     @Id
-    @Transient
-    private transient RecordPendingPk id;
+    private Long id;
 
     @Column("client_id")
     private Long clientId;
@@ -30,6 +29,8 @@ public class RecordPending {
 
     @Column("confirmed")
     private Boolean confirmed;
+
+    private Set<ServiceInfoEntity> services;
 
     private DomainUserEntity pendingOwner;
 }

@@ -53,7 +53,6 @@ public class UserService {
     public Flux<DomainUserEntity> findByIds(List<Long> userIds) {
         return jooqUserRepository.findByIds(userIds);
     }
-
     public Flux<DomainUserEntity> findAll() {
         return jooqUserRepository.findAll();
     }

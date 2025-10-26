@@ -99,7 +99,9 @@ def psql_pswrd = "${db_pass}"
 def psql_user = "${db_user}"
 
 def liquibaseRoot = "${project.projectDir}/src/main/resources/db/changelog"
-def changelogFile = 'changelog-master.yml'
+def changelogFile = project.hasProperty('changelog') && project.changelog == 'dev' ?
+                     'changelog-dev.yml' :
+                     'changelog-master.yml'
 
 liquibase {
     activities {

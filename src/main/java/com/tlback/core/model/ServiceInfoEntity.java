@@ -1,5 +1,6 @@
 package com.tlback.core.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,12 @@ public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware {
 
     @Column("icon")
     private String icon;
+
+    @Column("price")
+    private BigDecimal price;
+
+    @Column("is_hourly_price")
+    private Boolean isHorlyPrice;
 
     @Column("service_permissions")
     private byte[] servicePermissions;

@@ -25,4 +25,5 @@ docker run --name $CONTAINER \
 
 sleep 3
 
-./gradlew update
+./gradlew update -Pchangelog=dev
+

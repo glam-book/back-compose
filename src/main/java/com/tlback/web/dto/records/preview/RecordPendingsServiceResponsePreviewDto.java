@@ -1,9 +1,9 @@
-package com.tlback.core.web.dto.records.preview;
+package com.tlback.web.dto.records.preview;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tlback.core.web.dto.service.preview.ServicePreviewDto;
+import com.tlback.web.dto.service.preview.ServicePreviewDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
