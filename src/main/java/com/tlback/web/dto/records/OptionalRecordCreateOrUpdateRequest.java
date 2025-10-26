@@ -1,10 +1,10 @@
-package com.tlback.core.web.dto.records;
+package com.tlback.web.dto.records;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
+import com.tlback.web.dto.service.OptionalServiceInfoDto;
 
 import lombok.Data;
 

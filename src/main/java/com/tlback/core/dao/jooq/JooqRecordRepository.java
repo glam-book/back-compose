@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.jooq.DSLContext;
@@ -19,6 +20,7 @@ import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.core.tools.RxUtils;
+import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.jooq.gen.tables.Record;
 import com.tlback.jooq.gen.tables.RecordPending;
 import com.tlback.jooq.gen.tables.RecordToService;
@@ -157,9 +159,12 @@ public class JooqRecordRepository {
             var pending = rec.into(recordPendingTable.fields())
                     .into(com.tlback.core.model.RecordPending.class);
 
-            if (pending != null && pending.getPendingOwner() == null) {
-                pending.setPendingOwner(
-                        rec.into(userTable.fields()).into(DomainUserEntity.class));
+            if (pending != null) {
+                if (pending.getPendingOwner() == null) {
+                    pending.setPendingOwner(
+                            rec.into(userTable.fields()).into(DomainUserEntity.class));
+                }
+                recordEntity.getRecordPendings().add(pending);
             }
         }
 
@@ -211,7 +216,8 @@ public class JooqRecordRepository {
             entity.setTsTo(timeTo.atOffset(tz));
             entity.setComment(rec.get(recordTable.COMMENT));
             entity.setRecordLimit(rec.get(recordTable.RECORD_LIMIT));
-            entity.setTz(tz.toString());
+            entity.setTz(Optional.ofNullable(tz).map(it -> it.toString())
+                    .orElse(ZoneOffsetTools.DEFAULT_OFFSET));
             return entity;
         });
     }

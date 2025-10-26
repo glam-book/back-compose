@@ -20,7 +20,6 @@ public class PermissionMask {
     public static Rights getRights(byte[] mask) {
         if (mask.length < 2)
             throw new IllegalArgumentException("Mask must be at least 2 bytes long");
-        
         return new Rights(mask);
     }
 

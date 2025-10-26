@@ -1,4 +1,4 @@
-package com.tlback.core.web.rest;
+package com.tlback.web.rest;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tlback.core.config.security.UserData;
 import com.tlback.core.mapper.ServiceInfoMapper;
 import com.tlback.core.service.ServiceInfoService;
-import com.tlback.core.web.dto.records.DeleteSuccess;
-import com.tlback.core.web.dto.service.OptionalServiceInfoDto;
+import com.tlback.web.dto.records.DeleteSuccess;
+import com.tlback.web.dto.service.OptionalServiceInfoDto;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;

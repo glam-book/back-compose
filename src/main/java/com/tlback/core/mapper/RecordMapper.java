@@ -10,9 +10,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
+import com.tlback.core.abac.PermissionMask;
 import com.tlback.core.model.RecordEntity;
-import com.tlback.core.web.dto.records.preview.RecordPendingPreviewDto;
-import com.tlback.core.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
+import com.tlback.web.dto.Permissions;
+import com.tlback.web.dto.records.preview.RecordPendingPreviewDto;
+import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
 import io.micrometer.common.lang.Nullable;
 
@@ -61,6 +63,10 @@ public abstract class RecordMapper {
             boolean pendigable, 
             boolean owner) {
         return toDto(entity, null, pendigable, owner);
+    }
+
+    public Permissions toPermissions(byte[] mask) {
+        return new Permissions(new PermissionMask.Rights(mask));
     }
 
 }

@@ -20,12 +20,12 @@ import com.tlback.core.model.RecordEntity;
 import com.tlback.core.model.RecordPending;
 import com.tlback.core.service.exception.RecordPendingException;
 import com.tlback.core.tools.ZoneOffsetTools;
-import com.tlback.core.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.events.core.EventPublisher;
 import com.tlback.events.impl.pending.RecordPendingCreatedEvent;
 import com.tlback.events.impl.record.RecordUpdatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
+import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException;
 import lombok.RequiredArgsConstructor;
@@ -132,13 +132,13 @@ public class RecordService {
 	}
 
 	@Transactional(isolation = Isolation.SERIALIZABLE)
-	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId) {
-		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId)
+	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId, List<Long> targetServices) {
+		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId, targetServices)
 				.switchIfEmpty(Mono.error(new RecordPendingException("Limit reached")))
 				.onErrorMap(
 						ex -> ex instanceof IntegrityConstraintViolationException
 								|| ex instanceof R2dbcDataIntegrityViolationException,
-						ex -> new RecordPendingException("Pending already exists", ex))
+						ex -> new RecordPendingException("Cannot create pending", ex))
 				.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId))
 				.doOnSuccess(it -> eventPublisher
 						.publish(new RecordPendingCreatedEvent(this, it.getRecordOwnerId(), it.getId())))

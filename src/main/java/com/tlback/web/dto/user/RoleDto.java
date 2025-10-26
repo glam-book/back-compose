@@ -1,4 +1,4 @@
-package com.tlback.core.web.dto.user;
+package com.tlback.web.dto.user;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,9 +1,7 @@
 package com.tlback.core.model;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
@@ -46,7 +44,7 @@ public class RecordEntity {
     @Column("record_permissions")
     private byte[] recordPermissions;
 
-    private List<RecordPending> recordPendings = new ArrayList<>();
+    private Set<RecordPending> recordPendings = new HashSet<>();
 
     private Set<ServiceInfoEntity> serviceInfo = new HashSet<>();
 }
