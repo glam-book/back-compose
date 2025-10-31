@@ -3,6 +3,7 @@ package com.tlback.core.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
 import org.springframework.core.serializer.support.SerializationFailedException;
@@ -45,6 +46,18 @@ public class RecordService {
 	private final EventPublisher eventPublisher;
 	private final AbacService abac;
 
+	public boolean isRecordPendingable(RecordEntity entity, Long userId) {
+		var isOwner = userId.equals(entity.getRecordOwnerId());
+		var isFitByPendings = Optional.ofNullable(entity.getRecordPendings())
+				.map(pendingds -> {
+					var hasMyPendings = pendingds.stream()
+							.anyMatch(pending -> pending.getClientId() != null && pending.getClientId().equals(userId));
+					return !hasMyPendings && (pendingds.size() < entity.getRecordLimit());
+				}).orElse(false);
+
+		return isOwner && isFitByPendings;
+	}
+
 	@Transactional(readOnly = true)
 	public Flux<RecordEntity> getRecords(RecordFilter filter) {
 		return recordRepository.findFullByFilter(filter);
@@ -56,7 +69,13 @@ public class RecordService {
 				.recordOwnerId(userId)
 				.dateFrom(timeFrom)
 				.dateTo(timeTo).build();
-		return recordRepository.findFullByFilter(filter);
+
+		return recordRepository.findFullByFilter(filter)
+				.filter(it -> {
+					var isOwner = it.getRecordOwnerId().equals(userId);
+					var rights = abac.parse(it.getRecordPermissions());
+					return isOwner ? rights.canOwnerRead() : rights.canOtherRead();
+				});
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
@@ -72,6 +91,17 @@ public class RecordService {
 
 		return recordRepository.findByFilter(filter,
 				List.of(JooqRecordRepository.JOIN_SERVICE_INFO, JooqRecordRepository.JOIN_RECORD_PENDINGS));
+	}
+
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public Flux<RecordEntity> getRecordsWithPendingsByUserdId(Long userId, LocalDate from, LocalDate to) {
+		var filter = RecordFilter.builder()
+				.recordOwnerId(userId)
+				.dateFrom(from.atStartOfDay())
+				.dateTo(to.atStartOfDay()).build();
+
+		return recordRepository.findByFilter(filter,
+				List.of(JooqRecordRepository.JOIN_RECORD_PENDINGS));
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
