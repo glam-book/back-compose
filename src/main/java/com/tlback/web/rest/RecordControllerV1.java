@@ -1,8 +1,15 @@
 package com.tlback.web.rest;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,15 +28,18 @@ import com.tlback.core.model.RecordEntity;
 import com.tlback.core.service.RecordService;
 import com.tlback.web.dto.records.DeleteSuccess;
 import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
+import com.tlback.web.dto.records.RecordCalendarDto;
 import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/v1/record")
 @RequiredArgsConstructor
+@Slf4j
 public class RecordControllerV1 {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
@@ -65,7 +75,7 @@ public class RecordControllerV1 {
 
     @PutMapping("/pending/{recordId}")
     public Mono<RecordPendingsServiceResponsePreviewDto> craetePending(UserData userDetail,
-            @PathVariable Long recordId, 
+            @PathVariable Long recordId,
             @RequestBody List<Long> serviceId) {
 
         var details = userDetail.getDetails();
@@ -73,19 +83,40 @@ public class RecordControllerV1 {
         var isOwner = details.getId().equals(userId);
 
         return recordService.createPendingAtomic(userId, recordId, serviceId)
-            .map(it -> mapRecord(it, isOwner, userId));
+                .map(it -> mapRecord(it, isOwner, userId));
+    }
+
+    // Map<Integer, List<RecordCalendarDto>>
+    @GetMapping("/calendar")
+    public Mono<Map<Integer, Set<RecordCalendarDto>>> getCalendar(
+            UserData userData,
+            @RequestParam Long userId,
+            @RequestParam int month,
+            @RequestParam(required = false, defaultValue = "#{T(java.time.Year).now().value.toString()}") int year) {
+
+        var from = LocalDate.of(year, month, 1);
+        var to = YearMonth.of(year, month).atEndOfMonth();
+
+        var data = recordService.getRecordsWithPendingsByUserdId(userId, from, to);
+        var requester = userData.getPrincipal();
+
+        return data.map(it -> RecordCalendarDto.builder()
+                .ts(it.getTsFrom())
+                .canPending(recordService.isRecordPendingable(it, userId))
+                .hasPendings(!it.getRecordPendings().isEmpty())
+                .day(it.getTsFrom().getDayOfMonth())
+                .isOwner(it.getRecordOwnerId().equals(requester))
+                .build())
+                .collectList()
+                .map(it -> it.stream()
+                    .collect(Collectors.groupingBy(e -> e.day(), 
+                    Collectors.toCollection(() -> new TreeSet<>(
+                        Comparator.comparing(RecordCalendarDto::ts))))));
     }
 
     private RecordPendingsServiceResponsePreviewDto mapRecord(RecordEntity entity, boolean isOwner, Long userId) {
-        var isFitByPendings = Optional.ofNullable(entity.getRecordPendings())
-            .map(pendingds -> {
-                var hasMyPendings = pendingds.stream()
-                                .anyMatch(pending -> pending.getClientId() != null && pending.getClientId().equals(userId));
-                return !hasMyPendings && (pendingds.size() < entity.getRecordLimit());
-            }).orElse(false);
-
-        var isPendingable = isOwner && isFitByPendings;
-
+        var isPendingable = recordService.isRecordPendingable(entity, userId);
         return recordMapper.toDto(entity, isPendingable, isOwner);
     }
+
 }

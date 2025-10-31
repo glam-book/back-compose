@@ -121,4 +121,9 @@ public class JooqAbacServiceImpl implements AbacService {
                 });
 
     }
+
+    @Override
+    public Rights parse(byte[] mask) {
+        return PermissionMask.getRights(mask);
+    }
 }
