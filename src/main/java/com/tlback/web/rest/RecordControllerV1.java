@@ -6,9 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,7 +44,8 @@ public class RecordControllerV1 {
 
     @GetMapping("/list/{userId}")
     public Flux<RecordPendingsServiceResponsePreviewDto> list(UserData userDetail,
-            @PathVariable Long userId, @RequestParam LocalDate date) {
+            @PathVariable Long userId, 
+            @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now()}") LocalDate date) {
         var details = userDetail.getDetails();
         var isOwner = details.getId().equals(userId);
         return recordService.getRecordsWithPendingsAndServiceByUserdId(userId, date)

@@ -55,7 +55,7 @@ public class RecordService {
 					return !hasMyPendings && (pendingds.size() < entity.getRecordLimit());
 				}).orElse(false);
 
-		return isOwner && isFitByPendings;
+		return !isOwner && isFitByPendings;
 	}
 
 	@Transactional(readOnly = true)
