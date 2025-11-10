@@ -36,6 +36,7 @@ public class JooqConfig {
     // Configure jOOQ settings
     private Settings jooqSettings() {
         return new Settings()
+                .withFetchWarnings(false)
                 .withRenderNameCase(RenderNameCase.LOWER)
                 .withRenderQuotedNames(RenderQuotedNames.ALWAYS)
                 .withParseDialect(SQLDialect.POSTGRES)

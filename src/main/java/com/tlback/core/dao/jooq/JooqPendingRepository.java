@@ -86,7 +86,8 @@ public class JooqPendingRepository {
 								.from(pendingTable)
 								.where(pendingTable.RECORD_ID.eq(recordId))
 								.lt(DSL.select(recordTable.RECORD_LIMIT)
-										.from(recordTable))))
+										.from(recordTable)
+										.where(recordTable.ID.eq(recordId)))))
 				.returning();
 
 		log.info(query.toString());
