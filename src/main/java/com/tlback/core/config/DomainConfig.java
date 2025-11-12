@@ -2,18 +2,11 @@ package com.tlback.core.config;
 
 import java.util.List;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import com.tlback.core.model.DomainUserEntity;
-import com.tlback.core.service.RecordService;
-import com.tlback.core.service.UserService;
-import com.tlback.events.core.EventPublisher;
-import com.tlback.events.impl.SpringEventPublisher;
-import com.tlback.events.impl.record.RecordEventHandler;
-import com.tlback.events.impl.record.RecordUpdateHandler;
 import com.tlback.notifier.UserNotifier;
 import com.tlback.notifier.impl.AsyncDelegatingNotificationAdapter;
 import com.tlback.notifier.impl.NotificationAdapter;
