@@ -101,7 +101,7 @@ public class RecordControllerV1 {
 
         return data.map(it -> RecordCalendarDto.builder()
                 .ts(it.getTsFrom())
-                .canPending(recordService.isRecordPendingable(it, userId))
+                .canPending(recordService.isRecordPendingable(it, requester))
                 .hasPendings(!it.getRecordPendings().isEmpty())
                 .day(it.getTsFrom().getDayOfMonth())
                 .isOwner(it.getRecordOwnerId().equals(requester))

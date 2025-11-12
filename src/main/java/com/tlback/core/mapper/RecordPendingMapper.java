@@ -6,11 +6,13 @@ import java.util.TreeSet;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
 import com.tlback.core.model.RecordPending;
 import com.tlback.web.dto.records.RecordPendingDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, 
+    unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public abstract class RecordPendingMapper {
 
     @Mapping(target = "requesterLogin", source = "pendingOwner.login")

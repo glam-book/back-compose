@@ -3,8 +3,6 @@ package com.tlback.web.dto.service;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import com.tlback.web.dto.Permissions;
-
 import lombok.Data;
 
 @Data
@@ -18,5 +16,4 @@ public class OptionalServiceInfoDto {
     private Integer recordLimit = 1;
     private BigDecimal price;
     private Boolean isHourlyPrice;
-    private Permissions permissions;
 }

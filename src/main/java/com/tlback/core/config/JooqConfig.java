@@ -10,6 +10,7 @@ import org.jooq.impl.DefaultConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.r2dbc.connection.TransactionAwareConnectionFactoryProxy;
 
 import io.r2dbc.spi.ConnectionFactory;
@@ -18,6 +19,7 @@ import io.r2dbc.spi.ConnectionFactory;
 public class JooqConfig {
 
     @Bean
+    @Primary
     DSLContext dslContext(org.jooq.Configuration jooqConfiguration) {
         return DSL.using(jooqConfiguration);
     }
@@ -37,9 +39,9 @@ public class JooqConfig {
     private Settings jooqSettings() {
         return new Settings()
                 .withFetchWarnings(false)
+                .withExecuteLogging(false)
                 .withRenderNameCase(RenderNameCase.LOWER)
                 .withRenderQuotedNames(RenderQuotedNames.ALWAYS)
-                .withParseDialect(SQLDialect.POSTGRES)
-                .withExecuteLogging(false);
+                .withParseDialect(SQLDialect.POSTGRES);
     }
 }
