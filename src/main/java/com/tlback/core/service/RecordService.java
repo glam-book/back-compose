@@ -164,9 +164,9 @@ public class RecordService {
 								|| ex instanceof R2dbcDataIntegrityViolationException,
 						ex -> new RecordPendingException("Cannot create pending", ex))
 				.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId))
-				.doOnSuccess(it -> {
+				.flatMap(it -> {
 					var recordOwner = it.getRecordOwnerId();
-					userService.findById(recordOwner)
+					return userService.findById(recordOwner)
 						.doOnSuccess(recOwner -> {
 							var notificationRequest = NotificationRequest
 								.builder()
@@ -176,7 +176,7 @@ public class RecordService {
 									.reduce("", (a, b) -> a + " : " + b))
 								.build();
 							userNotifier.sendNotification(recOwner, notificationRequest);
-						});
+						}).thenReturn(it);
 				})
 				.retryWhen(Retry.max(3)
 						.filter(ex -> ex instanceof SerializationFailedException));
