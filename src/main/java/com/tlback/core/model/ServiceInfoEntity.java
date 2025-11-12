@@ -48,7 +48,7 @@ public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware {
     private BigDecimal price;
 
     @Column("is_hourly_price")
-    private Boolean isHorlyPrice;
+    private Boolean isHourlyPrice;
 
     @Column("service_permissions")
     private byte[] servicePermissions;

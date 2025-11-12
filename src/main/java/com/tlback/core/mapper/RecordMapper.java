@@ -65,7 +65,7 @@ public abstract class RecordMapper {
         return toDto(entity, null, pendigable, owner);
     }
 
-    public Permissions toPermissions(byte[] mask) {
+    public Permissions map(byte[] mask) {
         return new Permissions(new PermissionMask.Rights(mask));
     }
 

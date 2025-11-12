@@ -36,7 +36,7 @@ public interface ServiceInfoMapper {
     @Mapping(target = "id", source = "id", qualifiedByName = "toOptionalLong")
     OptionalServiceInfoDto toDto(ServiceInfoRecord it);
 
-    default Permissions toPermissions(byte[] mask) {
+    default Permissions map(byte[] mask) {
         return new Permissions(new PermissionMask.Rights(mask));
     }
 }
