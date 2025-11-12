@@ -1,4 +1,4 @@
-package owpk.ogovpn.domain.tg;
+package com.tlback.tg;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,12 +8,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import com.tlback.tg.balancer.PerfProps;
+import com.tlback.tg.balancer.TelegramClientGroupping;
+import com.tlback.tg.handlers.TgMessageHandler;
+import com.tlback.tg.handlers.TgPaymentHandler;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import owpk.ogovpn.tg.balancer.PerfProps;
-import owpk.ogovpn.tg.balancer.TelegramClientGroupping;
-import owpk.ogovpn.tg.handlers.TgMessageHandler;
-import owpk.ogovpn.tg.handlers.TgPaymentHandler;
 
 @RestController
 @RequestMapping("/tg/webhook")
@@ -58,5 +59,4 @@ public class TgWebhookBot {
         return ResponseEntity.ok().build();
     }
 }
-
 

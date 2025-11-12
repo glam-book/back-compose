@@ -25,21 +25,6 @@ import com.tlback.tg.balancer.TelegramClientImpl;
 public class DomainConfig {
 
     @Bean
-    EventPublisher eventPublisher(ApplicationEventPublisher eventPublisher) {
-        return new SpringEventPublisher(eventPublisher);
-    }
-
-    @Bean
-    RecordEventHandler recordEventHandler(TelegramClientGroupping tgClient, UserService userService) {
-        return new RecordEventHandler(tgClient, userService);
-    }
-
-    @Bean
-    RecordUpdateHandler recordUpdateHandler(TelegramClientGroupping tgClient, UserNotifier<DomainUserEntity> userNotifier, RecordService recordService) {
-        return new RecordUpdateHandler(recordService, userNotifier);
-    }
-
-    @Bean
     TelegramClientGroupping tgClient(TelegramClient tgClient) {
         return new TelegramClientImpl(tgClient);
     }
