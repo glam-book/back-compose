@@ -17,15 +17,15 @@ import com.tlback.core.common.daofilter.RecordFilter;
 import com.tlback.core.dao.jooq.JooqPendingRepository;
 import com.tlback.core.dao.jooq.JooqRecordRepository;
 import com.tlback.core.dao.jooq.JooqRecordToServiceRepository;
+import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.model.RecordPending;
 import com.tlback.core.service.exception.RecordPendingException;
 import com.tlback.core.tools.ZoneOffsetTools;
-import com.tlback.events.core.EventPublisher;
-import com.tlback.events.impl.pending.RecordPendingCreatedEvent;
-import com.tlback.events.impl.record.RecordUpdatedEvent;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
+import com.tlback.notifier.UserNotifier;
+import com.tlback.notifier.model.NotificationRequest;
 import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException;
@@ -43,7 +43,10 @@ public class RecordService {
 	private final ServiceInfoService serviceInfoService;
 	private final JooqPendingRepository pendingRepository;
 	private final JooqRecordToServiceRepository recordToServiceRepository;
-	private final EventPublisher eventPublisher;
+
+	private final UserNotifier<DomainUserEntity> userNotifier;
+
+	private final UserService userService;
 	private final AbacService abac;
 
 	public boolean isRecordPendingable(RecordEntity entity, Long userId) {
@@ -129,16 +132,7 @@ public class RecordService {
 							// if record id exists - check access and update record if allowed
 							.map(recId -> abac.canModifyRecord(userId, recId)
 									.flatMap(abacResult -> abacResult.mapResult(
-											() -> recordRepository.update(mapToRecord(cmd, userId))
-													.doOnSuccess(it -> {
-														eventPublisher.publish(RecordUpdatedEvent.builder()
-																.source(this)
-																.recId(recId)
-																.end(it.getTsTo())
-																.start(it.getTsFrom())
-																.userId(userId)
-																.build());
-													}),
+											() -> recordRepository.update(mapToRecord(cmd, userId)),
 											Mono::error)))
 							// or else create new one
 							.orElseGet(() -> recordRepository.save(
@@ -170,8 +164,20 @@ public class RecordService {
 								|| ex instanceof R2dbcDataIntegrityViolationException,
 						ex -> new RecordPendingException("Cannot create pending", ex))
 				.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId))
-				.doOnSuccess(it -> eventPublisher
-						.publish(new RecordPendingCreatedEvent(this, it.getRecordOwnerId(), it.getId())))
+				.doOnSuccess(it -> {
+					var recordOwner = it.getRecordOwnerId();
+					userService.findById(recordOwner)
+						.doOnSuccess(recOwner -> {
+							var notificationRequest = NotificationRequest
+								.builder()
+								.message("Заявка на запись: " + it.getTz() + " : " + 
+									it.getServiceInfo().stream()
+									.map(s -> s.getServiceName())
+									.reduce("", (a, b) -> a + " : " + b))
+								.build();
+							userNotifier.sendNotification(recOwner, notificationRequest);
+						});
+				})
 				.retryWhen(Retry.max(3)
 						.filter(ex -> ex instanceof SerializationFailedException));
 	}

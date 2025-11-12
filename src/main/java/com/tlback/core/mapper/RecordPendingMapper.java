@@ -11,8 +11,7 @@ import org.mapstruct.ReportingPolicy;
 import com.tlback.core.model.RecordPending;
 import com.tlback.web.dto.records.RecordPendingDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, 
-    unmappedSourcePolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public abstract class RecordPendingMapper {
 
     @Mapping(target = "requesterLogin", source = "pendingOwner.login")
@@ -20,7 +19,8 @@ public abstract class RecordPendingMapper {
     public abstract RecordPendingDto toDto(RecordPending recordPending);
 
     public SortedSet<RecordPendingDto> toDto(SortedSet<RecordPending> recordPendings) {
-        return recordPendings.stream().map(this::toDto).collect(() -> new TreeSet<>(), SortedSet::add,
-                SortedSet::addAll);
+        return recordPendings.stream().map(this::toDto)
+                .collect(() -> new TreeSet<>(), SortedSet::add,
+                        SortedSet::addAll);
     }
 }
