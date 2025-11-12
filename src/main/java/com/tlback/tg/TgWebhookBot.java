@@ -8,10 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import com.tlback.tg.balancer.PerfProps;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgMessageHandler;
-import com.tlback.tg.handlers.TgPaymentHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,22 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TgWebhookBot {
     private final TelegramClientGroupping grouppingClient;
-    private final TgPaymentHandler paymentHandler;
     private final TgMessageHandler messageHandler;
 
     @PostMapping
     public ResponseEntity<Void> onUpdate(@RequestBody Update update) throws Exception {
         log.info("Accepting telegram update...");
-        if (update.hasPreCheckoutQuery()) {
-            var preCheck = update.getPreCheckoutQuery();
-            var answer = paymentHandler.handlePrecheckQuery(preCheck);
-
-            grouppingClient.executeGeneric(PerfProps.of(PerfProps.PrioriySelector.MAX), answer, e -> {
-                log.error("Error while answering payment pre check query", e);
-            }, r -> {
-                log.info("Success telegram response after answering pre check query");
-            });
-        }
 
         var msg = update.getMessage();
 
@@ -50,7 +37,6 @@ public class TgWebhookBot {
                 .build());
 
             var payment = msg.getSuccessfulPayment();
-            paymentHandler.onSucessfulPayment(payment);
         }
 
         if (msg != null)
@@ -59,3 +45,4 @@ public class TgWebhookBot {
         return ResponseEntity.ok().build();
     }
 }
+

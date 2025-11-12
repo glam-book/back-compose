@@ -4,19 +4,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
+import com.tlback.core.service.UserService;
 import com.tlback.notifier.UserNotifier;
 import com.tlback.notifier.model.MediaType;
 import com.tlback.notifier.model.NotificationAttachment;
 import com.tlback.notifier.model.NotificationRequest;
-import com.tlback.tg.TgUserService;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class NotificationAdapter<T> implements UserNotifier<T> {
-    protected TgUserService userService;
+    protected UserService userService;
 
-    protected Map<MediaType, BiConsumer<T, NotificationAttachment>> typeHandlers = Map.of(MediaType.PHOTO,
+    protected Map<MediaType, BiConsumer<T, NotificationAttachment>> typeHandlers = Map.of(
+        MediaType.PHOTO,
             (id, att) -> this.photoHandler(id, att));
 
     @Override

@@ -47,4 +47,5 @@ public class RecordEntity {
     private Set<RecordPending> recordPendings = new HashSet<>();
 
     private Set<ServiceInfoEntity> serviceInfo = new HashSet<>();
+
 }

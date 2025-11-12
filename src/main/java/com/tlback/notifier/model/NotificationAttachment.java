@@ -1,14 +1,12 @@
 package com.tlback.notifier.model;
 
-import java.io.InputStream;
-
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
 public class NotificationAttachment {
-    private InputStream inputStream;
+    private byte[] data;
     private MediaType mediaType;
     private String fileName; // Required
     private String attachmentText;

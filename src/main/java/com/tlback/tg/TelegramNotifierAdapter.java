@@ -1,5 +1,6 @@
 package com.tlback.tg;
 
+import java.io.ByteArrayInputStream;
 import java.util.Optional;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -24,7 +25,8 @@ public class TelegramNotifierAdapter extends NotificationAdapter<DomainUserEntit
     private final TelegramClientGroupping client;
 
     private InputFile buildInputFile(NotificationAttachment attachment) {
-        return new InputFile(attachment.getInputStream(), attachment.getFileName());
+        var bais = new ByteArrayInputStream(attachment.getData());
+        return new InputFile(bais, attachment.getFileName());
     }
 
     @Override

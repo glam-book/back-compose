@@ -34,7 +34,8 @@ public class TelegramClientImpl implements TelegramClientGroupping {
     private final AtomicInteger counter = new AtomicInteger();
 
     private static final int DEFAULT_BUFFER_CAPACITY = 1000;
-    private final PriorityBlockingQueue<PriorityGroupEntry> buffer = new PriorityBlockingQueue<>(DEFAULT_BUFFER_CAPACITY);
+    private final PriorityBlockingQueue<PriorityGroupEntry> buffer = 
+        new PriorityBlockingQueue<>(DEFAULT_BUFFER_CAPACITY);
 
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -44,41 +45,45 @@ public class TelegramClientImpl implements TelegramClientGroupping {
     @PostConstruct
     public void initNotificationProcessing() {
         scheduler.scheduleAtFixedRate(() -> {
-            try {
-                int taskLimit = Math.max(0, TASK_LIMIT - counter.get());
-
-                if (taskLimit == 0) {
-                    log.warn("Reached 0 task limit, check counter! Maybe some task is freezed");
-                    return;
-                }
-
-                List<PriorityGroupEntry> tasks = new ArrayList<>(taskLimit);
-                buffer.drainTo(tasks, taskLimit);
-
-                var grouped = tasks.stream().collect(Collectors.groupingBy(it -> it.id()));
-                var ungrouped = grouped.remove(UNGROUPED_STRING);
-
-                Consumer<CheckedRunnable> f = r -> {
-                    try {
-                        r.run();
-                    } catch (Throwable e) {
-                        log.warn("Error consuming telegram message action", e);
-                    }
-                };
-
-                if (ungrouped != null)
-                    ungrouped.forEach(it -> executor.submit(() -> f.accept(it.action())));
-
-                grouped.entrySet().forEach(entry -> {
-                    executor.submit(() -> {
-                        var taskList = entry.getValue();
-                        taskList.forEach(it -> f.accept(it.action()));
-                    });
-                });
-            } catch (Exception e) {
-                log.error("⚠️ Error in scheduled task processor", e);
-            }
+            consumeTasks(TASK_LIMIT);
         }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    private void consumeTasks(int limit) {
+        try {
+            int taskLimit = Math.max(0, limit - counter.get());
+
+            if (taskLimit == 0) {
+                log.warn("Reached 0 task limit, check counter! Maybe some task is freezed");
+                return;
+            }
+
+            List<PriorityGroupEntry> tasks = new ArrayList<>(taskLimit);
+            buffer.drainTo(tasks, taskLimit);
+
+            var grouped = tasks.stream().collect(Collectors.groupingBy(it -> it.id()));
+            var ungrouped = grouped.remove(UNGROUPED_STRING);
+
+            Consumer<CheckedRunnable> f = r -> {
+                try {
+                    r.run();
+                } catch (Throwable e) {
+                    log.warn("Error consuming telegram message action", e);
+                }
+            };
+
+            if (ungrouped != null)
+                ungrouped.forEach(it -> executor.submit(() -> f.accept(it.action())));
+
+            grouped.entrySet().forEach(entry -> {
+                executor.submit(() -> {
+                    var taskList = entry.getValue();
+                    taskList.forEach(it -> f.accept(it.action()));
+                });
+            });
+        } catch (Exception e) {
+            log.error("⚠️ Error in scheduled task processor", e);
+        }
     }
 
     @PreDestroy
@@ -189,9 +194,11 @@ public class TelegramClientImpl implements TelegramClientGroupping {
         CheckedRunnable runnable = () -> {
             try {
                 counter.incrementAndGet();
+                log.info("Send telegram request: {}", props);
                 var rs = messageSupplier.get();
                 responseConsumer.accept(rs);
             } catch (TelegramApiException e) {
+                log.warn("Exception on telegram requst: {}, {}", props, e.getLocalizedMessage());
                 tgErrorConsumer.accept(e);
             } finally {
                 counter.decrementAndGet();
