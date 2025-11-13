@@ -1,6 +1,7 @@
 package com.tlback.core.model;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
@@ -30,7 +31,7 @@ public class RecordPending {
     @Column("confirmed")
     private Boolean confirmed;
 
-    private Set<ServiceInfoEntity> services;
+    private Set<ServiceInfoEntity> services = new HashSet<>();
 
     private DomainUserEntity pendingOwner;
 }

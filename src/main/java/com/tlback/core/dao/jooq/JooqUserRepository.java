@@ -9,9 +9,10 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.SelectOnConditionStep;
+import org.jooq.SelectJoinStep;
 import org.springframework.stereotype.Service;
 
+import com.tlback.core.dao.jooq.modules.JoinModule;
 import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.TelegramUser;
 import com.tlback.core.tools.RxUtils;
@@ -28,6 +29,10 @@ public class JooqUserRepository {
     private final DSLContext dsl;
     private static final com.tlback.jooq.gen.tables.TelegramUser telegramUserTable = com.tlback.jooq.gen.tables.TelegramUser.TELEGRAM_USER;
     private static final com.tlback.jooq.gen.tables.DomainUser userTable = com.tlback.jooq.gen.tables.DomainUser.DOMAIN_USER;
+
+    public static final JoinModule SUB_JOINS = dsl -> dsl
+                .leftJoin(telegramUserTable)
+                .on(userTable.ID.eq(telegramUserTable.USER_ID));
 
     public Mono<DomainUserEntity> findById(Long id) {
         var query = fetchWhere(userTable.ID.eq(id));
@@ -82,10 +87,10 @@ public class JooqUserRepository {
         return user;
     }
 
-    public static SelectOnConditionStep<org.jooq.Record> fetch(DSLContext dsl) {
-        return dsl.select(userTable.fields()).select(telegramUserTable.fields())
-                .from(userTable).join(telegramUserTable)
-                .on(userTable.ID.eq(telegramUserTable.USER_ID));
+    public static SelectJoinStep<org.jooq.Record> fetch(DSLContext dsl) {
+        var select = dsl.select(userTable.fields()).select(telegramUserTable.fields())
+                .from(userTable);
+        return SUB_JOINS.apply(select);
     }
 
     private SelectConditionStep<org.jooq.Record> fetchWhere(Condition where) {

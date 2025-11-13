@@ -33,4 +33,11 @@ public class DomainUserEntity implements Serializable {
     private String login;
 
     private Optional<TelegramUser> tgUser;
+
+    public Object getSubuser(String source) {
+        return switch(source) {
+            case "tg" -> tgUser;
+            default -> tgUser;
+        };
+    }
 }

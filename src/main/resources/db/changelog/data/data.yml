@@ -14,8 +14,14 @@ databaseChangeLog:
              INSERT INTO domain_user (id, name, last_name, middle_name, login)
              VALUES (1, 'Igor', 'Abobenko', 'Makadamov', 'IgroLoh');
 
+             INSERT INTO telegram_user (user_id, id, first_name, last_name, username)
+             VALUES (1, 100, 'Igor', 'Abobenko', 'loh_igor');
+
              INSERT INTO domain_user (id, name, last_name, middle_name, login)
              VALUES (2, 'Shavel', 'Oreshnik', 'Femozov', 'shavel@228');
+
+             INSERT INTO telegram_user (user_id, id, first_name, last_name, username)
+             VALUES (2, 102, 'Shavel', 'Oreshnik', 'qk_femoz');
 
              INSERT INTO domain_user (id, name, last_name, middle_name, login)
              VALUES (3, 'Zina', 'Kravtsova', 'Zhukova', 'zinka@ymerla');
@@ -23,9 +29,6 @@ databaseChangeLog:
              INSERT INTO user_role (user_id, role_id) VALUES (3, 1);
 
              INSERT INTO user_role (user_id, role_id) VALUES (3, 2);
-
-             INSERT INTO telegram_user (user_id, id, first_name, last_name, username)
-             VALUES (1, 100, 'Igor', 'Abobenko', 'IgorLoh');
 
   - changeSet:
       id: mock_data_26.12.2024_19:57
@@ -42,3 +45,26 @@ databaseChangeLog:
 
              INSERT INTO record(record_owner_id, ts_from, ts_to, tz)
              VALUES (2, '2025-10-26T10:00:00', '2025-10-26T22:00:00', '+03:00');
+
+  - changeSet:
+      id: mock_data_pendings
+      context: test_data
+      author: owpk
+      changes:
+        - sql:
+            sql: |
+             INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, time_duration)
+             VALUES (3, 'test_resnichkee', 1, true, 'test', 1);
+
+             INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, time_duration)
+             VALUES (4, 'test_brovkee', 1, true, 'test brovki', 1);
+
+             INSERT INTO record(record_owner_id, ts_from, ts_to, tz)
+             VALUES (1, '2025-10-26T10:00:00', '2025-10-26T22:00:00', '+03:00');
+
+             INSERT INTO record_pending
+             (id, record_id, client_id, request_time, confirmed)
+             VALUES(1, 2, 2, '2025-10-26T22:00:00', false);
+
+             INSERT INTO servcie_info_to_pending (pending_id, service_info_id)
+             VALUES (1, 4);

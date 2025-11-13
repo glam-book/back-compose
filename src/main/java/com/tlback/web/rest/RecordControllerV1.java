@@ -21,12 +21,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tlback.core.config.security.UserData;
+import com.tlback.core.mapper.ContactMapper;
 import com.tlback.core.mapper.RecordMapper;
+import com.tlback.core.mapper.ServiceInfoMapper;
 import com.tlback.core.model.RecordEntity;
+import com.tlback.core.model.contact.Supports;
 import com.tlback.core.service.RecordService;
 import com.tlback.web.dto.records.DeleteSuccess;
 import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.web.dto.records.RecordCalendarDto;
+import com.tlback.web.dto.records.RecordPendingWithContactDto;
 import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
 import lombok.RequiredArgsConstructor;
@@ -41,10 +45,12 @@ import reactor.core.publisher.Mono;
 public class RecordControllerV1 {
     private final RecordService recordService;
     private final RecordMapper recordMapper;
+    private final ContactMapper contactMapper;
+    private final ServiceInfoMapper serviceInfoMapper;
 
     @GetMapping("/list/{userId}")
     public Flux<RecordPendingsServiceResponsePreviewDto> list(UserData userDetail,
-            @PathVariable Long userId, 
+            @PathVariable Long userId,
             @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now()}") LocalDate date) {
         var details = userDetail.getDetails();
         var isOwner = details.getId().equals(userId);
@@ -70,6 +76,22 @@ public class RecordControllerV1 {
         var owner = userData.getDetails().getId();
         var result = recordService.deleteCascadeWithPendings(id, owner);
         return result.map(it -> new DeleteSuccess(it));
+    }
+
+    @GetMapping("/pending/{recordId}")
+    public Flux<RecordPendingWithContactDto<?>> pendingDetails(UserData userDetail,
+            @PathVariable(name = "recordId") Long recordId,
+            @RequestParam(required = false, defaultValue = "TG", name = "contactTarget") String contactTarget) {
+        var userId = userDetail.getPrincipal();
+        var supports = Supports.valueOf(contactTarget);
+        return recordService.getPendingDetails(recordId, userId)
+                .map(it -> RecordPendingWithContactDto
+                        .builder()
+                        .contact(contactMapper.of(supports, it.getPendingOwner()))
+                        .services(it.getServices().stream().map(serviceInfoMapper::map).collect(Collectors.toSet()))
+                        .requestTime(it.getRequestTime())
+                        .confirmed(it.getConfirmed())
+                        .build());
     }
 
     @PutMapping("/pending/{recordId}")
@@ -108,9 +130,9 @@ public class RecordControllerV1 {
                 .build())
                 .collectList()
                 .map(it -> it.stream()
-                    .collect(Collectors.groupingBy(e -> e.day(), 
-                    Collectors.toCollection(() -> new TreeSet<>(
-                        Comparator.comparing(RecordCalendarDto::ts))))));
+                        .collect(Collectors.groupingBy(e -> e.day(),
+                                Collectors.toCollection(() -> new TreeSet<>(
+                                        Comparator.comparing(RecordCalendarDto::ts))))));
     }
 
     private RecordPendingsServiceResponsePreviewDto mapRecord(RecordEntity entity, boolean isOwner, Long userId) {

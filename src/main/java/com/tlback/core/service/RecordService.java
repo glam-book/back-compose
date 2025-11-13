@@ -155,6 +155,16 @@ public class RecordService {
 				.flatMap(abacResult -> recordRepository.delete(id));
 	}
 
+	@Transactional
+	public Flux<RecordPending> getPendingDetails(Long recordId, Long requester) {
+		Flux<RecordPending> fetchPendings = pendingRepository.findByRecordId(recordId,
+				JooqPendingRepository.USER_JOIN_MODULE,
+				JooqPendingRepository.SERVICE_JOIN_MODULE);
+		return abac.fetchRecordRights(recordId, requester)
+				.flatMapMany(rightsCtx -> rightsCtx.onReadAllowMap(() -> fetchPendings,
+						Flux::error));
+	}
+
 	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId, List<Long> targetServices) {
 		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId, targetServices)
@@ -167,23 +177,29 @@ public class RecordService {
 				.flatMap(it -> {
 					var recordOwner = it.getRecordOwnerId();
 					return userService.findById(recordOwner)
-						.doOnSuccess(recOwner -> {
-							var notificationRequest = NotificationRequest
-								.builder()
-								.message("Заявка на запись: " + it.getTz() + " : " + 
-									it.getServiceInfo().stream()
-									.map(s -> s.getServiceName())
-									.reduce("", (a, b) -> a + " : " + b))
-								.build();
-							userNotifier.sendNotification(recOwner, notificationRequest);
-						}).thenReturn(it);
+							.doOnSuccess(recOwner -> {
+								var notificationRequest = NotificationRequest
+										.builder()
+										.message(String.format("""
+												🎉 Новая заявка на запись:
+												⏰ Время начала: %s
+												Cервисы:
+												%s
+												""", it.getTsFrom(),
+												it.getServiceInfo().stream()
+														.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
+																(s.getIsHourlyPrice() ? "за час" : ""))
+														.reduce("", (a, b) -> a + "\n" + b)))
+										.build();
+								userNotifier.sendNotification(recOwner, notificationRequest);
+							}).thenReturn(it);
 				})
 				.retryWhen(Retry.max(3)
 						.filter(ex -> ex instanceof SerializationFailedException));
 	}
 
 	public Flux<RecordPending> getRecordPendings(Long recordId) {
-		return pendingRepository.findById(recordId);
+		return pendingRepository.findByRecordId(recordId);
 	}
 
 	private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
@@ -197,4 +213,5 @@ public class RecordService {
 		newRecord.setRecordOwnerId(userId);
 		return newRecord;
 	}
+
 }
