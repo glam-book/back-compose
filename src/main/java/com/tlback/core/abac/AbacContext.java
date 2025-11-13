@@ -8,19 +8,16 @@ import java.util.function.Supplier;
 import com.tlback.core.abac.exception.ForbiddenException;
 import com.tlback.core.abac.exception.NotFoundException;
 
+import lombok.AllArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ToString(of = {"decision"})
+@AllArgsConstructor
 public class AbacContext {
     private final AbacDecision decision;
     private final String reason;
-
-    private AbacContext(AbacDecision decision, String reason) {
-        this.decision = decision;
-        this.reason = reason;
-    }
 
     public static AbacContext allow() {
         log.debug("ABAC allow");

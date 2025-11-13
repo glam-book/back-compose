@@ -1,7 +1,9 @@
 package com.tlback.core.dao.jooq;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -10,10 +12,11 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import com.tlback.core.dao.jooq.modules.JoinModule;
-import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.RecordPending;
+import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.ServcieInfoToPending;
+import com.tlback.jooq.gen.tables.ServiceInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,16 @@ public class JooqPendingRepository {
 	private static final com.tlback.jooq.gen.tables.Record recordTable = com.tlback.jooq.gen.tables.Record.RECORD;
 	private static final DomainUser userTable = DomainUser.DOMAIN_USER;
 	private static final ServcieInfoToPending serviceToPendingTable = ServcieInfoToPending.SERVCIE_INFO_TO_PENDING;
+	private static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
+
+	public static final JoinModule USER_JOIN_MODULE = dsl -> JooqUserRepository.SUB_JOINS.apply(dsl.join(userTable)
+			.on(pendingTable.CLIENT_ID
+					.eq(userTable.ID)));
+
+	public static final JoinModule SERVICE_JOIN_MODULE = dsl -> dsl.join(serviceToPendingTable)
+			.on(pendingTable.ID.eq(serviceToPendingTable.PENDING_ID))
+			.join(serviceInfoTable)
+			.on(serviceToPendingTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
 
 	private final DSLContext dsl;
 
@@ -47,7 +60,7 @@ public class JooqPendingRepository {
 		return dsl.select().from(pendingTable);
 	}
 
-	public static SelectJoinStep<org.jooq.Record> fetch(DSLContext dsl, JoinModule[] joins) {
+	public static SelectJoinStep<org.jooq.Record> fetch(DSLContext dsl, JoinModule... joins) {
 		var mainFetch = basicFetch(dsl);
 
 		if (joins != null) {
@@ -114,23 +127,38 @@ public class JooqPendingRepository {
 				});
 	}
 
-	public Flux<RecordPending> findById(Long recordId, JoinModule... joinModules) {
+	public Flux<RecordPending> findByRecordId(Long recordId, JoinModule... joinModules) {
 		var sql = fetch(dsl, joinModules)
 				.where(pendingTable.RECORD_ID.eq(recordId));
 
+		log.info(sql.toString());
+
+		var cache = new HashMap<Long, RecordPending>();
 		return Flux.from(sql)
-				.map(it -> tryToMap(it));
+				.map(it -> tryToMap(it, cache));
 	}
 
-	private RecordPending tryToMap(Record record) {
-		var mainEntity = record.into(pendingTable.fields()).into(RecordPending.class);
+	private RecordPending tryToMap(Record record, Map<Long, RecordPending> mapped) {
+		var pendingId = record.get(pendingTable.ID);
+		var mainEntity = mapped.computeIfAbsent(pendingId,
+				k -> record.into(pendingTable.fields())
+						.into(RecordPending.class));
+
 		if (mainEntity != null) {
 			var userId = record.get(userTable.ID);
-			if (userId != null) {
-				var user = record.into(userTable.fields()).into(DomainUserEntity.class);
-				mainEntity.setPendingOwner(user);
+			if (userId != null && mainEntity.getPendingOwner() == null) {
+				var domainUser = JooqUserRepository.mapUser(record);
+				mainEntity.setPendingOwner(domainUser);
+			}
+
+			var serviceId = record.get(serviceInfoTable.ID);
+			if (serviceId != null) {
+				var service = record.into(serviceInfoTable.fields())
+						.into(ServiceInfoEntity.class);
+				mainEntity.getServices().add(service);
 			}
 		}
+
 		return mainEntity;
 	}
 }

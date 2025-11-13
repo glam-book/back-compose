@@ -29,7 +29,7 @@ public abstract class RecordMapper {
     @Mapping(target = "comment", expression = "java(owner ? entity.getComment() : null)")
     public abstract RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity,
             @Context ZoneOffset offset,
-            boolean pendigable, 
+            boolean pendigable,
             boolean owner);
 
     @Named("toLocalDateTime")
@@ -59,8 +59,8 @@ public abstract class RecordMapper {
     }
 
     @Mapping(target = "tsFrom", qualifiedByName = "toLocalDateTime")
-    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity, 
-            boolean pendigable, 
+    public RecordPendingsServiceResponsePreviewDto toDto(RecordEntity entity,
+            boolean pendigable,
             boolean owner) {
         return toDto(entity, null, pendigable, owner);
     }
