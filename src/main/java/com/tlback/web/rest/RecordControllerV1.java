@@ -3,7 +3,6 @@ package com.tlback.web.rest;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -97,7 +96,7 @@ public class RecordControllerV1 {
     @PutMapping("/pending/{recordId}")
     public Mono<RecordPendingsServiceResponsePreviewDto> craetePending(UserData userDetail,
             @PathVariable Long recordId,
-            @RequestBody List<Long> serviceId) {
+            @RequestBody Set<Long> serviceId) {
 
         var details = userDetail.getDetails();
         var userId = userDetail.getPrincipal();

@@ -11,7 +11,9 @@ import org.mapstruct.ReportingPolicy;
 import com.tlback.core.model.RecordPending;
 import com.tlback.web.dto.records.RecordPendingDto;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedSourcePolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, 
+    uses = ServiceInfoMapper.class,
+    unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public abstract class RecordPendingMapper {
 
     @Mapping(target = "requesterLogin", source = "pendingOwner.login")
