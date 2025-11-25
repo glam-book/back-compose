@@ -13,7 +13,6 @@ public class OptionalServiceInfoDto {
     private String url;
     private String description;
     private String icon;
-    private Integer recordLimit = 1;
     private BigDecimal price;
     private Boolean isHourlyPrice;
 }

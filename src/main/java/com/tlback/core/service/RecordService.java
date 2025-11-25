@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
 import org.springframework.core.serializer.support.SerializationFailedException;
@@ -166,7 +167,8 @@ public class RecordService {
 	}
 
 	@Transactional(isolation = Isolation.SERIALIZABLE)
-	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId, List<Long> targetServices) {
+	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId, 
+				Set<Long> targetServices) {
 		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId, targetServices)
 				.switchIfEmpty(Mono.error(new RecordPendingException("Limit reached")))
 				.onErrorMap(
@@ -186,7 +188,9 @@ public class RecordService {
 												Cервисы:
 												%s
 												""", it.getTsFrom(),
-												it.getServiceInfo().stream()
+													it.getServiceInfo()
+														.stream()
+														.filter(service -> targetServices.contains(service.getId()))
 														.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
 																(s.getIsHourlyPrice() ? "за час" : ""))
 														.reduce("", (a, b) -> a + "\n" + b)))

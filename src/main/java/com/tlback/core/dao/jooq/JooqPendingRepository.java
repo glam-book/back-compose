@@ -2,8 +2,8 @@ package com.tlback.core.dao.jooq;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -89,7 +89,7 @@ public class JooqPendingRepository {
 				.map(rec -> rec.into(RecordPending.class));
 	}
 
-	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId, List<Long> serviceIds) {
+	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId, Set<Long> serviceIds) {
 		var query = dsl.insertInto(pendingTable)
 				.columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
 						pendingTable.REQUEST_TIME)
