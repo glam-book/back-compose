@@ -33,13 +33,13 @@ public class JooqPendingRepository {
 	private static final ServcieInfoToPending serviceToPendingTable = ServcieInfoToPending.SERVCIE_INFO_TO_PENDING;
 	private static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
 
-	public static final JoinModule USER_JOIN_MODULE = dsl -> JooqUserRepository.SUB_JOINS.apply(dsl.join(userTable)
+	public static final JoinModule USER_JOIN_MODULE = dsl -> JooqUserRepository.SUB_JOINS.apply(dsl.leftJoin(userTable)
 			.on(pendingTable.CLIENT_ID
 					.eq(userTable.ID)));
 
-	public static final JoinModule SERVICE_JOIN_MODULE = dsl -> dsl.join(serviceToPendingTable)
+	public static final JoinModule SERVICE_JOIN_MODULE = dsl -> dsl.leftJoin(serviceToPendingTable)
 			.on(pendingTable.ID.eq(serviceToPendingTable.PENDING_ID))
-			.join(serviceInfoTable)
+			.leftJoin(serviceInfoTable)
 			.on(serviceToPendingTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID));
 
 	private final DSLContext dsl;

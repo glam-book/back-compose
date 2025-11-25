@@ -1,5 +1,7 @@
 package com.tlback.web.rest;
 
+import java.util.Objects;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
@@ -38,7 +40,8 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(RecordPendingException.class)
     public ResponseEntity<ErrorResponse> handleRecordPednignExceptions(RecordPendingException ex) {
-        var response = ErrorResponse.create(ex, HttpStatus.CONFLICT, ex.getLocalizedMessage());
+        var response = ErrorResponse.create(ex, HttpStatus.CONFLICT,
+                Objects.toString(ex.getLocalizedMessage()));
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 }
