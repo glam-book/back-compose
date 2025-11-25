@@ -50,7 +50,7 @@ public class JooqRecordRepository {
     public static final JoinModule JOIN_RECORD_PENDINGS = mainFetch -> mainFetch.leftJoin(recordPendingTable)
             .on(recordTable.ID.eq(recordPendingTable.RECORD_ID));
 
-    public static final JoinModule JOIN_RECORD_PENDING_USER_INFO = mainFetch -> mainFetch.join(userTable)
+    public static final JoinModule JOIN_RECORD_PENDING_USER_INFO = mainFetch -> mainFetch.leftJoin(userTable)
             .on(recordPendingTable.CLIENT_ID.eq(userTable.ID));
 
     public static final List<JoinModule> FULL_JOIN = List.of(JOIN_SERVICE_INFO, JOIN_RECORD_PENDINGS,
