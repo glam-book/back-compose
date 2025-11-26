@@ -186,7 +186,7 @@ public class JooqRecordRepository {
             query = query.and(recordPendingTable.CLIENT_ID.eq(filter.getClientId()));
 
         if (filter.getDateFrom() != null)
-            query = query.and(recordTable.TS_FROM.greaterThan(filter.getDateFrom()));
+            query = query.and(recordTable.TS_FROM.greaterOrEqual(filter.getDateFrom()));
 
         if (filter.getDateTo() != null)
             query = query.and(recordTable.TS_TO.lessThan(filter.getDateTo()));
