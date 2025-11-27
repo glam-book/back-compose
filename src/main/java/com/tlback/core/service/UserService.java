@@ -46,6 +46,7 @@ public class UserService {
         entity.setLogin(user.getUsername());
         entity.setName(user.getFirstName());
         entity.setLastName(user.getLastName());
+        entity.setProfileIcon(user.getPhotoUrl());
         return jooqUserRepository.save(entity);
     }
 

@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class TgContact implements ContactProvider {
-    private final @Nullable String firstName;
-    private final @Nullable String lastName;
-    private final @Nullable String tgUserName;
+    private @Nullable String firstName;
+    private @Nullable String lastName;
+    private @Nullable String tgUserName;
 }
