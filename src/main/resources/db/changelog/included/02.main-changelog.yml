@@ -65,3 +65,15 @@ databaseChangeLog:
             baseColumnNames: pending_id
             referencedTableName: record_pending
             referencedColumnNames: id
+
+  - changeSet:
+      id: add_profile_icon_col
+      context: ddl
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: domain_user
+            columns:
+              - column:
+                  name: icon
+                  type: text

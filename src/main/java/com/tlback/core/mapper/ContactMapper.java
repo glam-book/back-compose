@@ -1,5 +1,9 @@
 package com.tlback.core.mapper;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
@@ -13,20 +17,27 @@ import com.tlback.core.model.contact.TgContact;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class ContactMapper {
 
-    public TgContact map(DomainUserEntity domainUser) {
+    public Optional<TgContact> mapTgContact(DomainUserEntity domainUser) {
         return domainUser.getTgUser()
                 .map(it -> TgContact.builder()
                         .firstName(it.getFirstName())
                         .lastName(it.getLastName())
                         .tgUserName(it.getUsername())
-                        .build())
-                .orElse(TgContact.builder().build());
+                        .build());
+                
     }
 
-    public ContactProvider of(Supports source, DomainUserEntity entity) {
+    public List<ContactProvider> mapList(DomainUserEntity domainUser) {
+        return List.<ContactProvider>of(mapTgContact(domainUser).orElse(null))
+            .stream()
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    public Optional<? extends ContactProvider> of(Supports source, DomainUserEntity entity) {
         return switch (source) {
-            case TG -> map(entity);
-            default -> new GenericContact(entity.getName()); // TODO fill other, check identity
+            case TG -> mapTgContact(entity);
+            default -> Optional.of(new GenericContact(entity.getName())); // TODO fill other, check identity
         };
     }
 }

@@ -5,6 +5,13 @@
             "type": "java",
             "name": "TlbackApplication",
             "request": "launch",
+            "mainClass": "com.tlback.TlbackApplication",
+            "projectName": "tl-back-back-compose"
+        },
+        {
+            "type": "java",
+            "name": "TlbackApplication",
+            "request": "launch",
             "projectName": "back-compose",
             "mainClass": "com.tlback.TlbackApplication",
             "envFile": "${workspaceFolder}/.dev.env",

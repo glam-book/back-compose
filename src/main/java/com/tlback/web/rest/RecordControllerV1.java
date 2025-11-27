@@ -86,7 +86,7 @@ public class RecordControllerV1 {
         return recordService.getPendingDetails(recordId, userId)
                 .map(it -> RecordPendingWithContactDto
                         .builder()
-                        .contact(contactMapper.of(supports, it.getPendingOwner()))
+                        .contact(contactMapper.of(supports, it.getPendingOwner()).orElse(null))
                         .services(it.getServices().stream().map(serviceInfoMapper::map).collect(Collectors.toSet()))
                         .requestTime(it.getRequestTime())
                         .confirmed(it.getConfirmed())
