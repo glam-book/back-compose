@@ -12,10 +12,12 @@ import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.contact.ContactProvider;
 import com.tlback.web.dto.user.UserDto;
 import com.tlback.web.dto.user.UserProfileDto;
+
+import lombok.Setter;
+
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class UserMapper {
 
-    @Autowired
     private ContactMapper contactMapper;
 
     public abstract UserDto toDto(DomainUserEntity entity);
@@ -26,5 +28,10 @@ public abstract class UserMapper {
     @Named("mapContacts")
     public List<ContactProvider> mapContacts(DomainUserEntity entity) {
         return contactMapper.mapList(entity);
+    }
+
+    @Autowired
+    public void setContactMapper(ContactMapper cm) {
+        this.contactMapper = cm;
     }
 }
