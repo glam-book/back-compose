@@ -6,18 +6,17 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.contact.ContactProvider;
 import com.tlback.web.dto.user.UserDto;
 import com.tlback.web.dto.user.UserProfileDto;
-
-import lombok.RequiredArgsConstructor;
-
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-@RequiredArgsConstructor
 public abstract class UserMapper {
-    private final ContactMapper contactMapper;
+
+    @Autowired
+    private ContactMapper contactMapper;
 
     public abstract UserDto toDto(DomainUserEntity entity);
 
