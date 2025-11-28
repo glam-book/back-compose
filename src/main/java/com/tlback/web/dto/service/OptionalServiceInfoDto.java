@@ -3,9 +3,12 @@ package com.tlback.web.dto.service;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OptionalServiceInfoDto {
 
     private Optional<Long> id = Optional.empty();
