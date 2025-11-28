@@ -13,8 +13,6 @@ import com.tlback.core.model.contact.ContactProvider;
 import com.tlback.web.dto.user.UserDto;
 import com.tlback.web.dto.user.UserProfileDto;
 
-import lombok.Setter;
-
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class UserMapper {
 

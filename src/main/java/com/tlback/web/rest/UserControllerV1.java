@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tlback.core.config.security.UserData;
 import com.tlback.core.mapper.UserMapper;
 import com.tlback.core.service.UserService;
-import com.tlback.web.dto.user.UserDto;
 import com.tlback.web.dto.user.UserProfileDto;
 
 import lombok.RequiredArgsConstructor;
@@ -23,9 +22,9 @@ public class UserControllerV1 {
     private final UserMapper userMapper;
 
     @GetMapping("/me")
-    public Mono<UserDto> getMethodName(UserData userData) {
+    public Mono<UserProfileDto> getMethodName(UserData userData) {
         return userService.findById(userData.getDetails().getId())
-                .map(userMapper::toDto);
+                .map(userMapper::toProfileDto);
     }
 
     @GetMapping("/{userId}")
