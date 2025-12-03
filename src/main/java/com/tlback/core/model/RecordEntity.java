@@ -44,6 +44,9 @@ public class RecordEntity {
     @Column("record_permissions")
     private byte[] recordPermissions;
 
+    @Column("color")
+    private String color;
+
     private Set<RecordPending> recordPendings = new HashSet<>();
 
     private Set<ServiceInfoEntity> serviceInfo = new HashSet<>();

@@ -119,12 +119,15 @@ public class RecordControllerV1 {
 
         var data = recordService.getRecordsWithPendingsByUserdId(userId, from, to);
         var requester = userData.getPrincipal();
+        var isOwner = userData.getPrincipal().equals(userId);
 
         return data.map(it -> RecordCalendarDto.builder()
                 .ts(it.getTsFrom())
                 .canPending(recordService.isRecordPendingable(it, requester))
                 .hasPendings(!it.getRecordPendings().isEmpty())
                 .day(it.getTsFrom().getDayOfMonth())
+                .text(isOwner ? it.getComment() : null)
+                .color(it.getColor())
                 .isOwner(it.getRecordOwnerId().equals(requester))
                 .build())
                 .collectList()

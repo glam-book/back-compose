@@ -77,3 +77,15 @@ databaseChangeLog:
               - column:
                   name: icon
                   type: text
+
+  - changeSet:
+      id: add_record_color
+      context: ddl
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: record
+            columns:
+              - column:
+                  name: color
+                  type: text
