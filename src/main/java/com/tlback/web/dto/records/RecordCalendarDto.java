@@ -8,6 +8,8 @@ import lombok.Builder;
 public record RecordCalendarDto(
         int day,
         OffsetDateTime ts,
+        String text,
+        String color,
         boolean isOwner,
         boolean canPending,
         boolean hasPendings) {
