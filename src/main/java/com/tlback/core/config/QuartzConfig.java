@@ -14,7 +14,9 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -48,14 +50,21 @@ public class QuartzConfig {
         return dataSourceBuilder.build();
     }
 
+    @Bean
+    @Primary
+    PlatformTransactionManager txManager(DataSource source) {
+        return new DataSourceTransactionManager(source);
+    }
+
     /**
      * Main quartz bean configuration
      */
     @Bean
     SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource,
-                                              PlatformTransactionManager txManager,
-                                              SpringBeanJobFactory jobFactory,
-                                              JobsListenerService jobsListenerService, Trigger... triggers) throws IOException {
+            PlatformTransactionManager txManager,
+            SpringBeanJobFactory jobFactory,
+            JobsListenerService jobsListenerService,
+            Trigger... triggers) throws IOException {
 
         var schedulerFactory = new SchedulerFactoryBean();
         schedulerFactory.setQuartzProperties(quartzProps());
@@ -100,21 +109,21 @@ public class QuartzConfig {
         return args -> {
             var scheduler = schedulerFactoryBean.getScheduler();
             log.info(MessageFormat.format("""
-                            
-                            --- Quartz Scheduler Info ---
-                            Scheduler Name: {0}
-                            Instance ID: {1}
-                            Scheduler Class: {2}
-                            Is Started: {3}
-                            Is In Standby Mode: {4}
-                            Is Shutdown: {5}
-                            Job Store Class: {6}
-                            Thread Pool Class: {7}
-                            Number of Jobs Executed: {8}
-                            Clustered: {9}
-                            Version: {10}
-                            --------------------------------
-                            """,
+
+                    --- Quartz Scheduler Info ---
+                    Scheduler Name: {0}
+                    Instance ID: {1}
+                    Scheduler Class: {2}
+                    Is Started: {3}
+                    Is In Standby Mode: {4}
+                    Is Shutdown: {5}
+                    Job Store Class: {6}
+                    Thread Pool Class: {7}
+                    Number of Jobs Executed: {8}
+                    Clustered: {9}
+                    Version: {10}
+                    --------------------------------
+                    """,
                     scheduler.getSchedulerName(),
                     scheduler.getSchedulerInstanceId(),
                     scheduler.getClass().getName(),

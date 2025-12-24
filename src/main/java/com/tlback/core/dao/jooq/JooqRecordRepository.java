@@ -44,11 +44,12 @@ public class JooqRecordRepository {
     public static final com.tlback.jooq.gen.tables.DomainUser userTable = com.tlback.jooq.gen.tables.DomainUser.DOMAIN_USER;
 
     public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch
-            .leftJoin(recToServiceTable).on(recordTable.ID.eq(recToServiceTable.RECORD_ID))
+            .leftJoin(recToServiceTable).on(recordTable.RECORD_ID.eq(recToServiceTable.RECORD_ID))
             .leftJoin(serviceInfoTable).on(serviceInfoTable.ID.eq(recToServiceTable.SERVICE_ID));
 
     public static final JoinModule JOIN_RECORD_PENDINGS = mainFetch -> mainFetch.leftJoin(recordPendingTable)
-            .on(recordTable.ID.eq(recordPendingTable.RECORD_ID));
+            .on(recordTable.RECORD_ID.eq(recordPendingTable.RECORD_ID)
+                .and(recordTable.RECORD_OWNER_ID.eq(recordPendingTable.RECORD_OWNER_ID)));
 
     public static final JoinModule JOIN_RECORD_PENDING_USER_INFO = mainFetch -> mainFetch.leftJoin(userTable)
             .on(recordPendingTable.CLIENT_ID.eq(userTable.ID));
@@ -102,7 +103,7 @@ public class JooqRecordRepository {
 
     public static RecordRecord mapToRecord(RecordEntity entity) {
         var rec = new RecordRecord();
-        rec.setId(entity.getRecordId());
+        rec.setRecordId(entity.getRecordId());
         rec.setRecordOwnerId(entity.getRecordOwnerId());
         rec.setIsPublic(entity.getIsPublic());
         rec.setTz(entity.getTz().toString());
@@ -259,7 +260,7 @@ public class JooqRecordRepository {
                 .set(recordTable.TS_FROM, record.getTsFrom())
                 .set(recordTable.TS_TO, record.getTsTo())
                 .set(recordTable.COMMENT, record.getComment())
-                .returning(recordTable.ID);
+                .returning(recordTable.RECORD_ID);
 
         log.info("Inserting new record: {}", insert);
         return Mono.from(insert);

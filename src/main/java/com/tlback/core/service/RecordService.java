@@ -142,9 +142,12 @@ public class RecordService {
 
 					// После того как рекорд создан/обновлён, линкуем сервисы
 					return recordMono.flatMap(record -> recordToServiceRepository
-							.linkRecordToService(record.getRecordOwnerId(), record.getRecordId(), list.stream()
-									.map(ServiceInfoRecord::getId)
-									.toList())
+							.linkRecordToService(
+									record.getRecordOwnerId(),
+									record.getRecordId(),
+									list.stream()
+											.map(ServiceInfoRecord::getId)
+											.toList())
 							.then(recordRepository.findById(record.getRecordOwnerId(), record.getRecordId(),
 									joinService,
 									JooqRecordRepository.JOIN_RECORD_PENDINGS)));
@@ -168,8 +171,8 @@ public class RecordService {
 	}
 
 	@Transactional(isolation = Isolation.SERIALIZABLE)
-	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long targetRecordId, 
-				Set<Long> targetServices) {
+	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long targetRecordId,
+			Set<Long> targetServices) {
 		return pendingRepository.createPendingAtomic(initiatorId, recordOwnerId, targetRecordId, targetServices)
 				.switchIfEmpty(Mono.error(new RecordPendingException("Limit reached")))
 				.onErrorMap(
@@ -189,7 +192,7 @@ public class RecordService {
 												Cервисы:
 												%s
 												""", it.getTsFrom(),
-													it.getServiceInfo()
+												it.getServiceInfo()
 														.stream()
 														.filter(service -> targetServices.contains(service.getId()))
 														.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +

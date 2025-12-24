@@ -223,3 +223,58 @@ databaseChangeLog:
             initiallyDeferred: true
             onDelete: CASCADE
             onUpdate: CASCADE
+
+  - changeSet:
+      id: refactor_record_create_record_id_trigger
+      context: fn
+      author: owpk
+      changes:
+        - sql:
+            splitStatements: false
+            stripComments: false
+            sql: |
+              -- Функция генерирует record_id в пределах record_owner_id
+              -- с защитой через advisory lock
+              CREATE OR REPLACE FUNCTION public.gen_record_id()
+              RETURNS trigger AS $$
+              DECLARE
+                  next_id bigint;
+              BEGIN
+                  IF NEW.record_id IS NOT NULL THEN
+                      RETURN NEW;
+                  END IF;
+
+                  -- блокируем по owner id на уровне транзакции, чтобы избежать гонок
+                  PERFORM pg_advisory_xact_lock(NEW.record_owner_id::bigint);
+
+                  SELECT COALESCE(MAX(record_id), 0) + 1
+                    INTO next_id
+                    FROM record
+                   WHERE record_owner_id = NEW.record_owner_id;
+
+                  NEW.record_id := next_id;
+                  RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+        - sql:
+            sql: |
+              -- Триггер для установки record_id при вставке
+              DROP TRIGGER IF EXISTS tr_gen_record_id ON public.record;
+              CREATE TRIGGER tr_gen_record_id
+              BEFORE INSERT ON public.record
+              FOR EACH ROW
+              EXECUTE FUNCTION public.gen_record_id();
+
+  - changeSet:
+      id: refactor_record_drop_old_id_column
+      context: ddl
+      author: owpk
+      preConditions:
+        - onFail: MARK_RAN
+        - columnExists:
+            tableName: record
+            columnName: id
+      changes:
+        - dropColumn:
+            tableName: record
+            columnName: id
