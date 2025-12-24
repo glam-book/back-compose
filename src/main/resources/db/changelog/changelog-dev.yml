@@ -8,3 +8,6 @@ databaseChangeLog:
   - includeAll:
       path: data/
       relativeToChangelogFile: true
+  - includeAll:
+      path: sql/
+      relativeToChangelogFile: true

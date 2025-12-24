@@ -48,6 +48,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 	// reactive stack w jooq
@@ -56,7 +58,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-jooq'
 	implementation 'org.postgresql:r2dbc-postgresql'
-	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.postgresql:postgresql'
 
 	jooqGenerator "org.yaml:snakeyaml:${snakeYmlVer}"
     jooqGenerator "org.jooq:jooq-meta-extensions-liquibase:${jooqVer}"

@@ -6,7 +6,9 @@
             "name": "TlbackApplication",
             "request": "launch",
             "mainClass": "com.tlback.TlbackApplication",
-            "projectName": "tl-back-back-compose"
+            "projectName": "tl-back-back-compose",
+            "envFile": "${workspaceFolder}/.dev.env",
+            "args": "--spring.profiles.active=dev"
         },
         {
             "type": "java",
