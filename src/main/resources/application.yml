@@ -2,6 +2,11 @@ server:
   port: ${TL_SERVER_PORT:8095}
 
 spring:
+  datasource:
+    url: jdbc:postgresql://${TL_DB_HOST:localhost}:${TL_DB_PORT:5599}/${TL_DB_NAME:tl_back}
+    username: ${TL_DB_USER:postgres}
+    password: ${TL_DB_PASSWORD:postgres}
+
   webflux.base-path: /api
   data:
     redis:
