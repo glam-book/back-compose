@@ -89,3 +89,137 @@ databaseChangeLog:
               - column:
                   name: color
                   type: text
+
+  - changeSet:
+      id: refactor_record_composite_pk_step1_add_record_id_column
+      context: ddl
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: record
+            columns:
+              - column:
+                  name: record_id
+                  type: bigint
+                  remarks: "Составной ключ - id записи в пределах пользователя"
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: refactor_record_drop_fk_record_to_service
+      context: ddl
+      author: owpk
+      preConditions:
+        - onFail: MARK_RAN
+        - foreignKeyConstraintExists:
+            foreignKeyName: fk_record_to_service_record
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: record_to_service
+            constraintName: fk_record_to_service_record
+
+  - changeSet:
+      id: refactor_record_drop_fk_record_pending
+      context: ddl
+      author: owpk
+      preConditions:
+        - onFail: MARK_RAN
+        - foreignKeyConstraintExists:
+            foreignKeyName: fk_record_pending_record_id
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: record_pending
+            constraintName: fk_record_pending_record_id
+
+  - changeSet:
+      id: refactor_record_drop_primary_key
+      context: ddl
+      author: owpk
+      preConditions:
+        - onFail: MARK_RAN
+        - primaryKeyExists:
+            tableName: record
+            constraintName: record_pkey
+      changes:
+        - dropPrimaryKey:
+            tableName: record
+            constraintName: record_pkey
+
+  - changeSet:
+      id: refactor_record_composite_pk_step4_add_not_null_and_new_pk
+      context: ddl
+      author: owpk
+      changes:
+        - addNotNullConstraint:
+            tableName: record
+            columnName: record_id
+        - addPrimaryKey:
+            tableName: record
+            columnNames: record_owner_id, record_id
+            constraintName: pk_record_composite
+
+  - changeSet:
+      id: refactor_record_composite_pk_step6_update_record_to_service
+      context: ddl
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: record_to_service
+            columns:
+              - column:
+                  name: record_owner_id
+                  type: bigint
+                  remarks: "Часть составного ключа для связи с record"
+                  constraints:
+                    nullable: true
+        - addNotNullConstraint:
+            tableName: record_to_service
+            columnName: record_owner_id
+        - dropPrimaryKey:
+            tableName: record_to_service
+            constraintName: pk_record_to_service
+        - addPrimaryKey:
+            tableName: record_to_service
+            columnNames: record_owner_id, record_id, service_id
+            constraintName: pk_record_to_service_composite
+
+  - changeSet:
+      id: refactor_record_composite_pk_step7_update_record_pending
+      context: ddl
+      author: owpk
+      changes:
+        - addColumn:
+            tableName: record_pending
+            columns:
+              - column:
+                  name: record_owner_id
+                  type: bigint
+                  remarks: "Часть составного ключа для связи с record"
+                  constraints:
+                    nullable: true
+        - addNotNullConstraint:
+            tableName: record_pending
+            columnName: record_owner_id
+        - addForeignKeyConstraint:
+            baseTableName: record_pending
+            baseColumnNames: record_owner_id, record_id
+            referencedTableName: record
+            referencedColumnNames: record_owner_id, record_id
+            constraintName: fk_record_pending_record_id_composite
+            onDelete: CASCADE
+
+  - changeSet:
+      id: refactor_record_composite_pk_step5_recreate_fk
+      context: indx
+      author: owpk
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: record_to_service
+            baseColumnNames: record_owner_id, record_id
+            referencedTableName: record
+            referencedColumnNames: record_owner_id, record_id
+            constraintName: fk_record_to_service_record
+            deferrable: true
+            initiallyDeferred: true
+            onDelete: CASCADE
+            onUpdate: CASCADE

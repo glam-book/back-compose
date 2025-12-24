@@ -68,22 +68,24 @@ public class RecordControllerV1 {
                 });
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{recordOwnerId}/{recordId}")
     public Mono<DeleteSuccess> deleteRecord(
-            @PathVariable Long id,
+            @PathVariable Long recordOwnerId,
+            @PathVariable Long recordId,
             @AuthenticationPrincipal UserData userData) {
         var owner = userData.getDetails().getId();
-        var result = recordService.deleteCascadeWithPendings(id, owner);
+        var result = recordService.deleteCascadeWithPendings(recordOwnerId, recordId, owner);
         return result.map(it -> new DeleteSuccess(it));
     }
 
-    @GetMapping("/pending/{recordId}")
+    @GetMapping("/pending/{recordOwnerId}/{recordId}")
     public Flux<RecordPendingWithContactDto<?>> pendingDetails(UserData userDetail,
+            @PathVariable(name = "recordOwnerId") Long recordOwnerId,
             @PathVariable(name = "recordId") Long recordId,
             @RequestParam(required = false, defaultValue = "TG", name = "contactTarget") String contactTarget) {
         var userId = userDetail.getPrincipal();
         var supports = Supports.valueOf(contactTarget);
-        return recordService.getPendingDetails(recordId, userId)
+        return recordService.getPendingDetails(recordOwnerId, recordId, userId)
                 .map(it -> RecordPendingWithContactDto
                         .builder()
                         .contact(contactMapper.of(supports, it.getPendingOwner()).orElse(null))
@@ -93,8 +95,9 @@ public class RecordControllerV1 {
                         .build());
     }
 
-    @PutMapping("/pending/{recordId}")
+    @PutMapping("/pending/{recordOwnerId}/{recordId}")
     public Mono<RecordPendingsServiceResponsePreviewDto> craetePending(UserData userDetail,
+            @PathVariable Long recordOwnerId,
             @PathVariable Long recordId,
             @RequestBody Set<Long> serviceId) {
 
@@ -102,7 +105,7 @@ public class RecordControllerV1 {
         var userId = userDetail.getPrincipal();
         var isOwner = details.getId().equals(userId);
 
-        return recordService.createPendingAtomic(userId, recordId, serviceId)
+        return recordService.createPendingAtomic(userId, recordOwnerId, recordId, serviceId)
                 .map(it -> mapRecord(it, isOwner, userId));
     }
 
