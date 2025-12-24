@@ -81,8 +81,8 @@ public class JooqRecordRepository {
 
         log.info(query.toString());
 
-        return Flux.from(query) // все строки из jOOQ-результата
-                .collectList() // собираем в List<Record>
+        return Flux.from(query)
+                .collectList()
                 .map(records -> {
                     var rec = tryToMapAll(records);
                     return rec.get(recordId);
@@ -260,7 +260,7 @@ public class JooqRecordRepository {
                 .set(recordTable.TS_FROM, record.getTsFrom())
                 .set(recordTable.TS_TO, record.getTsTo())
                 .set(recordTable.COMMENT, record.getComment())
-                .returning(recordTable.RECORD_ID);
+                .returning(recordTable.fields());
 
         log.info("Inserting new record: {}", insert);
         return Mono.from(insert);
