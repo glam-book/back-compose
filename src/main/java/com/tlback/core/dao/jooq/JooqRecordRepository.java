@@ -44,11 +44,12 @@ public class JooqRecordRepository {
     public static final com.tlback.jooq.gen.tables.DomainUser userTable = com.tlback.jooq.gen.tables.DomainUser.DOMAIN_USER;
 
     public static final JoinModule JOIN_SERVICE_INFO = mainFetch -> mainFetch
-            .leftJoin(recToServiceTable).on(recordTable.ID.eq(recToServiceTable.RECORD_ID))
+            .leftJoin(recToServiceTable).on(recordTable.RECORD_ID.eq(recToServiceTable.RECORD_ID))
             .leftJoin(serviceInfoTable).on(serviceInfoTable.ID.eq(recToServiceTable.SERVICE_ID));
 
     public static final JoinModule JOIN_RECORD_PENDINGS = mainFetch -> mainFetch.leftJoin(recordPendingTable)
-            .on(recordTable.ID.eq(recordPendingTable.RECORD_ID));
+            .on(recordTable.RECORD_ID.eq(recordPendingTable.RECORD_ID)
+                .and(recordTable.RECORD_OWNER_ID.eq(recordPendingTable.RECORD_OWNER_ID)));
 
     public static final JoinModule JOIN_RECORD_PENDING_USER_INFO = mainFetch -> mainFetch.leftJoin(userTable)
             .on(recordPendingTable.CLIENT_ID.eq(userTable.ID));
@@ -70,37 +71,39 @@ public class JooqRecordRepository {
         return RxUtils.fluxIterable(filteredQuery, it -> this.tryToMapAll(it).values());
     }
 
-    public Mono<RecordEntity> findById(Long id, JoinModule... joins) {
-        return this.findById(id, Arrays.stream(joins).toList());
+    public Mono<RecordEntity> findById(Long recordOwnerId, Long recordId, JoinModule... joins) {
+        return this.findById(recordOwnerId, recordId, Arrays.stream(joins).toList());
     }
 
-    public Mono<RecordEntity> findById(Long id, List<JoinModule> joins) {
-        var query = fetch(dsl, joins).where(recordTable.ID.eq(id));
+    public Mono<RecordEntity> findById(Long recordOwnerId, Long recordId, List<JoinModule> joins) {
+        var query = fetch(dsl, joins).where(recordTable.RECORD_OWNER_ID.eq(recordOwnerId))
+                .and(recordTable.RECORD_ID.eq(recordId));
 
         log.info(query.toString());
 
-        return Flux.from(query) // все строки из jOOQ-результата
-                .collectList() // собираем в List<Record>
+        return Flux.from(query)
+                .collectList()
                 .map(records -> {
                     var rec = tryToMapAll(records);
-                    return rec.get(id);
+                    return rec.get(recordId);
                 });
     }
 
     /**
      * Проверить, что запись принадлежит пользователю
      */
-    public Mono<Boolean> isOwner(long recordId, long userId) {
+    public Mono<Boolean> isOwner(long recordOwnerId, long recordId, long userId) {
         return Mono.fromCallable(() -> dsl.fetchExists(
                 dsl.selectOne()
                         .from(recordTable)
-                        .where(recordTable.ID.eq(recordId))
+                        .where(recordTable.RECORD_OWNER_ID.eq(recordOwnerId))
+                        .and(recordTable.RECORD_ID.eq(recordId))
                         .and(recordTable.RECORD_OWNER_ID.eq(userId))));
     }
 
     public static RecordRecord mapToRecord(RecordEntity entity) {
         var rec = new RecordRecord();
-        rec.setId(entity.getId());
+        rec.setRecordId(entity.getRecordId());
         rec.setRecordOwnerId(entity.getRecordOwnerId());
         rec.setIsPublic(entity.getIsPublic());
         rec.setTz(entity.getTz().toString());
@@ -132,9 +135,9 @@ public class JooqRecordRepository {
 
     private Map<Long, RecordEntity> tryToMapAll(List<org.jooq.Record> records) {
         return records.stream()
-                .filter(rec -> rec.get(recordTable.ID) != null)
+                .filter(rec -> rec.get(recordTable.RECORD_ID) != null)
                 .collect(Collectors.toMap(
-                        rec -> rec.get(recordTable.ID),
+                        rec -> rec.get(recordTable.RECORD_ID),
                         rec -> {
                             RecordEntity e = mapJustRecEntity(rec);
                             enrich(e, rec); // тот же метод enrich
@@ -195,7 +198,7 @@ public class JooqRecordRepository {
             query = query.and(recordTable.IS_PUBLIC.eq(filter.getIsPublic()));
 
         if (filter.getRecordId() != null)
-            query = query.and(recordTable.ID.eq(filter.getRecordId()));
+            query = query.and(recordTable.RECORD_ID.eq(filter.getRecordId()));
 
         return query;
     }
@@ -209,8 +212,8 @@ public class JooqRecordRepository {
             var timeTo = mapper.get(recordTable.TS_TO);
 
             var entity = new RecordEntity();
-            entity.setId(rec.get(recordTable.ID));
             entity.setRecordOwnerId(rec.get(recordTable.RECORD_OWNER_ID));
+            entity.setRecordId(rec.get(recordTable.RECORD_ID));
             entity.setIsPublic(rec.get(recordTable.IS_PUBLIC));
             entity.setTsFrom(timeFrom.atOffset(tz));
             entity.setTsTo(timeTo.atOffset(tz));
@@ -236,23 +239,20 @@ public class JooqRecordRepository {
     }
 
     public Mono<RecordRecord> update(RecordRecord record) {
-        // Обновляем запись по ID, возвращаем обновлённую сущность с нужными join-ами
         var update = dsl.update(recordTable)
-                .set(recordTable.RECORD_OWNER_ID,
-                        DSL.coalesce(DSL.val(record.getRecordOwnerId()), recordTable.RECORD_OWNER_ID))
                 .set(recordTable.IS_PUBLIC, DSL.coalesce(DSL.val(record.getIsPublic()), recordTable.IS_PUBLIC))
                 .set(recordTable.TZ, DSL.coalesce(DSL.val(record.getTz()), recordTable.TZ))
                 .set(recordTable.TS_FROM, DSL.coalesce(DSL.val(record.getTsFrom()), recordTable.TS_FROM))
                 .set(recordTable.TS_TO, DSL.coalesce(DSL.val(record.getTsTo()), recordTable.TS_TO))
                 .set(recordTable.COMMENT, DSL.coalesce(DSL.val(record.getComment()), recordTable.COMMENT))
-                .where(recordTable.ID.eq(record.getId()))
-                .returning(recordTable.ID);
+                .where(recordTable.RECORD_OWNER_ID.eq(record.getRecordOwnerId()))
+                .and(recordTable.RECORD_ID.eq(record.getRecordId()))
+                .returning(recordTable.RECORD_ID);
 
         return Mono.from(update);
     }
 
     public Mono<RecordRecord> save(RecordRecord record) {
-        // Вставляем новую запись и возвращаем созданную сущность с нужными join-ами
         var insert = dsl.insertInto(recordTable)
                 .set(recordTable.RECORD_OWNER_ID, record.getRecordOwnerId())
                 .set(recordTable.IS_PUBLIC, record.getIsPublic())
@@ -260,15 +260,16 @@ public class JooqRecordRepository {
                 .set(recordTable.TS_FROM, record.getTsFrom())
                 .set(recordTable.TS_TO, record.getTsTo())
                 .set(recordTable.COMMENT, record.getComment())
-                .returning(recordTable.ID);
+                .returning(recordTable.fields());
 
         log.info("Inserting new record: {}", insert);
         return Mono.from(insert);
     }
 
-    public Mono<Boolean> delete(Long id) {
+    public Mono<Boolean> delete(Long recordOwnerId, Long recordId) {
         var deleteSql = dsl.delete(recordTable)
-                .where(recordTable.ID.eq(id));
+                .where(recordTable.RECORD_OWNER_ID.eq(recordOwnerId))
+                .and(recordTable.RECORD_ID.eq(recordId));
         return Mono.from(deleteSql).map(it -> it != 0);
     }
 }

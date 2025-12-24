@@ -8,9 +8,9 @@ public interface AbacService {
     Mono<AbacContext> canModifyRecord(Long userId, Long recordId);
     Mono<AbacContext> canAttachToService(Long userId, Long serviceId);
     Mono<AbacContext> canUseService(Long userId, Long serviceId);
-    Mono<AbacContext> canUseRecord(Long recordId, Long owner);
+    Mono<AbacContext> canUseRecord(Long recordOwnerId, Long recordId, Long owner);
 
-    Mono<RightsContextAdapter> fetchRecordRights(Long recordId, Long requesterId);
+    Mono<RightsContextAdapter> fetchRecordRights(Long recordOwnerId, Long recordId, Long requesterId);
 
     Rights parse(byte[] mask);
 }

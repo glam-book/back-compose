@@ -17,11 +17,12 @@ import lombok.NoArgsConstructor;
 public class RecordEntity {
 
     @Id
-    @Column("id")
-    private Long id;
-
     @Column("record_owner_id")
     private Long recordOwnerId;
+
+    @Id
+    @Column("record_id")
+    private Long recordId;
 
     @Column("is_public")
     private Boolean isPublic = true;
