@@ -26,25 +26,23 @@ public class JooqAbacServiceImpl implements AbacService {
 
     private final DSLContext dsl;
 
-    public Mono<Record2<byte[], Long>> fetchRecordPermissions(Long recordOwnerId, Long recordId) {
+    public Mono<Record2<byte[], Long>> fetchRecordPermissions(Long recordId) {
         return Mono.from(dsl
                 .select(RECORD_TABLE.RECORD_PERMISSIONS, RECORD_TABLE.RECORD_OWNER_ID)
                 .from(RECORD_TABLE)
-                .where(RECORD_TABLE.RECORD_OWNER_ID.eq(recordOwnerId))
-                .and(RECORD_TABLE.RECORD_ID.eq(recordId)));
+                .where(RECORD_TABLE.ID.eq(recordId)));
     }
 
-    public Mono<Record1<Long>> fetchRecordOwnerId(Long recordOwnerId, Long recordId) {
+    public Mono<Record1<Long>> fetchRecordOwnerId(Long recordId) {
         return Mono.from(dsl
                 .select(RECORD_TABLE.RECORD_OWNER_ID)
                 .from(RECORD_TABLE)
-                .where(RECORD_TABLE.RECORD_OWNER_ID.eq(recordOwnerId))
-                .and(RECORD_TABLE.RECORD_ID.eq(recordId)));
+                .where(RECORD_TABLE.ID.eq(recordId)));
     }
 
     @Override
     public Mono<AbacContext> canModifyRecord(Long userId, Long recordId) {
-        return fetchRecordPermissions(userId, recordId)
+        return fetchRecordPermissions(recordId)
                 .flatMap(r -> {
                     byte[] recordPermissions = r.value1();
                     var ownerId = r.value2();
@@ -129,8 +127,8 @@ public class JooqAbacServiceImpl implements AbacService {
     }
 
     @Override
-    public Mono<AbacContext> canUseRecord(Long recordOwnerId, Long recordId, Long userId) {
-        return fetchRecordPermissions(recordOwnerId, recordId)
+    public Mono<AbacContext> canUseRecord(Long recordId, Long userId) {
+        return fetchRecordPermissions(recordId)
                 .flatMap(r -> {
                     byte[] recordPermissions = r.value1();
                     var ownerId = r.value2();
@@ -158,8 +156,8 @@ public class JooqAbacServiceImpl implements AbacService {
     }
 
     @Override
-    public Mono<RightsContextAdapter> fetchRecordRights(Long recordOwnerId, Long recordId, Long requesterId) {
-        return fetchRecordPermissions(recordOwnerId, recordId)
+    public Mono<RightsContextAdapter> fetchRecordRights(Long recordId, Long requesterId) {
+        return fetchRecordPermissions(recordId)
                 .map(mask -> RightsContextAdapter.of(
                         mask.value1(),
                         mask.value2().equals(requesterId)));

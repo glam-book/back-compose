@@ -22,9 +22,6 @@ public class RecordPending {
     @Column("client_id")
     private Long clientId;
 
-    @Column("record_owner_id")
-    private Long recordOwnerId;
-
     @Column("record_id")
     private Long recordId;
 
