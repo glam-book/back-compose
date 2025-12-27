@@ -17,6 +17,7 @@ import com.tlback.core.model.ServiceInfoEntity;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.ServcieInfoToPending;
 import com.tlback.jooq.gen.tables.ServiceInfo;
+import com.tlback.jooq.gen.tables.records.RecordPendingRecord;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,9 +94,12 @@ public class JooqPendingRepository {
 				.map(rec -> rec.into(RecordPending.class));
 	}
 
-	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long recordId, Set<Long> serviceIds) {
+	public Mono<RecordPendingRecord> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long recordId, Set<Long> serviceIds) {
 		var query = dsl.insertInto(pendingTable)
-				.columns(pendingTable.RECORD_OWNER_ID, pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
+				.columns(pendingTable.RECORD_OWNER_ID, 
+						pendingTable.RECORD_ID, 
+						pendingTable.CLIENT_ID, 
+						pendingTable.CONFIRMED,
 						pendingTable.REQUEST_TIME)
 				.select(DSL.select(DSL.val(recordOwnerId), DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
 						DSL.val(LocalDateTime.now()))
@@ -112,7 +116,7 @@ public class JooqPendingRepository {
 		log.info(query.toString());
 
 		return Mono.from(query)
-				.map(rec -> rec.into(RecordPending.class))
+				.map(rec -> rec.into(RecordPendingRecord.class))
 				.flatMap(pending -> {
 					if (serviceIds == null || serviceIds.isEmpty()) {
 						return Mono.just(pending);

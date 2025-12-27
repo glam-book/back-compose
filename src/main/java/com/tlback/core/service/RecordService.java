@@ -21,6 +21,7 @@ import com.tlback.core.dao.jooq.JooqRecordToServiceRepository;
 import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.RecordEntity;
 import com.tlback.core.model.RecordPending;
+import com.tlback.core.service.confirm.RecordPendingSchedulerFacade;
 import com.tlback.core.service.exception.RecordPendingException;
 import com.tlback.core.tools.ZoneOffsetTools;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
@@ -46,6 +47,7 @@ public class RecordService {
 	private final JooqRecordToServiceRepository recordToServiceRepository;
 
 	private final UserNotifier<DomainUserEntity> userNotifier;
+	private final RecordPendingSchedulerFacade pendingConfirmationService;
 
 	private final UserService userService;
 	private final AbacService abac;
@@ -179,31 +181,35 @@ public class RecordService {
 						ex -> ex instanceof IntegrityConstraintViolationException
 								|| ex instanceof R2dbcDataIntegrityViolationException,
 						ex -> new RecordPendingException("Cannot create pending", ex))
-				.flatMap(it -> getRecordsWithPendingsAndServiceById(recordOwnerId, targetRecordId))
-				.flatMap(it -> {
-					var recordOwner = it.getRecordOwnerId();
-					return userService.findById(recordOwner)
-							.doOnSuccess(recOwner -> {
-								var notificationRequest = NotificationRequest
-										.builder()
-										.message(String.format("""
-												🎉 Новая заявка на запись:
-												⏰ Время начала: %s
-												Cервисы:
-												%s
-												""", it.getTsFrom(),
-												it.getServiceInfo()
-														.stream()
-														.filter(service -> targetServices.contains(service.getId()))
-														.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
-																(s.getIsHourlyPrice() ? "за час" : ""))
-														.reduce("", (a, b) -> a + "\n" + b)))
-										.build();
-								userNotifier.sendNotification(recOwner, notificationRequest);
-							}).thenReturn(it);
+				.flatMap(pending -> getRecordsWithPendingsAndServiceById(recordOwnerId, targetRecordId)
+						.doOnSuccess(rec -> pendingConfirmationService
+								.scheduleConfirmIfNeeded(pending, rec)))
+				.flatMap((RecordEntity it) -> {
+					return userService.findById(it.getRecordOwnerId())
+							.doOnSuccess(recOwner -> sendNotificationToRecordOwner(recOwner, it, targetServices))
+							.thenReturn(it);
 				})
 				.retryWhen(Retry.max(3)
 						.filter(ex -> ex instanceof SerializationFailedException));
+	}
+
+	private void sendNotificationToRecordOwner(DomainUserEntity userEntity, RecordEntity it, Set<Long> targetServices) {
+		var notificationRequest = NotificationRequest
+				.builder()
+				.message(String.format("""
+						🎉 Новая заявка на запись:
+						⏰ Время начала: %s
+						Cервисы:
+						%s
+						""", it.getTsFrom(),
+						it.getServiceInfo()
+								.stream()
+								.filter(service -> targetServices.contains(service.getId()))
+								.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
+										(s.getIsHourlyPrice() ? "за час" : ""))
+								.reduce("", (a, b) -> a + "\n" + b)))
+				.build();
+		userNotifier.sendNotification(userEntity, notificationRequest);
 	}
 
 	public Flux<RecordPending> getRecordPendings(Long recordOwnerId, Long recordId) {

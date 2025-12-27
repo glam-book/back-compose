@@ -1,11 +1,15 @@
 package com.tlback.core.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+
+import com.tlback.core.model.contact.Supports;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,10 +41,19 @@ public class DomainUserEntity implements Serializable {
 
     private Optional<TelegramUser> tgUser;
 
-    public Object getSubuser(String source) {
+    public Object getSubuser(Supports source) {
         return switch(source) {
-            case "tg" -> tgUser;
+            case TG -> tgUser;
             default -> tgUser;
         };
+    }
+
+    public List<Supports> determineSupportedContacts() {
+        var initial = new ArrayList<Supports>();
+
+        if (tgUser.isPresent())
+            initial.add(Supports.TG);
+
+        return initial;
     }
 }

@@ -278,3 +278,94 @@ databaseChangeLog:
         - dropColumn:
             tableName: record
             columnName: id
+
+  - changeSet:
+      id: add-unique-record-pending-business-key
+      author: owpk
+      context: indx
+      changes:
+        - addUniqueConstraint:
+            tableName: record_pending
+            columnNames: record_owner_id, record_id, client_id
+            constraintName: uq_pending_unique_request
+
+  - changeSet:
+      id: idx-record-pending-owner-record
+      author: owpk
+      context: indx
+      changes:
+        - createIndex:
+            tableName: record_pending
+            indexName: idx_record_pending_owner_record
+            columns:
+              - column:
+                  name: record_owner_id
+              - column:
+                  name: record_id
+
+  - changeSet:
+      id: idx-record-pending-client
+      author: owpk
+      context: indx
+      changes:
+        - createIndex:
+            tableName: record_pending
+            indexName: idx_record_pending_client
+            columns:
+              - column:
+                  name: client_id
+
+  - changeSet:
+      id: idx-record-pending-confirmed-false
+      author: owpk
+      context: indx
+      changes:
+        - sql:
+            sql: |
+              CREATE INDEX idx_record_pending_unconfirmed
+              ON record_pending (record_owner_id, record_id)
+              WHERE confirmed = false;
+
+  - changeSet:
+      id: idx-service-info-owner
+      author: owpk
+      context: indx
+      changes:
+        - createIndex:
+            tableName: service_info
+            indexName: idx_service_info_owner
+            columns:
+              - column: { name: service_owner_id }
+
+  - changeSet:
+      id: idx-sitp-pending
+      author: owpk
+      context: indx
+      changes:
+        - createIndex:
+            tableName: servcie_info_to_pending
+            indexName: idx_sitp_pending
+            columns:
+              - column: { name: pending_id }
+
+  - changeSet:
+      id: idx-telegram-user-id
+      author: owpk
+      context: indx
+      changes:
+        - createIndex:
+            tableName: telegram_user
+            indexName: idx_telegram_user_id
+            columns:
+              - column: { name: id }
+
+  - changeSet:
+      id: idx-telegram-user-domain-user
+      author: owpk
+      context: indx
+      changes:
+        - createIndex:
+            tableName: telegram_user
+            indexName: idx_telegram_user_user_id
+            columns:
+              - column: { name: user_id }

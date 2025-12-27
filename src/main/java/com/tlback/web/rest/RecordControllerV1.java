@@ -111,7 +111,6 @@ public class RecordControllerV1 {
 				.map(it -> mapRecord(it, isOwner, userId));
 	}
 
-	// Map<Integer, List<RecordCalendarDto>>
 	@GetMapping("/calendar")
 	public Mono<Map<Integer, Set<RecordCalendarDto>>> getCalendar(
 			UserData userData,

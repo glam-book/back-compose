@@ -10,7 +10,7 @@ public interface TgMessageHandler {
 
     void onMessage(Message msg, TelegramClientGroupping tgClient);
 
-    default String format(String msg) {
+    default String formatContent(String msg) {
         StringBuilder result = new StringBuilder();
         
         for (char c : msg.toCharArray()) {
@@ -23,4 +23,6 @@ public interface TgMessageHandler {
 
         return result.toString();
     }
+
+
 }

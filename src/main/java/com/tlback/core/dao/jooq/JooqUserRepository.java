@@ -88,7 +88,8 @@ public class JooqUserRepository {
     }
 
     public static SelectJoinStep<org.jooq.Record> fetch(DSLContext dsl) {
-        var select = dsl.select(userTable.fields()).select(telegramUserTable.fields())
+        var select = dsl.select(userTable.fields())
+                .select(telegramUserTable.fields())
                 .from(userTable);
         return SUB_JOINS.apply(select);
     }
