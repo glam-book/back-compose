@@ -42,109 +42,104 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class RecordControllerV1 {
-	private final RecordService recordService;
-	private final RecordMapper recordMapper;
-	private final ContactMapper contactMapper;
-	private final ServiceInfoMapper serviceInfoMapper;
+    private final RecordService recordService;
+    private final RecordMapper recordMapper;
+    private final ContactMapper contactMapper;
+    private final ServiceInfoMapper serviceInfoMapper;
 
-	@GetMapping("/list/{userId}")
-	public Flux<RecordPendingsServiceResponsePreviewDto> list(
-			UserData userDetail,
-			@PathVariable Long userId,
-			@RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now()}") LocalDate date) {
-		var details = userDetail.getDetails();
-		var isOwner = details.getId().equals(userId);
-		return recordService.getRecordsWithPendingsAndServiceByUserdId(userId, date)
-				.map(it -> mapRecord(it, isOwner, userDetail.getPrincipal()));
-	}
+    @GetMapping("/list/{userId}")
+    public Flux<RecordPendingsServiceResponsePreviewDto> list(UserData userDetail,
+            @PathVariable Long userId,
+            @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now()}") LocalDate date) {
+        var details = userDetail.getDetails();
+        var isOwner = details.getId().equals(userId);
+        return recordService.getRecordsWithPendingsAndServiceByUserdId(userId, date)
+                .map(it -> mapRecord(it, isOwner, userDetail.getPrincipal()));
+    }
 
-	@PostMapping
-	public Mono<RecordPendingsServiceResponsePreviewDto> createRecord(
-			@RequestBody OptionalRecordCreateOrUpdateRequest request,
-			@AuthenticationPrincipal UserData userData) {
-		var owner = userData.getDetails().getId();
-		return recordService.saveOrUpdate(request, owner)
-				.map(it -> {
-					return recordMapper.toDto(it, false, true);
-				});
-	}
+    @PostMapping
+    public Mono<RecordPendingsServiceResponsePreviewDto> createRecord(
+            @RequestBody OptionalRecordCreateOrUpdateRequest request,
+            @AuthenticationPrincipal UserData userData) {
+        var owner = userData.getDetails().getId();
+        return recordService.saveOrUpdate(request, owner)
+                .map(it -> {
+                    return recordMapper.toDto(it, false, true);
+                });
+    }
 
-	@DeleteMapping("/{recordOwnerId}/{recordId}")
-	public Mono<DeleteSuccess> deleteRecord(
-			@PathVariable Long recordOwnerId,
-			@PathVariable Long recordId,
-			@AuthenticationPrincipal UserData userData) {
-		var owner = userData.getDetails().getId();
-		var result = recordService.deleteCascadeWithPendings(recordOwnerId, recordId, owner);
-		return result.map(it -> new DeleteSuccess(it));
-	}
+    @DeleteMapping("/{id}")
+    public Mono<DeleteSuccess> deleteRecord(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserData userData) {
+        var owner = userData.getDetails().getId();
+        var result = recordService.deleteCascadeWithPendings(id, owner);
+        return result.map(it -> new DeleteSuccess(it));
+    }
 
-	@GetMapping("/pending/{recordOwnerId}/{recordId}")
-	public Flux<RecordPendingWithContactDto> pendingDetails(UserData userDetail,
-			@PathVariable(name = "recordOwnerId") Long recordOwnerId,
-			@PathVariable(name = "recordId") Long recordId,
-			@RequestParam(required = false, defaultValue = "TG", name = "contactTarget") String contactTarget) {
-		var userId = userDetail.getPrincipal();
-		var supports = Supports.valueOf(contactTarget);
-		return recordService.getPendingDetails(recordOwnerId, recordId, userId)
-				.map(it -> RecordPendingWithContactDto
-						.builder()
-						.contact(contactMapper.of(supports, it.getPendingOwner()).orElse(null))
-						.services(it.getServices().stream().map(serviceInfoMapper::map)
-								.collect(Collectors.toSet()))
-						.requestTime(it.getRequestTime())
-						.confirmed(it.getConfirmed())
-						.build());
-	}
+    @GetMapping("/pending/{recordId}")
+    public Flux<RecordPendingWithContactDto<?>> pendingDetails(UserData userDetail,
+            @PathVariable(name = "recordId") Long recordId,
+            @RequestParam(required = false, defaultValue = "TG", name = "contactTarget") String contactTarget) {
+        var userId = userDetail.getPrincipal();
+        var supports = Supports.valueOf(contactTarget);
+        return recordService.getPendingDetails(recordId, userId)
+                .map(it -> RecordPendingWithContactDto
+                        .builder()
+                        .contact(contactMapper.of(supports, it.getPendingOwner()).orElse(null))
+                        .services(it.getServices().stream().map(serviceInfoMapper::map).collect(Collectors.toSet()))
+                        .requestTime(it.getRequestTime())
+                        .confirmed(it.getConfirmed())
+                        .build());
+    }
 
-	@PutMapping("/pending/{recordOwnerId}/{recordId}")
-	public Mono<RecordPendingsServiceResponsePreviewDto> craetePending(UserData userDetail,
-			@PathVariable Long recordOwnerId,
-			@PathVariable Long recordId,
-			@RequestBody Set<Long> serviceId) {
+    @PutMapping("/pending/{recordId}")
+    public Mono<RecordPendingsServiceResponsePreviewDto> craetePending(UserData userDetail,
+            @PathVariable Long recordId,
+            @RequestBody Set<Long> serviceId) {
 
-		var details = userDetail.getDetails();
-		var userId = userDetail.getPrincipal();
-		var isOwner = details.getId().equals(userId);
+        var details = userDetail.getDetails();
+        var userId = userDetail.getPrincipal();
+        var isOwner = details.getId().equals(userId);
 
-		return recordService.createPendingAtomic(userId, recordOwnerId, recordId, serviceId)
-				.map(it -> mapRecord(it, isOwner, userId));
-	}
+        return recordService.createPendingAtomic(userId, recordId, serviceId)
+                .map(it -> mapRecord(it, isOwner, userId));
+    }
 
-	@GetMapping("/calendar")
-	public Mono<Map<Integer, Set<RecordCalendarDto>>> getCalendar(
-			UserData userData,
-			@RequestParam Long userId,
-			@RequestParam int month,
-			@RequestParam(required = false, defaultValue = "#{T(java.time.Year).now().value.toString()}") int year) {
+    // Map<Integer, List<RecordCalendarDto>>
+    @GetMapping("/calendar")
+    public Mono<Map<Integer, Set<RecordCalendarDto>>> getCalendar(
+            UserData userData,
+            @RequestParam Long userId,
+            @RequestParam int month,
+            @RequestParam(required = false, defaultValue = "#{T(java.time.Year).now().value.toString()}") int year) {
 
-		var from = LocalDate.of(year, month, 1);
-		var to = YearMonth.of(year, month).atEndOfMonth();
+        var from = LocalDate.of(year, month, 1);
+        var to = YearMonth.of(year, month).atEndOfMonth();
 
-		var data = recordService.getRecordsWithPendingsByUserdId(userId, from, to);
-		var requester = userData.getPrincipal();
-		var isOwner = userData.getPrincipal().equals(userId);
+        var data = recordService.getRecordsWithPendingsByUserdId(userId, from, to);
+        var requester = userData.getPrincipal();
+        var isOwner = userData.getPrincipal().equals(userId);
 
-		return data.map(it -> RecordCalendarDto.builder()
-				.ts(it.getTsFrom())
-				.canPending(recordService.isRecordPendingable(it, requester))
-				.hasPendings(!it.getRecordPendings().isEmpty())
-				.day(it.getTsFrom().getDayOfMonth())
-				.text(isOwner ? it.getComment() : null)
-				.color(it.getColor())
-				.isOwner(it.getRecordOwnerId().equals(requester))
-				.build())
-				.collectList()
-				.map(it -> it.stream()
-						.collect(Collectors.groupingBy(e -> e.day(),
-								Collectors.toCollection(() -> new TreeSet<>(
-										Comparator.comparing(
-												RecordCalendarDto::ts))))));
-	}
+        return data.map(it -> RecordCalendarDto.builder()
+                .ts(it.getTsFrom())
+                .canPending(recordService.isRecordPendingable(it, requester))
+                .hasPendings(!it.getRecordPendings().isEmpty())
+                .day(it.getTsFrom().getDayOfMonth())
+                .text(isOwner ? it.getComment() : null)
+                .color(it.getColor())
+                .isOwner(it.getRecordOwnerId().equals(requester))
+                .build())
+                .collectList()
+                .map(it -> it.stream()
+                        .collect(Collectors.groupingBy(e -> e.day(),
+                                Collectors.toCollection(() -> new TreeSet<>(
+                                        Comparator.comparing(RecordCalendarDto::ts))))));
+    }
 
-	private RecordPendingsServiceResponsePreviewDto mapRecord(RecordEntity entity, boolean isOwner, Long userId) {
-		var isPendingable = recordService.isRecordPendingable(entity, userId);
-		return recordMapper.toDto(entity, isPendingable, isOwner);
-	}
+    private RecordPendingsServiceResponsePreviewDto mapRecord(RecordEntity entity, boolean isOwner, Long userId) {
+        var isPendingable = recordService.isRecordPendingable(entity, userId);
+        return recordMapper.toDto(entity, isPendingable, isOwner);
+    }
 
 }

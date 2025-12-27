@@ -111,10 +111,9 @@ public class RecordService {
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public Mono<RecordEntity> getRecordsWithPendingsAndServiceById(Long recordOwnerId, Long recordId) {
+	public Mono<RecordEntity> getRecordsWithPendingsAndServiceById(Long recordId) {
 		var filter = RecordFilter.builder()
 				.recordId(recordId)
-				.recordOwnerId(recordOwnerId)
 				.build();
 
 		return recordRepository.findByFilter(
@@ -144,81 +143,74 @@ public class RecordService {
 
 					// После того как рекорд создан/обновлён, линкуем сервисы
 					return recordMono.flatMap(record -> recordToServiceRepository
-							.linkRecordToService(
-									record.getRecordOwnerId(),
-									record.getRecordId(),
-									list.stream()
-											.map(ServiceInfoRecord::getId)
-											.toList())
-							.then(recordRepository.findById(record.getRecordOwnerId(), record.getRecordId(),
+							.linkRecordToService(record.getId(), list.stream()
+									.map(ServiceInfoRecord::getId)
+									.toList())
+							.then(recordRepository.findById(record.getId(),
 									joinService,
 									JooqRecordRepository.JOIN_RECORD_PENDINGS)));
 				});
 	}
 
 	@Transactional
-	public Mono<Boolean> deleteCascadeWithPendings(Long recordOwnerId, Long recordId, Long owner) {
-		return abac.canModifyRecord(owner, recordId)
-				.flatMap(abacResult -> recordRepository.delete(recordOwnerId, recordId));
+	public Mono<Boolean> deleteCascadeWithPendings(Long id, Long owner) {
+		return abac.canModifyRecord(owner, id)
+				.flatMap(abacResult -> recordRepository.delete(id));
 	}
 
 	@Transactional
-	public Flux<RecordPending> getPendingDetails(Long recordOwnerId, Long recordId, Long requester) {
-		Flux<RecordPending> fetchPendings = pendingRepository.findByRecordId(recordOwnerId, recordId,
+	public Flux<RecordPending> getPendingDetails(Long recordId, Long requester) {
+		Flux<RecordPending> fetchPendings = pendingRepository.findByRecordId(recordId,
 				JooqPendingRepository.USER_JOIN_MODULE,
 				JooqPendingRepository.SERVICE_JOIN_MODULE);
-		return abac.fetchRecordRights(recordOwnerId, recordId, requester)
+		return abac.fetchRecordRights(recordId, requester)
 				.flatMapMany(rightsCtx -> rightsCtx.onReadAllowMap(() -> fetchPendings,
 						Flux::error));
 	}
 
 	@Transactional(isolation = Isolation.SERIALIZABLE)
-	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long targetRecordId,
-			Set<Long> targetServices) {
-		return pendingRepository.createPendingAtomic(initiatorId, recordOwnerId, targetRecordId, targetServices)
+	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId, 
+				Set<Long> targetServices) {
+		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId, targetServices)
 				.switchIfEmpty(Mono.error(new RecordPendingException("Limit reached")))
 				.onErrorMap(
 						ex -> ex instanceof IntegrityConstraintViolationException
 								|| ex instanceof R2dbcDataIntegrityViolationException,
 						ex -> new RecordPendingException("Cannot create pending", ex))
-				.flatMap(pending -> getRecordsWithPendingsAndServiceById(recordOwnerId, targetRecordId)
-						.doOnSuccess(rec -> pendingConfirmationService
-								.scheduleConfirmIfNeeded(pending, rec)))
-				.flatMap((RecordEntity it) -> {
-					return userService.findById(it.getRecordOwnerId())
-							.doOnSuccess(recOwner -> sendNotificationToRecordOwner(recOwner, it, targetServices))
-							.thenReturn(it);
+				.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId))
+				.flatMap(it -> {
+					var recordOwner = it.getRecordOwnerId();
+					return userService.findById(recordOwner)
+							.doOnSuccess(recOwner -> {
+								var notificationRequest = NotificationRequest
+										.builder()
+										.message(String.format("""
+												🎉 Новая заявка на запись:
+												⏰ Время начала: %s
+												Cервисы:
+												%s
+												""", it.getTsFrom(),
+													it.getServiceInfo()
+														.stream()
+														.filter(service -> targetServices.contains(service.getId()))
+														.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
+																(s.getIsHourlyPrice() ? "за час" : ""))
+														.reduce("", (a, b) -> a + "\n" + b)))
+										.build();
+								userNotifier.sendNotification(recOwner, notificationRequest);
+							}).thenReturn(it);
 				})
 				.retryWhen(Retry.max(3)
 						.filter(ex -> ex instanceof SerializationFailedException));
 	}
 
-	private void sendNotificationToRecordOwner(DomainUserEntity userEntity, RecordEntity it, Set<Long> targetServices) {
-		var notificationRequest = NotificationRequest
-				.builder()
-				.message(String.format("""
-						🎉 Новая заявка на запись:
-						⏰ Время начала: %s
-						Cервисы:
-						%s
-						""", it.getTsFrom(),
-						it.getServiceInfo()
-								.stream()
-								.filter(service -> targetServices.contains(service.getId()))
-								.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
-										(s.getIsHourlyPrice() ? "за час" : ""))
-								.reduce("", (a, b) -> a + "\n" + b)))
-				.build();
-		userNotifier.sendNotification(userEntity, notificationRequest);
-	}
-
-	public Flux<RecordPending> getRecordPendings(Long recordOwnerId, Long recordId) {
-		return pendingRepository.findByRecordId(recordOwnerId, recordId);
+	public Flux<RecordPending> getRecordPendings(Long recordId) {
+		return pendingRepository.findByRecordId(recordId);
 	}
 
 	private RecordRecord mapToRecord(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
 		var newRecord = new RecordRecord();
-		cmd.getId().ifPresent(newRecord::setRecordId);
+		cmd.getId().ifPresent(newRecord::setId);
 		newRecord.setTz(ZoneOffsetTools.DEFAULT_OFFSET); // TODO get from client in future
 		newRecord.setIsPublic(true);
 		newRecord.setTsFrom(cmd.getTsFrom());

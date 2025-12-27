@@ -43,8 +43,8 @@ databaseChangeLog:
              INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, time_duration)
              VALUES (2, 'test_brovkee', 2, true, 'test brovki', 1);
 
-             INSERT INTO record(record_owner_id, record_id, ts_from, ts_to, tz)
-             VALUES (2, 1, '2025-10-26T10:00:00', '2025-10-26T22:00:00', '+03:00');
+             INSERT INTO record(record_owner_id, ts_from, ts_to, tz)
+             VALUES (2, '2025-10-26T10:00:00', '2025-10-26T22:00:00', '+03:00');
 
   - changeSet:
       id: mock_data_pendings
@@ -59,15 +59,12 @@ databaseChangeLog:
              INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, time_duration)
              VALUES (4, 'test_brovkee', 1, true, 'test brovki', 1);
 
-             INSERT INTO record(record_owner_id, record_id, ts_from, ts_to, tz)
-             VALUES (1, 1, '2025-10-26T10:00:00', '2025-10-26T22:00:00', '+03:00');
-
-             INSERT INTO record_to_service(record_id, service_id, record_owner_id)
-             VALUES(1, 4, 1);
+             INSERT INTO record(record_owner_id, ts_from, ts_to, tz)
+             VALUES (1, '2025-10-26T10:00:00', '2025-10-26T22:00:00', '+03:00');
 
              INSERT INTO record_pending
-             (id, record_owner_id, record_id, client_id, request_time, confirmed)
-             VALUES(1, 1, 1, 2, '2025-10-26T22:00:00', false);
+             (id, record_id, client_id, request_time, confirmed)
+             VALUES(1, 2, 2, '2025-10-26T22:00:00', false);
 
              INSERT INTO servcie_info_to_pending (pending_id, service_info_id)
              VALUES (1, 4);

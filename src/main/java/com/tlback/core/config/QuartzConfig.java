@@ -61,10 +61,9 @@ public class QuartzConfig {
      */
     @Bean
     SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource,
-            PlatformTransactionManager txManager,
-            SpringBeanJobFactory jobFactory,
-            JobsListenerService jobsListenerService,
-            Trigger... triggers) throws IOException {
+                                              PlatformTransactionManager txManager,
+                                              SpringBeanJobFactory jobFactory,
+                                              JobsListenerService jobsListenerService, Trigger... triggers) throws IOException {
 
         var schedulerFactory = new SchedulerFactoryBean();
         schedulerFactory.setQuartzProperties(quartzProps());
@@ -109,21 +108,21 @@ public class QuartzConfig {
         return args -> {
             var scheduler = schedulerFactoryBean.getScheduler();
             log.info(MessageFormat.format("""
-
-                    --- Quartz Scheduler Info ---
-                    Scheduler Name: {0}
-                    Instance ID: {1}
-                    Scheduler Class: {2}
-                    Is Started: {3}
-                    Is In Standby Mode: {4}
-                    Is Shutdown: {5}
-                    Job Store Class: {6}
-                    Thread Pool Class: {7}
-                    Number of Jobs Executed: {8}
-                    Clustered: {9}
-                    Version: {10}
-                    --------------------------------
-                    """,
+                            
+                            --- Quartz Scheduler Info ---
+                            Scheduler Name: {0}
+                            Instance ID: {1}
+                            Scheduler Class: {2}
+                            Is Started: {3}
+                            Is In Standby Mode: {4}
+                            Is Shutdown: {5}
+                            Job Store Class: {6}
+                            Thread Pool Class: {7}
+                            Number of Jobs Executed: {8}
+                            Clustered: {9}
+                            Version: {10}
+                            --------------------------------
+                            """,
                     scheduler.getSchedulerName(),
                     scheduler.getSchedulerInstanceId(),
                     scheduler.getClass().getName(),

@@ -45,10 +45,9 @@ public class JooqPendingRepository {
 
 	private final DSLContext dsl;
 
-	public Mono<RecordPending> createPending(Long initiatorId, Long recordOwnerId, Long recordId) {
+	public Mono<RecordPending> createPending(Long initiatorId, Long recordId) {
 		var query = dsl.insertInto(pendingTable)
 				.set(pendingTable.CONFIRMED, false)
-				.set(pendingTable.RECORD_OWNER_ID, recordOwnerId)
 				.set(pendingTable.RECORD_ID, recordId)
 				.set(pendingTable.CLIENT_ID, initiatorId)
 				.set(pendingTable.REQUEST_TIME, LocalDateTime.now())
@@ -73,20 +72,17 @@ public class JooqPendingRepository {
 		return mainFetch;
 	}
 
-	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long recordId) {
+	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId) {
 		var query = dsl.insertInto(pendingTable)
-				.columns(pendingTable.RECORD_OWNER_ID, pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
+				.columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
 						pendingTable.REQUEST_TIME)
-				.select(DSL.select(DSL.val(recordOwnerId), DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
+				.select(DSL.select(DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
 						DSL.val(LocalDateTime.now()))
 						.where(DSL.selectCount()
 								.from(pendingTable)
-								.where(pendingTable.RECORD_OWNER_ID.eq(recordOwnerId))
-								.and(pendingTable.RECORD_ID.eq(recordId))
+								.where(pendingTable.RECORD_ID.eq(recordId))
 								.lt(DSL.select(recordTable.RECORD_LIMIT)
-										.from(recordTable)
-										.where(recordTable.RECORD_OWNER_ID.eq(recordOwnerId))
-										.and(recordTable.RECORD_ID.eq(recordId)))))
+										.from(recordTable))))
 				.returning();
 
 		log.info(query.toString());
@@ -94,23 +90,18 @@ public class JooqPendingRepository {
 				.map(rec -> rec.into(RecordPending.class));
 	}
 
-	public Mono<RecordPendingRecord> createPendingAtomic(Long initiatorId, Long recordOwnerId, Long recordId, Set<Long> serviceIds) {
+	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId, Set<Long> serviceIds) {
 		var query = dsl.insertInto(pendingTable)
-				.columns(pendingTable.RECORD_OWNER_ID, 
-						pendingTable.RECORD_ID, 
-						pendingTable.CLIENT_ID, 
-						pendingTable.CONFIRMED,
+				.columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
 						pendingTable.REQUEST_TIME)
-				.select(DSL.select(DSL.val(recordOwnerId), DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
+				.select(DSL.select(DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
 						DSL.val(LocalDateTime.now()))
 						.where(DSL.selectCount()
 								.from(pendingTable)
-								.where(pendingTable.RECORD_OWNER_ID.eq(recordOwnerId))
-								.and(pendingTable.RECORD_ID.eq(recordId))
+								.where(pendingTable.RECORD_ID.eq(recordId))
 								.lt(DSL.select(recordTable.RECORD_LIMIT)
 										.from(recordTable)
-										.where(recordTable.RECORD_OWNER_ID.eq(recordOwnerId))
-										.and(recordTable.RECORD_ID.eq(recordId)))))
+										.where(recordTable.ID.eq(recordId)))))
 				.returning();
 
 		log.info(query.toString());
@@ -137,10 +128,9 @@ public class JooqPendingRepository {
 				});
 	}
 
-	public Flux<RecordPending> findByRecordId(Long recordOwnerId, Long recordId, JoinModule... joinModules) {
+	public Flux<RecordPending> findByRecordId(Long recordId, JoinModule... joinModules) {
 		var sql = fetch(dsl, joinModules)
-				.where(pendingTable.RECORD_OWNER_ID.eq(recordOwnerId))
-				.and(pendingTable.RECORD_ID.eq(recordId));
+				.where(pendingTable.RECORD_ID.eq(recordId));
 
 		log.info(sql.toString());
 
