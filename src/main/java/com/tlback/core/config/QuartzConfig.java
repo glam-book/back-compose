@@ -14,7 +14,9 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -46,6 +48,12 @@ public class QuartzConfig {
         dataSourceBuilder.username(jdbcUser);
         dataSourceBuilder.password(jdbcPassword);
         return dataSourceBuilder.build();
+    }
+
+    @Bean
+    @Primary
+    PlatformTransactionManager txManager(DataSource source) {
+        return new DataSourceTransactionManager(source);
     }
 
     /**
