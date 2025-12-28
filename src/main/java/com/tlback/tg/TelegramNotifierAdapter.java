@@ -1,7 +1,6 @@
 package com.tlback.tg;
 
 import java.io.ByteArrayInputStream;
-import java.util.Optional;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,6 +15,7 @@ import com.tlback.tg.balancer.PerfProps;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 
 import io.vavr.CheckedConsumer;
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,16 +68,16 @@ public class TelegramNotifierAdapter extends NotificationAdapter<DomainUserEntit
         });
     }
 
-    private void tgUserHandler(Optional<TelegramUser> user, CheckedConsumer<String> action) {
+    private void tgUserHandler(Option<TelegramUser> user, CheckedConsumer<String> action) {
         var opt = user.map(it -> it.getId());
 
-        opt.ifPresentOrElse(tgId -> {
+        opt.peek(tgId -> {
             var tgIdString = tgId.toString();
             try {
                 action.accept(tgIdString);
             } catch (Throwable e) {
                 log.warn("Exception while notifing telegram user {}", e);
             }
-        }, () -> log.warn("No user present to send notification, or something went wrong: {}", user));
+        }).onEmpty(() -> log.warn("No user present to send notification, or something went wrong: {}", user));
     }
 }

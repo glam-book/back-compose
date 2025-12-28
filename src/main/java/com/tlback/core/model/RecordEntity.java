@@ -1,5 +1,6 @@
 package com.tlback.core.model;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table(schema = "public", name = "record")
-public class RecordEntity {
+public class RecordEntity implements Serializable {
 
     @Id
     @Column("id")

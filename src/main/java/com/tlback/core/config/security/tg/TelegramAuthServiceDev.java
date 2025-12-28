@@ -15,7 +15,7 @@ public class TelegramAuthServiceDev extends TelegramAuthService {
     private Optional<TelegramAuthenticationToken> authMock() {
         var telegramUser = new TelegramUser();
         telegramUser.setUserId(1L);
-        telegramUser.setId(100L);
+        telegramUser.setId(800521407L);
         telegramUser.setFirstName("Igor");
         telegramUser.setLastName("Abobenko");
         var auth = new TelegramAuthenticationToken("hash", telegramUser);

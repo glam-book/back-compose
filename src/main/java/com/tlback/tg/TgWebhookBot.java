@@ -1,5 +1,7 @@
 package com.tlback.tg;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TgWebhookBot {
     private final TelegramClientGroupping grouppingClient;
-    private final TgMessageHandler messageHandler;
+    private final List<TgMessageHandler> messageHandler;
 
     @PostMapping
     public ResponseEntity<Void> onUpdate(@RequestBody Update update) throws Exception {
@@ -32,17 +34,16 @@ public class TgWebhookBot {
         if (msg != null && msg.hasSuccessfulPayment()) {
             log.info("Successful payment message received");
             grouppingClient.executeGeneric(SendMessage.builder()
-                .text("✅ Оплата прошла успешно!")
-                .chatId(msg.getChatId())
-                .build());
+                    .text("✅ Оплата прошла успешно!")
+                    .chatId(msg.getChatId())
+                    .build());
 
             var payment = msg.getSuccessfulPayment();
         }
 
         if (msg != null)
-            messageHandler.onMessage(msg, grouppingClient);
+            messageHandler.forEach(msgHandler -> msgHandler.onMessage(msg, grouppingClient));
 
         return ResponseEntity.ok().build();
     }
 }
-
