@@ -1,0 +1,35 @@
+package com.tlback.domain.mapper;
+
+import java.util.List;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.tlback.app.dto.user.UserDto;
+import com.tlback.app.dto.user.UserProfileDto;
+import com.tlback.domain.model.DomainUserEntity;
+import com.tlback.domain.model.contact.ContactProvider;
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public abstract class UserMapper {
+
+    private ContactMapper contactMapper;
+
+    public abstract UserDto toDto(DomainUserEntity entity);
+
+    @Mapping(target = "contacts", source = ".", qualifiedByName = "mapContacts")
+    public abstract UserProfileDto toProfileDto(DomainUserEntity entity);
+
+    @Named("mapContacts")
+    public List<ContactProvider> mapContacts(DomainUserEntity entity) {
+        return contactMapper.mapList(entity);
+    }
+
+    @Autowired
+    public void setContactMapper(ContactMapper cm) {
+        this.contactMapper = cm;
+    }
+}

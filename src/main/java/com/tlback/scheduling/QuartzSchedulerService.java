@@ -18,9 +18,9 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+import com.tlback.scheduling.api.SchedulerService;
 import com.tlback.scheduling.exception.JobCollisionException;
 import com.tlback.scheduling.exception.SchedulerOperationException;
-import com.tlback.scheduling.spi.SchedulerService;
 
 import lombok.Getter;
 import lombok.Setter;

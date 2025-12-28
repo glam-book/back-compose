@@ -15,13 +15,13 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
+import com.tlback.scheduling.api.SchedulerManagementService;
 import com.tlback.scheduling.api.dto.JobDTO;
 import com.tlback.scheduling.api.dto.JobKeyDTO;
 import com.tlback.scheduling.api.dto.TriggerDTO;
 import com.tlback.scheduling.exception.InvalidCronExpressionException;
 import com.tlback.scheduling.exception.JobNotFoundException;
 import com.tlback.scheduling.exception.SchedulerOperationException;
-import com.tlback.scheduling.spi.SchedulerManagementService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
