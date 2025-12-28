@@ -8,8 +8,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
 
+import com.tlback.app.dto.records.RecordPendingDto;
 import com.tlback.domain.model.RecordPending;
-import com.tlback.web.dto.records.RecordPendingDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, 
     uses = ServiceInfoMapper.class,

@@ -1,4 +1,4 @@
-package com.tlback.tg;
+package com.tlback.domain.notifier;
 
 import java.io.ByteArrayInputStream;
 
@@ -9,8 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 import com.tlback.domain.model.DomainUserEntity;
 import com.tlback.domain.model.TelegramUser;
-import com.tlback.notifier.NotificationAdapter;
-import com.tlback.notifier.api.NotificationAttachment;
+import com.tlback.domain.notifier.api.NotificationAttachment;
 import com.tlback.tg.balancer.PerfProps;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 

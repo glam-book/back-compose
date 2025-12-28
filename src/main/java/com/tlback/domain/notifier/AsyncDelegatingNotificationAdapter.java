@@ -1,10 +1,10 @@
-package com.tlback.notifier;
+package com.tlback.domain.notifier;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.tlback.notifier.api.NotificationAttachment;
+import com.tlback.domain.notifier.api.NotificationAttachment;
 
 
 public class AsyncDelegatingNotificationAdapter<T> extends NotificationAdapter<T> {

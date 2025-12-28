@@ -1,4 +1,4 @@
-package com.tlback.web.dto.user;
+package com.tlback.app.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RoleDto {
+public class UserDto {
     private Long id;
     private String name;
+    private String lastName;
+    private String middleName;
+    private String login;
 }

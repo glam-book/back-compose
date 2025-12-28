@@ -7,12 +7,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
+import com.tlback.app.dto.Permissions;
+import com.tlback.app.dto.service.OptionalServiceInfoDto;
+import com.tlback.app.dto.service.preview.ServicePreviewDto;
 import com.tlback.domain.abac.PermissionMask;
 import com.tlback.domain.model.ServiceInfoEntity;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
-import com.tlback.web.dto.Permissions;
-import com.tlback.web.dto.service.OptionalServiceInfoDto;
-import com.tlback.web.dto.service.preview.ServicePreviewDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ServiceInfoMapper {

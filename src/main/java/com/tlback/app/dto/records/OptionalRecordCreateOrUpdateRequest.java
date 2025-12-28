@@ -1,11 +1,11 @@
-package com.tlback.web.dto.records;
+package com.tlback.app.dto.records;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tlback.web.dto.service.OptionalServiceInfoDto;
+import com.tlback.app.dto.service.OptionalServiceInfoDto;
 
 import lombok.Data;
 

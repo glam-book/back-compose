@@ -1,21 +1,20 @@
-package com.tlback.web.dto.service;
+package com.tlback.app.dto.service.preview;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OptionalServiceInfoDto {
-
-    private Optional<Long> id = Optional.empty();
+public class ServicePreviewDto {
+    private Long id;
     private String title;
-    private String url;
-    private String description;
-    private String icon;
     private BigDecimal price;
     private Boolean isHourlyPrice;
 }

@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import com.tlback.domain.model.DomainUserEntity;
-import com.tlback.notifier.AsyncDelegatingNotificationAdapter;
-import com.tlback.notifier.NotificationAdapter;
-import com.tlback.notifier.api.UserNotifier;
-import com.tlback.tg.TelegramNotifierAdapter;
+import com.tlback.domain.notifier.AsyncDelegatingNotificationAdapter;
+import com.tlback.domain.notifier.NotificationAdapter;
+import com.tlback.domain.notifier.TelegramNotifierAdapter;
+import com.tlback.domain.notifier.api.UserNotifier;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.balancer.TelegramClientImpl;
 

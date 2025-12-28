@@ -1,4 +1,4 @@
-package com.tlback.web.dto;
+package com.tlback.app.dto;
 
 import com.tlback.domain.abac.PermissionMask.Rights;
 

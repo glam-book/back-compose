@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import com.tlback.domain.model.TelegramUser;
 import com.tlback.domain.model.contact.Supports;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
+import com.tlback.domain.service.RecordService;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgCommandHandler;
 
@@ -22,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class ContactTgConfirmAction implements ContactPendingConfirmAction<TelegramUser>, TgCommandHandler {
 
     private final TelegramClientGroupping tgClient;
-    private final RecordPendingConfirmationService confirmationService;
+    private final RecordService recordService;
 
     public static final String MESSAGE_ACTION = "/CONFIRMATION_REPLY";
 
@@ -67,7 +68,7 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
         if (splitted.length > 0) {
             var recPendingId = Long.parseLong(splitted[0]);
             var answer = splitted[1];
-            confirmationService.confirm(recPendingId, answer.equals("YES"));
+            recordService.confirmPending(recPendingId, answer.equals("YES"));
         }
     }
 

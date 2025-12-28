@@ -1,4 +1,4 @@
-package com.tlback.web.rest;
+package com.tlback.app.rest;
 
 import java.util.Objects;
 

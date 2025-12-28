@@ -1,4 +1,4 @@
-package com.tlback.web.dto.records.preview;
+package com.tlback.app.dto.records;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RecordPendingPreviewDto {
-    private Integer limits;
-    private Integer active;
+public class DeleteSuccess {
+    private Boolean success;
 }

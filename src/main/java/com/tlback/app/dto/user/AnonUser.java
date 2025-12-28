@@ -1,4 +1,4 @@
-package com.tlback.web.dto.user;
+package com.tlback.app.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

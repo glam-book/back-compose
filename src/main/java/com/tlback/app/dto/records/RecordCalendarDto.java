@@ -1,4 +1,4 @@
-package com.tlback.web.dto.records;
+package com.tlback.app.dto.records;
 
 import java.time.OffsetDateTime;
 

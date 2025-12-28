@@ -10,11 +10,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
+import com.tlback.app.dto.Permissions;
+import com.tlback.app.dto.records.preview.RecordPendingPreviewDto;
+import com.tlback.app.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 import com.tlback.domain.abac.PermissionMask;
 import com.tlback.domain.model.RecordEntity;
-import com.tlback.web.dto.Permissions;
-import com.tlback.web.dto.records.preview.RecordPendingPreviewDto;
-import com.tlback.web.dto.records.preview.RecordPendingsServiceResponsePreviewDto;
 
 import io.micrometer.common.lang.Nullable;
 

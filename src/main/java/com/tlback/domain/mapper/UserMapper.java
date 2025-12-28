@@ -8,10 +8,10 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.tlback.app.dto.user.UserDto;
+import com.tlback.app.dto.user.UserProfileDto;
 import com.tlback.domain.model.DomainUserEntity;
 import com.tlback.domain.model.contact.ContactProvider;
-import com.tlback.web.dto.user.UserDto;
-import com.tlback.web.dto.user.UserProfileDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class UserMapper {

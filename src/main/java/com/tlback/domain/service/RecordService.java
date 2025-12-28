@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tlback.app.dto.records.OptionalRecordCreateOrUpdateRequest;
 import com.tlback.domain.abac.AbacService;
 import com.tlback.domain.abac.exception.NotFoundException;
 import com.tlback.domain.dao.jooq.JooqPendingRepository;
@@ -23,13 +24,12 @@ import com.tlback.domain.model.RecordPending;
 import com.tlback.domain.model.utils.RecordFilter;
 import com.tlback.domain.notifier.api.NotificationRequest;
 import com.tlback.domain.notifier.api.UserNotifier;
-import com.tlback.domain.service.confirm.RecordPendingSchedulerFacade;
+import com.tlback.domain.service.confirm.RecordConfirmScheduler;
 import com.tlback.domain.service.exception.RecordPendingException;
 import com.tlback.domain.tools.ZoneOffsetTools;
 import com.tlback.jooq.gen.tables.records.RecordPendingRecord;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
-import com.tlback.web.dto.records.OptionalRecordCreateOrUpdateRequest;
 
 import io.r2dbc.spi.R2dbcDataIntegrityViolationException;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class RecordService {
 	private final JooqRecordToServiceRepository recordToServiceRepository;
 
 	private final UserNotifier<DomainUserEntity> userNotifier;
-	private final RecordPendingSchedulerFacade pendingConfirmationService;
+	private final RecordConfirmScheduler pendingConfirmationService;
 
 	private final UserService userService;
 	private final AbacService abac;
@@ -125,6 +125,7 @@ public class RecordService {
 				.switchIfEmpty(Mono.error(new NotFoundException("Record not found: " + recordId)));
 	}
 
+	// TODO remove update request dto - use model
 	public Mono<RecordEntity> saveOrUpdate(OptionalRecordCreateOrUpdateRequest cmd, Long userId) {
 		var joinService = JooqRecordRepository.JOIN_SERVICE_INFO;
 		var serviceRequest = cmd.getServiceInfo();

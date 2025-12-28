@@ -1,4 +1,4 @@
-package com.tlback.notifier.api;
+package com.tlback.domain.notifier.api;
 
 import lombok.Builder;
 import lombok.Data;

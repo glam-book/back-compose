@@ -5,11 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tlback.app.dto.service.OptionalServiceInfoDto;
 import com.tlback.domain.abac.AbacService;
 import com.tlback.domain.dao.jooq.JooqServiceInfoRepository;
 import com.tlback.domain.model.ServiceInfoEntity;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
-import com.tlback.web.dto.service.OptionalServiceInfoDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +47,7 @@ public class ServiceInfoService {
                     .orElseGet(() -> jooqServiceInfoRepository.save(mapInfoRecord(dto, userId))));
     }
 
+    // TODO remove dto - use model
     @Transactional
     public Mono<ServiceInfoRecord> saveOrUpdate(OptionalServiceInfoDto dto, Long userId) {
         log.info("Save or update service request: {}", dto.toString());
