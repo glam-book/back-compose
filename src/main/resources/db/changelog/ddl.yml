@@ -171,9 +171,6 @@ databaseChangeLog:
                columnNames: "id, user_id"
                constraintName: "pk_tg_pk"
 
-           - addUniqueConstraint:
-               tableName: service_info
-               columnNames: id, service_owner_id
            - addForeignKeyConstraint:
                constraintName: "fk_telegram_user_user_id"
                baseTableName: telegram_user
@@ -297,7 +294,7 @@ databaseChangeLog:
     - changeSet:
         id: refactor-records-fk
         author: owpk
-        context: indx # исключаем из контекста jooq
+        context: indx
         changes:
         - addForeignKeyConstraint:
             baseTableName: record_to_service

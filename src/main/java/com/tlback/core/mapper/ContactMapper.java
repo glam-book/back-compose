@@ -2,7 +2,6 @@ package com.tlback.core.mapper;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -13,11 +12,13 @@ import com.tlback.core.model.contact.GenericContact;
 import com.tlback.core.model.contact.Supports;
 import com.tlback.core.model.contact.TgContact;
 
+import io.vavr.control.Option;
+
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class ContactMapper {
 
-    public Optional<TgContact> mapTgContact(DomainUserEntity domainUser) {
+    public Option<TgContact> mapTgContact(DomainUserEntity domainUser) {
         return domainUser.getTgUser()
                 .map(it -> TgContact.builder()
                         .firstName(it.getFirstName())
@@ -28,16 +29,16 @@ public abstract class ContactMapper {
     }
 
     public List<ContactProvider> mapList(DomainUserEntity domainUser) {
-        return List.<ContactProvider>of(mapTgContact(domainUser).orElse(null))
+        return List.<ContactProvider>of(mapTgContact(domainUser).getOrNull())
             .stream()
             .filter(Objects::nonNull)
             .toList();
     }
 
-    public Optional<? extends ContactProvider> of(Supports source, DomainUserEntity entity) {
+    public Option<? extends ContactProvider> of(Supports source, DomainUserEntity entity) {
         return switch (source) {
             case TG -> mapTgContact(entity);
-            default -> Optional.of(new GenericContact(entity.getName())); // TODO fill other, check identity
+            default -> Option.of(new GenericContact(entity.getName())); // TODO fill other, check identity
         };
     }
 }

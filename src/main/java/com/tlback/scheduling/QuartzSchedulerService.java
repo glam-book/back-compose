@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author vyacheslav vorobev
  */
 @Slf4j
-public abstract class QuartzSchedulerService implements SchedulerService {
+public class QuartzSchedulerService implements SchedulerService {
 
     /**
      * Scheduler factory for quartz
@@ -47,25 +47,26 @@ public abstract class QuartzSchedulerService implements SchedulerService {
     protected final String resourceTriggerGroup;
 
     @Setter
-    protected JobCollisionHandlingStrategy collisionHandlingStrategy = (scheduler, jobDetails) -> {
-        throw new JobCollisionException("Job is already defined and will not be recreated or rewrited: " + jobDetails.toString());
+    public JobCollisionHandlingStrategy collisionHandlingStrategy = (scheduler, jobDetails) -> {
+        throw new JobCollisionException(
+                "Job is already defined and will not be recreated or rewrited: " + jobDetails.toString());
     };
 
     @Getter
-    protected final Optional<String> triggerDescription;
+    public final Optional<String> triggerDescription;
 
     @Setter
-    protected JobDataMapCustomizer defaultDataMapCustomizer;
+    public JobDataMapCustomizer defaultDataMapCustomizer;
 
     @Setter
-    protected TriggerCustomizer<TriggerBuilder<Trigger>> defaTriggerCustomizer;
+    public TriggerCustomizer<TriggerBuilder<Trigger>> defaTriggerCustomizer;
 
-    protected QuartzSchedulerService(SchedulerFactoryBean schedulerFactoryBean,
+    public QuartzSchedulerService(SchedulerFactoryBean schedulerFactoryBean,
             String resourceJobGroup, String resourceTriggerGroup) {
         this(schedulerFactoryBean, null, resourceJobGroup, resourceTriggerGroup);
     }
 
-    protected QuartzSchedulerService(String triggerDescription, SchedulerFactoryBean schedulerFactoryBean,
+    public QuartzSchedulerService(String triggerDescription, SchedulerFactoryBean schedulerFactoryBean,
             String resourceJobGroup, String resourceTriggerGroup) {
         this(schedulerFactoryBean, triggerDescription, resourceJobGroup, resourceTriggerGroup);
     }
@@ -77,7 +78,7 @@ public abstract class QuartzSchedulerService implements SchedulerService {
      * @param resourceJobGroup     job group for the job
      * @param resourceTriggerGroup trigger group for the trigger
      */
-    protected QuartzSchedulerService(SchedulerFactoryBean schedulerFactoryBean,
+    public QuartzSchedulerService(SchedulerFactoryBean schedulerFactoryBean,
             @Nullable String triggerDescription, String resourceJobGroup,
             String resourceTriggerGroup) {
         this.schedulerFactoryBean = schedulerFactoryBean;
@@ -89,18 +90,40 @@ public abstract class QuartzSchedulerService implements SchedulerService {
     /**
      * Delete job by identity
      *
-     * @param id   job key identity
-     * @param type job key type
+     * @param id    job key identity
+     * @param group job key group
      */
     @Override
-    public void deleteJobByIdentity(String id, String type) {
+    public void deleteJobByIdentity(String id, String group) {
         try {
             schedulerFactoryBean.getScheduler()
-                    .deleteJob(getJobKeyByIdentity(id, type));
+                    .deleteJob(getJobKeyByIdentity(id, concatJobGroup(group)));
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);
             throw new SchedulerOperationException(e);
         }
+    }
+
+    /**
+     * Delete job by identity
+     *
+     * @param id job key identity
+     */
+    @Override
+    public void deleteJobByIdentity(String id) {
+        this.deleteJobByIdentity(id, resourceJobGroup);
+    }
+
+    /**
+     * Get job key by identity
+     *
+     * @param id   job key identity
+     * @param type job key type
+     * @return job key
+     */
+    @Override
+    public JobKey getJobKeyByIdentity(String id) {
+        return getJobKeyByIdentity(id, resourceJobGroup);
     }
 
     /**
@@ -112,7 +135,7 @@ public abstract class QuartzSchedulerService implements SchedulerService {
      */
     @Override
     public JobKey getJobKeyByIdentity(String id, String type) {
-        return new JobKey(QrtzUtils.getJobKeyByIdentity(id, type), resourceJobGroup);
+        return new JobKey(id, type);
     }
 
     /**
@@ -123,8 +146,14 @@ public abstract class QuartzSchedulerService implements SchedulerService {
      * @param jobClass       job class
      */
     @Override
-    public void scheduleJob(String jobKeyIdentity, String jobKeyType, Class<? extends Job> jobClass) {
-        scheduleJob(jobKeyIdentity, jobKeyType, jobClass, null, (i, c) -> c.startNow());
+    public void scheduleJob(String jobKeyIdentity, String jobGroup, Class<? extends Job> jobClass) {
+        this.scheduleJob(jobKeyIdentity, concatJobGroup(resourceJobGroup),
+                jobClass, null, (i, c) -> c.startNow());
+    }
+
+    @Override
+    public void scheduleJob(String jobKeyIdentity, Class<? extends Job> jobClass) {
+        this.scheduleJob(jobKeyIdentity, resourceJobGroup, jobClass);
     }
 
     /**
@@ -137,23 +166,24 @@ public abstract class QuartzSchedulerService implements SchedulerService {
      */
     public void scheduleJob(String jobKeyIdentity, String jobKeyType, Class<? extends Job> jobClass,
             @NonNull TriggerCustomizer<TriggerBuilder<Trigger>> triggerCustomizer) {
-        scheduleJob(jobKeyIdentity, jobKeyType, jobClass, null, triggerCustomizer);
+        this.scheduleJob(jobKeyIdentity, concatJobGroup(jobKeyType),
+                jobClass, null, triggerCustomizer);
     }
 
     /**
      * Schedule job by identity
      *
      * @param jobKeyIdentity       job key identity
-     * @param jobKeyType           job key type
+     * @param jobGroup             job key group
      * @param jobClass             job class
      * @param jobDataMapCustomizer job data map customizer
      * @param triggerCustomizer    trigger customizer
      */
-    public void scheduleJob(String jobKeyIdentity, String jobKeyType, Class<? extends Job> jobClass,
+    public void scheduleJob(String jobKeyIdentity, String jobGroup, Class<? extends Job> jobClass,
             @Nullable JobDataMapCustomizer jobDataMapCustomizer,
             @NonNull TriggerCustomizer<TriggerBuilder<Trigger>> triggerCustomizer) {
         var scheduler = schedulerFactoryBean.getScheduler();
-        var jobKey = getJobKeyByIdentity(jobKeyIdentity, jobKeyType);
+        var jobKey = getJobKeyByIdentity(jobKeyIdentity, jobGroup);
 
         try {
             var jobDetails = scheduler.getJobDetail(jobKey);
@@ -204,6 +234,13 @@ public abstract class QuartzSchedulerService implements SchedulerService {
         }
     }
 
+    public void scheduleJob(String jobKeyIdentity, Class<? extends Job> jobClass,
+            @Nullable JobDataMapCustomizer jobDataMapCustomizer,
+            @NonNull TriggerCustomizer<TriggerBuilder<Trigger>> triggerCustomizer) {
+        this.scheduleJob(jobKeyIdentity, resourceJobGroup,
+                jobClass, jobDataMapCustomizer, triggerCustomizer);
+    }
+
     /**
      * Get log message
      *
@@ -218,4 +255,9 @@ public abstract class QuartzSchedulerService implements SchedulerService {
                     Next fire time: %s
                 """, jobKey, new Date(), nextFireTime);
     }
+
+    protected String concatJobGroup(String add) {
+        return this.resourceJobGroup + "[" + add + "]";
+    }
+
 }

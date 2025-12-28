@@ -3,7 +3,6 @@ package com.tlback.core.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -11,6 +10,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import com.tlback.core.model.contact.Supports;
 
+import io.vavr.control.Option;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -39,7 +39,7 @@ public class DomainUserEntity implements Serializable {
     @Column("icon")
     private String profileIcon;
 
-    private Optional<TelegramUser> tgUser;
+    private Option<TelegramUser> tgUser;
 
     public Object getSubuser(Supports source) {
         return switch(source) {
@@ -51,7 +51,7 @@ public class DomainUserEntity implements Serializable {
     public List<Supports> determineSupportedContacts() {
         var initial = new ArrayList<Supports>();
 
-        if (tgUser.isPresent())
+        if (!tgUser.isEmpty())
             initial.add(Supports.TG);
 
         return initial;

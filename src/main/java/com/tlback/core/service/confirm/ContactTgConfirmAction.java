@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import com.tlback.core.model.TelegramUser;
 import com.tlback.core.model.contact.Supports;
+import com.tlback.core.model.utils.PendingConfirmInfo;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgCommandHandler;
 
@@ -18,19 +19,18 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ContactTgConfirmAction implements ContactConfirmAction<TelegramUser>, TgCommandHandler {
+public class ContactTgConfirmAction implements ContactPendingConfirmAction<TelegramUser>, TgCommandHandler {
 
     private final TelegramClientGroupping tgClient;
     private final RecordPendingConfirmationService confirmationService;
 
     public static final String MESSAGE_ACTION = "/CONFIRMATION_REPLY";
 
-    // TODO add dto for Record information as argument
     @Override
-    public void sendConfirmRequest(TelegramUser targetContact, Long recPendingId) {
+    public void sendConfirmRequest(TelegramUser targetContact, PendingConfirmInfo rec) {
         var message = SendMessage.builder();
         message.chatId(targetContact.getId());
-        message.text("Вы записаны на прием (ID: " + 123 + "). Придете?");
+        message.text(rec.toConfirmationMessage());
 
         var markupInline = InlineKeyboardMarkup.builder();
         List<InlineKeyboardRow> rowsInline = new ArrayList<>();
@@ -39,11 +39,11 @@ public class ContactTgConfirmAction implements ContactConfirmAction<TelegramUser
 
         var yesButton = InlineKeyboardButton.builder();
         yesButton.text("🆗 Да, приду");
-        yesButton.callbackData(MESSAGE_ACTION + ":" + recPendingId + ":YES");
+        yesButton.callbackData(MESSAGE_ACTION + ":" + rec.pendingId()+ ":YES");
 
         var noButton = InlineKeyboardButton.builder();
-        noButton.text("🚫 Нет, не приду");
-        noButton.callbackData(MESSAGE_ACTION + ":" + recPendingId + ":NO");
+        noButton.text("🚫 Не приду");
+        noButton.callbackData(MESSAGE_ACTION + ":" + rec.pendingId() + ":NO");
 
         row.add(yesButton.build());
         row.add(noButton.build());

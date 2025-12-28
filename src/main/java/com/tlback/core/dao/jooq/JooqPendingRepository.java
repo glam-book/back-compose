@@ -18,6 +18,7 @@ import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.ServcieInfoToPending;
 import com.tlback.jooq.gen.tables.ServiceInfo;
 import com.tlback.jooq.gen.tables.records.RecordPendingRecord;
+import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +91,7 @@ public class JooqPendingRepository {
 				.map(rec -> rec.into(RecordPending.class));
 	}
 
-	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId, Set<Long> serviceIds) {
+	public Mono<RecordPendingRecord> createPendingAtomic(Long initiatorId, Long recordId, Set<Long> serviceIds) {
 		var query = dsl.insertInto(pendingTable)
 				.columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
 						pendingTable.REQUEST_TIME)
@@ -139,6 +140,29 @@ public class JooqPendingRepository {
 				.map(it -> tryToMap(it, cache));
 	}
 
+	public Flux<RecordPending> findByPendingId(Long pendingId, JoinModule... joinModules) {
+		var sql = fetch(dsl, joinModules)
+			.where(pendingTable.ID.eq(pendingId));
+
+		log.info(sql.toString());
+
+		var cache = new HashMap<Long, RecordPending>();
+		return Flux.from(sql)
+				.map(it -> tryToMap(it, cache));
+	}
+
+	public Flux<ServiceInfoRecord> findServicesByPendingId(Long pendingId) {
+		var sql = dsl.select(serviceInfoTable.fields())
+			.from(serviceInfoTable)
+			.join(serviceToPendingTable)
+				.on(serviceToPendingTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID))
+			.where(serviceToPendingTable.PENDING_ID.eq(pendingId));
+
+		log.info(sql.toString());
+		return Flux.from(sql)
+			.map(rec -> rec.into(ServiceInfoRecord.class));
+	}
+
 	private RecordPending tryToMap(Record record, Map<Long, RecordPending> mapped) {
 		var pendingId = record.get(pendingTable.ID);
 		var mainEntity = mapped.computeIfAbsent(pendingId,
@@ -162,4 +186,12 @@ public class JooqPendingRepository {
 
 		return mainEntity;
 	}
+
+	public Mono<Boolean> confirmPending(Long recPendingId, boolean isConfiremd) {
+		var query = dsl.update(pendingTable)
+				.set(pendingTable.CONFIRMED, isConfiremd)
+				.where(pendingTable.ID.eq(recPendingId));
+		return Mono.from(query).map(it -> it > 0);
+	}
+
 }

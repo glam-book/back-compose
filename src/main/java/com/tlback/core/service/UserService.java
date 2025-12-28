@@ -2,7 +2,6 @@ package com.tlback.core.service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -13,6 +12,7 @@ import com.tlback.core.dao.jooq.JooqUserRepository;
 import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.TelegramUser;
 
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -42,7 +42,7 @@ public class UserService {
     public Mono<DomainUserEntity> createFromTgUser(TelegramUser user) {
         log.info("Creating default user from tg user: {}", user);
         var entity = new DomainUserEntity();
-        entity.setTgUser(Optional.of(user));
+        entity.setTgUser(Option.of(user));
         entity.setLogin(user.getUsername());
         entity.setName(user.getFirstName());
         entity.setLastName(user.getLastName());

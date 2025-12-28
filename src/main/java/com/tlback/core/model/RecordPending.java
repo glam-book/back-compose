@@ -1,5 +1,6 @@
 package com.tlback.core.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table("record_pending")
-public class RecordPending {
+public class RecordPending implements Serializable {
 
     @Id
     private Long id;

@@ -20,6 +20,8 @@ spring:
 app:
   baseUrl: https://tl.ow-pk.ru/api
 
+tlback.pending.confirmation.min-activation: 5m
+
 springdoc:
   api-docs.enabled: true
   swagger-ui:

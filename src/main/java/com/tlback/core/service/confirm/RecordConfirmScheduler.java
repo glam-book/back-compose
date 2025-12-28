@@ -18,42 +18,63 @@ import lombok.extern.slf4j.Slf4j;
 public class RecordConfirmScheduler extends QuartzSchedulerService {
 
     public static final String NAME = "PENDING_CONFIRMATION";
+    public static final String NAME_CANCEL = "PENDING_CONFIRMATION_CANCEL";
 
     public RecordConfirmScheduler(SchedulerFactoryBean schedulerFactoryBean) {
-        super(schedulerFactoryBean, NAME, NAME);
+        super(schedulerFactoryBean, NAME + "_JOB", NAME);
     }
 
     public boolean rescheduleRecordConfirmation(Long recId, Long userId, OffsetDateTime nextStart,
             Class<? extends Job> jobClz, JobDataMapCustomizer jobDataMapCustomizer) {
         removeRecordConfirmation(recId, userId);
-        return scheduleRecordConfirmation(recId, userId, nextStart, jobClz, jobDataMapCustomizer);
+        return scheduleRecordPendingConfirmation(recId, userId, nextStart, jobClz, jobDataMapCustomizer);
     }
 
-    public boolean scheduleRecordConfirmation(Long recId, Long userId, OffsetDateTime startAt,
+    public boolean scheduleRecordPendingConfirmation(Long pendingId, Long userId, OffsetDateTime startAt,
             Class<? extends Job> jobClz, JobDataMapCustomizer jobDataMapCustomizer) {
-        return Try.run(() -> this.scheduleJob(this.getJobKey(recId, userId),
-                this.resourceJobGroup, jobClz,
+        var startAtConverted = convertToDate(startAt);
+        return Try.run(() -> this.scheduleJob(this.getJobKey(pendingId, userId),
+                jobClz,
                 jobDataMapCustomizer,
-                (keyMapper, triggerBuilder) -> triggerBuilder.startAt(convertToDate(startAt))))
+                (keyMapper, triggerBuilder) -> triggerBuilder
+                    .startAt(startAtConverted)))
                 .map(it -> true)
                 .onFailure(t -> log.error("Error schedule record confirmation", t))
                 .getOrElseGet(t -> false);
     }
 
     public boolean removeRecordConfirmation(Long recId, Long userId) {
-        return Try.run(() -> this.deleteJobByIdentity(getJobKey(recId, userId), resourceJobGroup))
+        return Try.run(() -> this.deleteJobByIdentity(getJobKey(recId, userId)))
                 .map(it -> true)
                 .onFailure(t -> log.error("Error remove record confirmation", t))
                 .getOrElseGet(t -> false);
     }
 
-    private String getJobKey(Long recId, Long userId) {
-        return recId + "_" + userId;
+    private String getJobKey(Long pendingId, Long userId) {
+        return pendingId + "_" + userId;
     }
 
     private Date convertToDate(OffsetDateTime date) {
-        var instant = date.toInstant();
-        return Date.from(instant);
+        return Date.from(date.toInstant());
+    }
+
+    public boolean scheduleRecordPendingCancelation(Long pendingId, OffsetDateTime cancelTimeLimit) {
+        return Try.run(() -> this.scheduleJob(pendingId + "", NAME_CANCEL,
+                CancelRecordPendingJob.class,
+                jobData -> {
+                    jobData.put("pendingId", pendingId);
+                },
+                (keyMapper, triggerBuilder) -> triggerBuilder.startAt(convertToDate(cancelTimeLimit))))
+                .map(it -> true)
+                .onFailure(t -> log.error("Error schedule record confirmation", t))
+                .getOrElseGet(t -> false);
+    }
+
+    public boolean removeRecordPendingCancelation(Long pendingId) {
+        return Try.run(() -> this.deleteJobByIdentity(pendingId + "", NAME_CANCEL))
+                .map(it -> true)
+                .onFailure(t -> log.error("Error remove record confirmation", t))
+                .getOrElseGet(t -> false);
     }
 
 }

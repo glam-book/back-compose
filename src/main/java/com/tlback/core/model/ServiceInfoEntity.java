@@ -1,5 +1,6 @@
 package com.tlback.core.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Table(schema = "public", name = "service_info")
-public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware {
+public class ServiceInfoEntity implements RecordSupplier, ServiceOwneraAware, Serializable {
 
     @Id
     @Column("id")

@@ -3,7 +3,6 @@ package com.tlback.core.dao.jooq;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -17,6 +16,7 @@ import com.tlback.core.model.DomainUserEntity;
 import com.tlback.core.model.TelegramUser;
 import com.tlback.core.tools.RxUtils;
 
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -83,7 +83,7 @@ public class JooqUserRepository {
     public static DomainUserEntity mapUser(org.jooq.Record rec) {
         var user = rec.into(userTable.fields()).into(DomainUserEntity.class);
         var tgUser = rec.into(telegramUserTable.fields()).into(TelegramUser.class);
-        user.setTgUser(Optional.ofNullable(tgUser));
+        user.setTgUser(Option.of(tgUser));
         return user;
     }
 
@@ -127,12 +127,12 @@ public class JooqUserRepository {
                 .cache()
                 .map(rec -> mapUser(rec))
                 .flatMap(savedUser -> {
-                    if (entity.getTgUser().isPresent()) {
+                    if (!entity.getTgUser().isEmpty()) {
                         var tgUser = entity.getTgUser().get();
                         // Сохраняем telegram_user с полученным userId
                         return createTelegramUser(savedUser.getId(), tgUser)
                                 .map(tg -> {
-                                    savedUser.setTgUser(Optional.of(tg));
+                                    savedUser.setTgUser(Option.of(tg));
                                     return savedUser;
                                 });
                     } else {
