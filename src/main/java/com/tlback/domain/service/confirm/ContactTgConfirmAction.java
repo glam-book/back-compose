@@ -94,10 +94,15 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
             var answer = splitted[2];
             recordService.confirmPending(recPendingId, answer.equals("YES"))
                     .doOnSuccess(isConfirmed -> {
-                        tgClient.executeGeneric(
-                                isConfirmed ? buildEditMessageText(callbackQuery, "Ваша запись подверждена!")
-                                        : buildEditMessageText(callbackQuery, "Ваша запись будет отменена"));
+                        if (isConfirmed) {
+                            tgClient.executeGeneric(answer.equals("YES")
+                                    ? buildEditMessageText(callbackQuery, "Ваша запись подверждена!")
+                                    : buildEditMessageText(callbackQuery, "Ваша запись будет отменена"));
+                        } else {
+                            tgClient.executeGeneric(buildEditMessageText(callbackQuery, "Запись уже подверждена или не найдена"));
+                        }
                     }).doOnError(e -> {
+                        log.error("Error while confirming pedning: {}", e);
                         buildEditMessageText(callbackQuery, "Произошла ошибка, свяжитесь с поддержкой");
                     });
         }
