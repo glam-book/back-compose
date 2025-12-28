@@ -85,27 +85,35 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
 
     @Override
     public void handle(CallbackQuery callbackQuery, TelegramClientGroupping tgClient) {
-        var data = callbackQuery.getData();
-        log.info("Receving tg callback data: {} : full {} ", data, callbackQuery);
+        try {
+            var data = callbackQuery.getData();
+            log.info("Receving tg callback data: {} : full {} ", data, callbackQuery);
 
-        var splitted = data.split(":");
-        if (splitted.length > 0) {
-            var recPendingId = Long.parseLong(splitted[1]);
-            var answer = splitted[2];
-            recordService.confirmPending(recPendingId, answer.equals("YES"))
-                    .doOnSuccess(isConfirmed -> {
-                        if (isConfirmed) {
-                            tgClient.executeGeneric(answer.equals("YES")
-                                    ? buildEditMessageText(callbackQuery, "Ваша запись подверждена!")
-                                    : buildEditMessageText(callbackQuery, "Ваша запись будет отменена"));
-                        } else {
-                            tgClient.executeGeneric(buildEditMessageText(callbackQuery, "Запись уже подверждена или не найдена"));
-                        }
-                    }).doOnError(e -> {
-                        log.error("Error while confirming pedning: {}", e);
-                        buildEditMessageText(callbackQuery, "Произошла ошибка, свяжитесь с поддержкой");
-                    });
+            var splitted = data.split(":");
+            if (splitted.length > 0) {
+                var recPendingId = Long.parseLong(splitted[1]);
+                var answer = splitted[2];
+                recordService.confirmPending(recPendingId, answer.equals("YES"))
+                        .doOnSuccess(isConfirmed -> {
+                            if (isConfirmed) {
+                                tgClient.executeGeneric(answer.equals("YES")
+                                        ? buildEditMessageText(callbackQuery, "Ваша запись подверждена!")
+                                        : buildEditMessageText(callbackQuery, "Ваша запись будет отменена"));
+                            } else {
+                                tgClient.executeGeneric(
+                                        buildEditMessageText(callbackQuery, "Запись уже подверждена или не найдена"));
+                            }
+                        }).doOnError(e -> sendErrorAnser(callbackQuery, e));
+            }
+        } catch (Exception e) {
+            sendErrorAnser(callbackQuery, e);
         }
+    }
+
+    private void sendErrorAnser(CallbackQuery q, Throwable e) {
+        log.error("Error while confirming pedning: {}", e);
+        var error = buildEditMessageText(q, "Произошла ошибка, свяжитесь с поддержкой");
+        tgClient.executeGeneric(error);
     }
 
     private EditMessageText buildEditMessageText(CallbackQuery callbackQuery, String text) {
