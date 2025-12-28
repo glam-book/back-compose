@@ -104,7 +104,7 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
                                         buildEditMessageText(callbackQuery, "Запись уже подверждена или не найдена"));
                             }
                         }).doOnError(e -> sendErrorAnser(callbackQuery, e))
-                        .block();
+                        .subscribe();
             }
         } catch (Exception e) {
             sendErrorAnser(callbackQuery, e);
