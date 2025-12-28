@@ -127,6 +127,7 @@ public class RecordConfirmScheduler extends QuartzSchedulerService {
                                                 jobData.put("user", user);
                                                 jobData.put("pendingConfirmInfo",
                                                         PendingConfirmInfo.builder()
+                                                                .pendingId(pending.getId())
                                                                 .serviceName(serviceNames)
                                                                 .from(targetRecord.getTsFrom())
                                                                 .to(targetRecord.getTsTo())
