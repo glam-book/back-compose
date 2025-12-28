@@ -11,8 +11,11 @@ import com.tlback.domain.notifier.AsyncDelegatingNotificationAdapter;
 import com.tlback.domain.notifier.NotificationAdapter;
 import com.tlback.domain.notifier.TelegramNotifierAdapter;
 import com.tlback.domain.notifier.api.UserNotifier;
+import com.tlback.tg.TgBot;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.balancer.TelegramClientImpl;
+import com.tlback.tg.handlers.TgCallbackQueryHandler;
+import com.tlback.tg.handlers.TgMessageHandler;
 
 @Configuration
 public class DomainConfig {
@@ -27,5 +30,12 @@ public class DomainConfig {
         var tgAdapter = new TelegramNotifierAdapter(tgClient);
         List<NotificationAdapter<DomainUserEntity>> list = List.of(tgAdapter);
         return new AsyncDelegatingNotificationAdapter<>(list);
+    }
+
+    @Bean
+    TgBot tgBot(TelegramClientGroupping tgClient,
+            List<TgMessageHandler> messageHandlers,
+            List<TgCallbackQueryHandler> callbackQueryHandlers) {
+        return new TgBot(tgClient, messageHandlers, callbackQueryHandlers);
     }
 }

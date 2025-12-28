@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -14,13 +16,17 @@ import com.tlback.domain.model.contact.Supports;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
 import com.tlback.domain.service.RecordService;
 import com.tlback.tg.balancer.TelegramClientGroupping;
+import com.tlback.tg.handlers.TgCallbackQueryHandler;
 import com.tlback.tg.handlers.TgCommandHandler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-public class ContactTgConfirmAction implements ContactPendingConfirmAction<TelegramUser>, TgCommandHandler {
+@Slf4j
+public class ContactTgConfirmAction implements ContactPendingConfirmAction<TelegramUser>,
+        TgCommandHandler, TgCallbackQueryHandler {
 
     private final TelegramClientGroupping tgClient;
     private final RecordService recordService;
@@ -40,7 +46,7 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
 
         var yesButton = InlineKeyboardButton.builder();
         yesButton.text("🆗 Да, приду");
-        yesButton.callbackData(MESSAGE_ACTION + ":" + rec.pendingId()+ ":YES");
+        yesButton.callbackData(MESSAGE_ACTION + ":" + rec.pendingId() + ":YES");
 
         var noButton = InlineKeyboardButton.builder();
         noButton.text("🚫 Не приду");
@@ -75,6 +81,37 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
     @Override
     public String getRouting() {
         return MESSAGE_ACTION;
+    }
+
+    @Override
+    public void handle(CallbackQuery callbackQuery, TelegramClientGroupping tgClient) {
+        var data = callbackQuery.getData();
+        log.info("Receving tg callback data: {} : full {} ", data, callbackQuery);
+
+        var splitted = data.split(":");
+        if (splitted.length > 0) {
+            var recPendingId = Long.parseLong(splitted[1]);
+            var answer = splitted[2];
+            recordService.confirmPending(recPendingId, answer.equals("YES"))
+                    .doOnSuccess(isConfirmed -> {
+                        tgClient.executeGeneric(
+                                isConfirmed ? buildEditMessageText(callbackQuery, "Ваша запись подверждена!")
+                                        : buildEditMessageText(callbackQuery, "Ваша запись будет отменена"));
+                    }).doOnError(e -> {
+                        buildEditMessageText(callbackQuery, "Произошла ошибка, свяжитесь с поддержкой");
+                    });
+        }
+    }
+
+    private EditMessageText buildEditMessageText(CallbackQuery callbackQuery, String text) {
+        var msg = callbackQuery.getMessage();
+        log.info("Building answer callback message: {}", msg);
+
+        return EditMessageText.builder()
+                .chatId(msg.getChatId())
+                .text(text)
+                .messageId(msg.getMessageId())
+                .build();
     }
 
 }
