@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.tlback.core.abac.exception.ForbiddenException;
-import com.tlback.core.abac.exception.NotFoundException;
-import com.tlback.core.abac.exception.RightsException;
-import com.tlback.core.service.exception.RecordPendingException;
+import com.tlback.domain.abac.exception.ForbiddenException;
+import com.tlback.domain.abac.exception.NotFoundException;
+import com.tlback.domain.abac.exception.RightsException;
+import com.tlback.domain.service.exception.RecordPendingException;
 
 import io.swagger.v3.oas.annotations.Hidden;
 

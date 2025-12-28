@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tlback.core.config.security.UserData;
-import com.tlback.core.mapper.UserMapper;
-import com.tlback.core.service.UserService;
+import com.tlback.domain.config.security.UserData;
+import com.tlback.domain.mapper.UserMapper;
+import com.tlback.domain.service.UserService;
 import com.tlback.web.dto.user.UserProfileDto;
 
 import lombok.RequiredArgsConstructor;

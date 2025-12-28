@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tlback.core.config.security.UserData;
-import com.tlback.core.mapper.ServiceInfoMapper;
-import com.tlback.core.service.ServiceInfoService;
+import com.tlback.domain.config.security.UserData;
+import com.tlback.domain.mapper.ServiceInfoMapper;
+import com.tlback.domain.service.ServiceInfoService;
 import com.tlback.web.dto.records.DeleteSuccess;
 import com.tlback.web.dto.service.OptionalServiceInfoDto;
 

@@ -1,6 +1,6 @@
 package com.tlback.web.dto;
 
-import com.tlback.core.abac.PermissionMask.Rights;
+import com.tlback.domain.abac.PermissionMask.Rights;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

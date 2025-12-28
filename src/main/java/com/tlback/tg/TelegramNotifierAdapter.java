@@ -7,10 +7,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
-import com.tlback.core.model.DomainUserEntity;
-import com.tlback.core.model.TelegramUser;
-import com.tlback.notifier.impl.NotificationAdapter;
-import com.tlback.notifier.model.NotificationAttachment;
+import com.tlback.domain.model.DomainUserEntity;
+import com.tlback.domain.model.TelegramUser;
+import com.tlback.notifier.NotificationAdapter;
+import com.tlback.notifier.api.NotificationAttachment;
 import com.tlback.tg.balancer.PerfProps;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 
