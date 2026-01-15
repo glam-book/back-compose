@@ -11,16 +11,17 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
+import com.tlback.domain.model.PendingState;
 import com.tlback.domain.model.TelegramUser;
 import com.tlback.domain.model.contact.Supports;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
-import com.tlback.domain.service.RecordService;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgCallbackQueryHandler;
 import com.tlback.tg.handlers.TgCommandHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +30,7 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
         TgCommandHandler, TgCallbackQueryHandler {
 
     private final TelegramClientGroupping tgClient;
-    private final RecordService recordService;
+    private final PendingConfirmationService pendingConfirmationService;
 
     public static final String MESSAGE_ACTION = "/CONFIRMATION_REPLY";
 
@@ -74,8 +75,22 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
         if (splitted.length > 0) {
             var recPendingId = Long.parseLong(splitted[0]);
             var answer = splitted[1];
-            recordService.confirmPending(recPendingId, answer.equals("YES"));
+            var state = toPendingState(answer);
+            switch (state) {
+                case CONFIRMED -> pendingConfirmationService.onPendingConfirmed(recPendingId)
+                        .subscribeOn(Schedulers.boundedElastic());
+                case CANCELLED -> pendingConfirmationService.onPendingCancelled(recPendingId)
+                        .subscribeOn(Schedulers.boundedElastic());
+            }
         }
+    }
+
+    private PendingState toPendingState(String answer) {
+        if (answer.equals("YES"))
+            return PendingState.CONFIRMED;
+        else if (answer.equals("NO"))
+            return PendingState.CANCELLED;
+        return PendingState.CREATED;
     }
 
     @Override
@@ -93,18 +108,16 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
             if (splitted.length > 0) {
                 var recPendingId = Long.parseLong(splitted[1]);
                 var answer = splitted[2];
-                recordService.confirmPending(recPendingId, answer.equals("YES"))
-                        .doOnSuccess(isConfirmed -> {
-                            if (isConfirmed) {
-                                tgClient.executeGeneric(answer.equals("YES")
-                                        ? buildEditMessageText(callbackQuery, "Ваша запись подверждена!")
-                                        : buildEditMessageText(callbackQuery, "Ваша запись будет отменена"));
-                            } else {
-                                tgClient.executeGeneric(
-                                        buildEditMessageText(callbackQuery, "Запись уже подверждена или не найдена"));
-                            }
-                        }).doOnError(e -> sendErrorAnser(callbackQuery, e))
-                        .subscribe();
+                var state = toPendingState(answer);
+                switch (state) {
+                    case CONFIRMED ->
+                        pendingConfirmationService.onPendingConfirmed(recPendingId)
+                            .doOnSuccess(it -> tgClient.executeGeneric(buildEditMessageText(callbackQuery, "Ваша запись подверждена!")))
+                            .subscribeOn(Schedulers.boundedElastic());
+                    case CANCELLED -> 
+                        pendingConfirmationService.onPendingCancelled(recPendingId)
+                            .doOnSuccess(it -> tgClient.executeGeneric(buildEditMessageText(callbackQuery, "Ваша запись будет отменена")));
+                }
             }
         } catch (Exception e) {
             sendErrorAnser(callbackQuery, e);
@@ -112,7 +125,7 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
     }
 
     private void sendErrorAnser(CallbackQuery q, Throwable e) {
-        log.error("Error while confirming pedning: {}", e);
+        log.error("Error while confirming pedning: {}", e.getMessage(), e);
         var error = buildEditMessageText(q, "Произошла ошибка, свяжитесь с поддержкой");
         tgClient.executeGeneric(error);
     }

@@ -43,8 +43,8 @@ databaseChangeLog:
              INSERT INTO service_info (id, service_name, service_owner_id, editable, service_description, time_duration)
              VALUES (2, 'test_brovkee', 2, true, 'test brovki', 1);
 
-             INSERT INTO record(record_owner_id, ts_from, ts_to, tz)
-             VALUES (2, '2025-12-29T00:50:00', '2025-12-29T01:00:00', '+08:00');
+             INSERT INTO record(record_owner_id, ts_from, ts_to, tz, record_limit)
+             VALUES (2, '2025-12-29T00:50:00', '2025-12-29T01:00:00', '+08:00', 2);
 
              INSERT INTO record_to_service(record_id, service_id)
              VALUES (1, 1);

@@ -1,13 +1,15 @@
 package com.tlback.domain.service;
 
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
-import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +23,13 @@ import com.tlback.domain.dao.jooq.JooqRecordToServiceRepository;
 import com.tlback.domain.model.DomainUserEntity;
 import com.tlback.domain.model.RecordEntity;
 import com.tlback.domain.model.RecordPending;
+import com.tlback.domain.model.ServiceInfoEntity;
 import com.tlback.domain.model.utils.RecordFilter;
 import com.tlback.domain.notifier.api.NotificationRequest;
 import com.tlback.domain.notifier.api.UserNotifier;
-import com.tlback.domain.service.confirm.RecordConfirmScheduler;
+import com.tlback.domain.service.confirm.PendingConfirmationService;
 import com.tlback.domain.service.exception.RecordPendingException;
 import com.tlback.domain.tools.ZoneOffsetTools;
-import com.tlback.jooq.gen.tables.records.RecordPendingRecord;
 import com.tlback.jooq.gen.tables.records.RecordRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
@@ -36,20 +38,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RecordService {
+
+	private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy 'в' HH:mm")
+			.withLocale(Locale.of("ru"));
+
+	private final UserNotifier<DomainUserEntity> userNotifier;
 	private final JooqRecordRepository recordRepository;
 	private final ServiceInfoService serviceInfoService;
 	private final JooqPendingRepository pendingRepository;
 	private final JooqRecordToServiceRepository recordToServiceRepository;
-
-	private final UserNotifier<DomainUserEntity> userNotifier;
-	private final RecordConfirmScheduler pendingConfirmationService;
-
+	private final PendingConfirmationService pendingConfirmationService;
 	private final UserService userService;
 	private final AbacService abac;
 
@@ -170,60 +173,50 @@ public class RecordService {
 						Flux::error));
 	}
 
-	@Transactional(isolation = Isolation.SERIALIZABLE)
+	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public Mono<RecordEntity> createPendingAtomic(Long initiatorId, Long targetRecordId,
 			Set<Long> targetServices) {
-		return pendingRepository.createPendingAtomic(initiatorId, targetRecordId, targetServices)
+		return pendingRepository.createPendingAtomic(
+				initiatorId,
+				targetRecordId,
+				targetServices, JooqPendingRepository.SERVICE_JOIN_MODULE)
 				.switchIfEmpty(Mono.error(new RecordPendingException("Limit reached")))
-				.onErrorMap(
-						ex -> ex instanceof IntegrityConstraintViolationException
-								|| ex instanceof R2dbcDataIntegrityViolationException,
+				.onErrorMap(ex -> ex instanceof IntegrityConstraintViolationException,
+						ex -> new RecordPendingException("Pending already exists", ex))
+				.onErrorMap(ex -> ex instanceof R2dbcDataIntegrityViolationException,
 						ex -> new RecordPendingException("Cannot create pending", ex))
-				.flatMap(it -> getRecordsWithPendingsAndServiceById(targetRecordId)
-						.map(rec -> new RecPendingEntry(rec, it)))
-				.flatMap(recPending -> {
-					var it = recPending.rec();
-					var recordOwner = it.getRecordOwnerId();
+				.zipWhen(it -> getRecordsWithPendingsAndServiceById(targetRecordId))
+				.flatMap(tuple -> {
+					var rec = tuple.getT2();
+					var recPending = tuple.getT1();
+					var recordOwner = rec.getRecordOwnerId();
 					return userService.findById(recordOwner)
-							.flatMap(recOwner -> {
-								sendPendingCreationNotificaion(recPending, targetServices, recOwner);
-								return pendingConfirmationService.scheduleConfirmIfNeeded(recPending.pending(), it)
-										.onErrorResume(t -> {
-											log.error("Error scheduling confirmation: ", t);
-											return Mono.just(Boolean.FALSE);
-										})
-										.flatMap(scheduled -> scheduled
-												? Mono.just(it)
-												: confirmPending(recPending.pending().getId(), true)
-														.thenReturn(it));
-							});
-				})
-				.retryWhen(Retry.max(3)
-						.filter(ex -> ex instanceof SerializationFailedException));
+							.flatMap(user -> pendingConfirmationService
+									.onPendingCreated(recPending.getId())
+									.thenReturn(user))
+							.flatMap(user -> sendPendingCreationNotificaion(rec, user))
+							.thenReturn(tuple.getT2());
+				});
 	}
 
-	private void sendPendingCreationNotificaion(RecPendingEntry entry, Set<Long> requestedservices,
+	private Mono<Void> sendPendingCreationNotificaion(
+			RecordEntity rec,
 			DomainUserEntity recOwner) {
-		var rec = entry.rec();
 		var notificationRequest = NotificationRequest
 				.builder()
 				.message(String.format("""
-						🎉 Новая заявка на запись:
+						🎉 Новая заявка на запись!
 						⏰ Время начала: %s
-						Cервисы:
-						%s
-						""", rec.getTsFrom(),
-						rec.getServiceInfo()
-								.stream()
-								.filter(service -> requestedservices.contains(service.getId()))
-								.map(s -> s.getServiceName() + " : " + s.getPrice() + " руб. " +
-										(s.getIsHourlyPrice() ? "за час" : ""))
+						Cервисы: %s
+						""",
+						rec.getTsFrom().format(DATE_TIME_FORMAT),
+						rec.getServiceInfo().stream()
+								.map(s -> s.getServiceName() + " : " + s.getPrice().setScale(2, RoundingMode.HALF_UP)
+										+ " руб. " +
+										(Boolean.TRUE.equals(s.getIsHourlyPrice()) ? "за час" : ""))
 								.reduce("", (a, b) -> a + "\n" + b)))
 				.build();
-		userNotifier.sendNotification(recOwner, notificationRequest);
-	}
-
-	private record RecPendingEntry(RecordEntity rec, RecordPendingRecord pending) {
+		return Mono.fromRunnable(() -> userNotifier.sendNotification(recOwner, notificationRequest));
 	}
 
 	public Flux<RecordPending> getRecordPendings(Long recordId) {
@@ -240,10 +233,6 @@ public class RecordService {
 		newRecord.setComment(cmd.getComment());
 		newRecord.setRecordOwnerId(userId);
 		return newRecord;
-	}
-
-	public Mono<Boolean> confirmPending(Long recPendingId, boolean isConfiremd) {
-		return pendingRepository.confirmPending(recPendingId, isConfiremd);
 	}
 
 }

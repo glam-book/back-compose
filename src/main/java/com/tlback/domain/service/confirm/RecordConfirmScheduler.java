@@ -1,26 +1,26 @@
 package com.tlback.domain.service.confirm;
 
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 import org.quartz.Job;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
 
 import com.tlback.domain.dao.jooq.JooqPendingRepository;
 import com.tlback.domain.model.RecordEntity;
+import com.tlback.domain.model.RecordPending;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
 import com.tlback.domain.service.UserService;
-import com.tlback.jooq.gen.tables.records.RecordPendingRecord;
 import com.tlback.scheduling.JobDataMapCustomizer;
 import com.tlback.scheduling.QuartzSchedulerService;
 
 import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @Slf4j
@@ -31,9 +31,6 @@ public class RecordConfirmScheduler extends QuartzSchedulerService {
 
     private final UserService userService;
     private final JooqPendingRepository pendingRepository;
-
-    @Value("${tlback.pending.confirmation.min-activation:1h}")
-    private Duration minActivationTime;
 
     public RecordConfirmScheduler(SchedulerFactoryBean schedulerFactoryBean,
             UserService userService, JooqPendingRepository pendingRepository) {
@@ -76,69 +73,45 @@ public class RecordConfirmScheduler extends QuartzSchedulerService {
         return Date.from(date.toInstant());
     }
 
-    public boolean scheduleRecordPendingCancelation(Long pendingId, OffsetDateTime cancelTimeLimit) {
-        return Try.run(() -> this.scheduleJob(pendingId + "", NAME_CANCEL,
-                CancelRecordPendingJob.class,
-                jobData -> {
-                    jobData.put("pendingId", pendingId);
-                },
-                (keyMapper, triggerBuilder) -> triggerBuilder.startAt(convertToDate(cancelTimeLimit))))
-                .map(it -> true)
-                .onFailure(t -> log.error("Error schedule record confirmation", t))
-                .getOrElseGet(t -> false);
-    }
+    public Mono<Void> scheduleConfirmation(
+            RecordPending pending,
+            RecordEntity targetRecord,
+            OffsetDateTime startAt) {
 
-    public boolean removeRecordPendingCancelation(Long pendingId) {
-        return Try.run(() -> this.deleteJobByIdentity(pendingId + "", NAME_CANCEL))
-                .map(it -> true)
-                .onFailure(t -> log.error("Error remove record confirmation", t))
-                .getOrElseGet(t -> false);
-    }
+        var pendingOwner = pending.getClientId();
+        return userService.findById(pendingOwner)
+                .zipWhen(user -> pendingRepository.findServicesByPendingId(pending.getId())
+                        .collectList())
+                .flatMapMany(tuple -> {
+                    var user = tuple.getT1();
+                    var services = tuple.getT2();
 
-    public Mono<Boolean> scheduleConfirmIfNeeded(
-            RecordPendingRecord pending,
-            RecordEntity targetRecord) {
+                    var supportedContacts = user.determineSupportedContacts();
+                    var serviceNames = services.stream()
+                            .map(s -> s.getServiceName())
+                            .collect(Collectors.toSet());
 
-        var timeLimit = targetRecord.getTsFrom()
-                .minus(minActivationTime)
-                .minusMinutes(2);
+                    return Flux.fromIterable(supportedContacts)
+                            .flatMap(contact -> Mono.fromRunnable(() -> scheduleRecordPendingConfirmation(
+                                    targetRecord.getId(),
+                                    pendingOwner,
+                                    startAt,
+                                    ConfirmRequestJob.class,
+                                    jobData -> {
+                                        jobData.put("supports", contact.name());
+                                        jobData.put("user", user);
+                                        jobData.put("pendingConfirmInfo",
+                                                PendingConfirmInfo.builder()
+                                                        .pendingId(pending.getId())
+                                                        .serviceName(serviceNames)
+                                                        .from(targetRecord.getTsFrom())
+                                                        .to(targetRecord.getTsTo())
+                                                        .build());
+                                    }))
+                                    .subscribeOn(Schedulers.boundedElastic()));
+                })
+                .then();
 
-        var cancelTimeLimit = timeLimit.plusHours(2);
-        var currentRequestTime = pending.getRequestTime();
-        var isBefore = currentRequestTime.isBefore(timeLimit.toLocalDateTime());
-
-        if (isBefore) {
-            var pendingOwner = pending.getClientId();
-            return userService.findById(pendingOwner)
-                    .flatMap(user -> pendingRepository.findServicesByPendingId(pending.getId())
-                            .collectList()
-                            .doOnSuccess(services -> {
-                                var supportedContacts = user.determineSupportedContacts();
-                                var serviceNames = services.stream().map(it -> it.getServiceName())
-                                        .collect(Collectors.toSet());
-                                supportedContacts.forEach(contact -> {
-                                    scheduleRecordPendingConfirmation(
-                                            targetRecord.getId(),
-                                            pendingOwner,
-                                            timeLimit,
-                                            ConfirmRequestJob.class,
-                                            jobData -> {
-                                                jobData.put("supports", contact.name());
-                                                jobData.put("user", user);
-                                                jobData.put("pendingConfirmInfo",
-                                                        PendingConfirmInfo.builder()
-                                                                .pendingId(pending.getId())
-                                                                .serviceName(serviceNames)
-                                                                .from(targetRecord.getTsFrom())
-                                                                .to(targetRecord.getTsTo())
-                                                                .build());
-                                            });
-                                    scheduleRecordPendingCancelation(targetRecord.getId(), cancelTimeLimit);
-                                });
-                            }).thenReturn(Boolean.TRUE));
-        }
-
-        return Mono.just(Boolean.FALSE);
     }
 
 }

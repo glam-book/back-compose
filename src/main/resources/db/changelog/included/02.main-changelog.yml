@@ -89,3 +89,29 @@ databaseChangeLog:
               - column:
                   name: color
                   type: text
+
+  - changeSet:
+      id: change_confirmed_to_varchar20
+      context: ddl
+      author: owpk
+      changes:
+        - modifyDataType:
+            tableName: record_pending
+            columnName: confirmed
+            newDataType: varchar(20)
+
+  - changeSet:
+        id: uq_record_pending_active
+        context: indx
+        author: owpk
+        changes:
+          - createIndex:
+              indexName: uq_record_pending_active
+              tableName: record_pending
+              unique: true
+              columns:
+                - column:
+                    name: record_id
+                - column:
+                    name: client_id
+              where: "confirmed = 'CREATED'"

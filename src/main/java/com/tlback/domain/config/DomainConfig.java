@@ -1,6 +1,8 @@
 package com.tlback.domain.config;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,15 +23,20 @@ import com.tlback.tg.handlers.TgMessageHandler;
 public class DomainConfig {
 
     @Bean
-    TelegramClientGroupping tgClient(TelegramClient tgClient) {
-        return new TelegramClientImpl(tgClient);
+    TelegramClientGroupping tgClient(TelegramClient tgClient, ExecutorService executorService) {
+        return new TelegramClientImpl(tgClient, executorService);
     }
 
     @Bean
-    UserNotifier<DomainUserEntity> userNotifier(TelegramClientGroupping tgClient) {
+    ExecutorService executorService() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean
+    UserNotifier<DomainUserEntity> userNotifier(TelegramClientGroupping tgClient, ExecutorService executorService) {
         var tgAdapter = new TelegramNotifierAdapter(tgClient);
         List<NotificationAdapter<DomainUserEntity>> list = List.of(tgAdapter);
-        return new AsyncDelegatingNotificationAdapter<>(list);
+        return new AsyncDelegatingNotificationAdapter<>(list, executorService);
     }
 
     @Bean
