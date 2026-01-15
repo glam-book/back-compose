@@ -19,19 +19,21 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ConfirmRequestJob implements Job {
     private Map<Supports, ContactPendingConfirmAction> actions;
 
     @Override
     public void execute(JobExecutionContext jobCtx) throws JobExecutionException {
-        var user = (DomainUserEntity) jobCtx.getJobDetail().getJobDataMap().get("user");
-        var pending = (PendingConfirmInfo) jobCtx.getJobDetail().getJobDataMap().get("pendingConfirmInfo");
+        var user = jobCtx.getJobDetail().getJobDataMap().get("user");
+        var pending = jobCtx.getJobDetail().getJobDataMap().get("pendingConfirmInfo");
         var actionSupport = jobCtx.getJobDetail().getJobDataMap().get("supports");
 
-        if ((user != null && user instanceof DomainUserEntity domainUser) &&
-                (pending != null && pending instanceof PendingConfirmInfo pendingConfirmInfo) &&
-                (actionSupport != null && actionSupport instanceof String s)) {
+        if (
+                (user instanceof DomainUserEntity domainUser) &&
+                (pending instanceof PendingConfirmInfo pendingConfirmInfo) &&
+                (actionSupport instanceof String s)
+        ) {
 
             var action = actions.get(Supports.valueOf(s));
             log.info("Sending pending confirm request to user {}", domainUser.getId());
@@ -45,7 +47,7 @@ public class ConfirmRequestJob implements Job {
     @Autowired
     public void setActions(List<ContactPendingConfirmAction> actions) {
         this.actions = actions.stream()
-                .collect(Collectors.toMap(it -> it.supports(),
+                .collect(Collectors.toMap(ContactPendingConfirmAction::supports,
                         Function.identity()));
     }
 

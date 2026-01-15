@@ -9,15 +9,16 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
 import org.jooq.impl.DSL;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.tlback.domain.dao.jooq.modules.JoinModule;
+import com.tlback.domain.model.PendingState;
 import com.tlback.domain.model.RecordPending;
 import com.tlback.domain.model.ServiceInfoEntity;
 import com.tlback.jooq.gen.tables.DomainUser;
 import com.tlback.jooq.gen.tables.ServcieInfoToPending;
 import com.tlback.jooq.gen.tables.ServiceInfo;
-import com.tlback.jooq.gen.tables.records.RecordPendingRecord;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class JooqPendingRepository {
 
 	public Mono<RecordPending> createPending(Long initiatorId, Long recordId) {
 		var query = dsl.insertInto(pendingTable)
-				.set(pendingTable.CONFIRMED, false)
+				.set(pendingTable.CONFIRMED, PendingState.CREATED.name())
 				.set(pendingTable.RECORD_ID, recordId)
 				.set(pendingTable.CLIENT_ID, initiatorId)
 				.set(pendingTable.REQUEST_TIME, LocalDateTime.now())
@@ -73,29 +74,19 @@ public class JooqPendingRepository {
 		return mainFetch;
 	}
 
-	public Mono<RecordPending> createPendingAtomic(Long initiatorId, Long recordId) {
-		var query = dsl.insertInto(pendingTable)
-				.columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
+	public Mono<Long> createPendingIdAtomic(
+			Long initiatorId,
+			Long recordId) {
+		var insert = dsl.insertInto(pendingTable)
+				.columns(
+						pendingTable.RECORD_ID,
+						pendingTable.CLIENT_ID,
+						pendingTable.CONFIRMED,
 						pendingTable.REQUEST_TIME)
-				.select(DSL.select(DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
-						DSL.val(LocalDateTime.now()))
-						.where(DSL.selectCount()
-								.from(pendingTable)
-								.where(pendingTable.RECORD_ID.eq(recordId))
-								.lt(DSL.select(recordTable.RECORD_LIMIT)
-										.from(recordTable))))
-				.returning();
-
-		log.info(query.toString());
-		return Mono.from(query)
-				.map(rec -> rec.into(RecordPending.class));
-	}
-
-	public Mono<RecordPendingRecord> createPendingAtomic(Long initiatorId, Long recordId, Set<Long> serviceIds) {
-		var query = dsl.insertInto(pendingTable)
-				.columns(pendingTable.RECORD_ID, pendingTable.CLIENT_ID, pendingTable.CONFIRMED,
-						pendingTable.REQUEST_TIME)
-				.select(DSL.select(DSL.val(recordId), DSL.val(initiatorId), DSL.val(false),
+				.select(DSL.select(
+						DSL.val(recordId),
+						DSL.val(initiatorId),
+						DSL.val(PendingState.CREATED.name()),
 						DSL.val(LocalDateTime.now()))
 						.where(DSL.selectCount()
 								.from(pendingTable)
@@ -103,30 +94,34 @@ public class JooqPendingRepository {
 								.lt(DSL.select(recordTable.RECORD_LIMIT)
 										.from(recordTable)
 										.where(recordTable.ID.eq(recordId)))))
-				.returning();
+				.returning(pendingTable.ID);
 
-		log.info(query.toString());
+		return Mono.from(insert)
+				.map(r -> r.get(pendingTable.ID));
+	}
 
-		return Mono.from(query)
-				.map(rec -> rec.into(RecordPendingRecord.class))
-				.flatMap(pending -> {
-					if (serviceIds == null || serviceIds.isEmpty()) {
-						return Mono.just(pending);
-					}
+	private Mono<Void> insertServices(Long pendingId, @Nullable Set<Long> serviceIds) {
+		if (serviceIds == null || serviceIds.isEmpty()) {
+			return Mono.empty();
+		}
 
-					// Создаем batch insert для service связей
-					var batchQueries = serviceIds.stream()
-							.map(serviceId -> dsl.insertInto(serviceToPendingTable)
-									.set(serviceToPendingTable.SERVICE_INFO_ID, serviceId)
-									.set(serviceToPendingTable.PENDING_ID, pending.getId()))
-							.toList();
+		var batch = serviceIds.stream()
+				.map(serviceId -> dsl.insertInto(serviceToPendingTable)
+						.set(serviceToPendingTable.PENDING_ID, pendingId)
+						.set(serviceToPendingTable.SERVICE_INFO_ID, serviceId))
+				.toList();
 
-					var batchQuery = dsl.batch(batchQueries);
+		return Mono.from(dsl.batch(batch)).then();
+	}
 
-					log.info(batchQuery.toString());
-					return Mono.from(batchQuery)
-							.thenReturn(pending);
-				});
+	// TODO check if pending exists
+	public Mono<RecordPending> createPendingAtomic(
+			Long initiatorId,
+			Long recordId,
+			Set<Long> serviceIds, JoinModule... joinModules) {
+		return createPendingIdAtomic(initiatorId, recordId)
+				.flatMap(pendingId -> insertServices(pendingId, serviceIds)
+						.then(findByPendingId(pendingId, joinModules)));
 	}
 
 	public Flux<RecordPending> findByRecordId(Long recordId, JoinModule... joinModules) {
@@ -140,27 +135,27 @@ public class JooqPendingRepository {
 				.map(it -> tryToMap(it, cache));
 	}
 
-	public Flux<RecordPending> findByPendingId(Long pendingId, JoinModule... joinModules) {
+	public Mono<RecordPending> findByPendingId(Long pendingId, JoinModule... joinModules) {
 		var sql = fetch(dsl, joinModules)
-			.where(pendingTable.ID.eq(pendingId));
+				.where(pendingTable.ID.eq(pendingId));
 
 		log.info(sql.toString());
 
 		var cache = new HashMap<Long, RecordPending>();
-		return Flux.from(sql)
+		return Mono.from(sql)
 				.map(it -> tryToMap(it, cache));
 	}
 
 	public Flux<ServiceInfoRecord> findServicesByPendingId(Long pendingId) {
 		var sql = dsl.select(serviceInfoTable.fields())
-			.from(serviceInfoTable)
-			.join(serviceToPendingTable)
+				.from(serviceInfoTable)
+				.join(serviceToPendingTable)
 				.on(serviceToPendingTable.SERVICE_INFO_ID.eq(serviceInfoTable.ID))
-			.where(serviceToPendingTable.PENDING_ID.eq(pendingId));
+				.where(serviceToPendingTable.PENDING_ID.eq(pendingId));
 
 		log.info(sql.toString());
 		return Flux.from(sql)
-			.map(rec -> rec.into(ServiceInfoRecord.class));
+				.map(rec -> rec.into(ServiceInfoRecord.class));
 	}
 
 	private RecordPending tryToMap(Record record, Map<Long, RecordPending> mapped) {
@@ -187,9 +182,9 @@ public class JooqPendingRepository {
 		return mainEntity;
 	}
 
-	public Mono<Boolean> confirmPending(Long recPendingId, boolean isConfiremd) {
+	public Mono<Boolean> confirmPending(Long recPendingId, PendingState pendingState) {
 		var query = dsl.update(pendingTable)
-				.set(pendingTable.CONFIRMED, isConfiremd)
+				.set(pendingTable.CONFIRMED, pendingState.name())
 				.where(pendingTable.ID.eq(recPendingId));
 		return Mono.from(query).map(it -> it > 0);
 	}

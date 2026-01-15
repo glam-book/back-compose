@@ -37,10 +37,11 @@ public class TelegramClientImpl implements TelegramClientGroupping {
     private final PriorityBlockingQueue<PriorityGroupEntry> buffer = 
         new PriorityBlockingQueue<>(DEFAULT_BUFFER_CAPACITY);
 
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final Consumer<TelegramApiException> defaultErrorHandler = e -> log.error("Telegram api exception: ", e);
     private final TelegramClient tgClient;
+
+    private final ExecutorService executor;
 
     @PostConstruct
     public void initNotificationProcessing() {

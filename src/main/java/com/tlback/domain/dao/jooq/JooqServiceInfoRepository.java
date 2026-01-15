@@ -28,104 +28,110 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class JooqServiceInfoRepository {
-    private static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
-    private static final DomainUser userTable = DomainUser.DOMAIN_USER;
-    private static final Record recordTable = Record.RECORD;
+	private static final ServiceInfo serviceInfoTable = ServiceInfo.SERVICE_INFO;
+	private static final DomainUser userTable = DomainUser.DOMAIN_USER;
+	private static final Record recordTable = Record.RECORD;
 
-    public static final InsertModule<ServiceInfoEntity, ServiceInfoRecord> insertModule = (e, ctx) -> insert(e, ctx);
+	public static final InsertModule<ServiceInfoEntity, ServiceInfoRecord> insertModule = (e, ctx) -> insert(e,
+			ctx);
 
-    public static final InsertModule<ServiceInfoEntity, Long> insertModuleId = (e, ctx) -> insert(e, ctx)
-            .map(it -> it.getId());
+	public static final InsertModule<ServiceInfoEntity, Long> insertModuleId = (e, ctx) -> insert(e, ctx)
+			.map(it -> it.getId());
 
-    private final DSLContext dsl;
+	private final DSLContext dsl;
 
-    public Flux<ServiceInfoEntity> findAllByUserId(Long userId) {
-        var condition = userTable.ID.eq(userId);
-        var query = fetchFull(dsl).where(condition);
+	public Flux<ServiceInfoEntity> findAllByUserId(Long userId) {
+		var condition = userTable.ID.eq(userId);
+		var query = fetchFull(dsl).where(condition);
 
-        return RxUtils.fluxIterable(query,
-                iter -> collectToMapWithUser(iter,
-                        records -> JooqUserRepository.collectToMap(records).values().iterator().next(),
-                        ServiceInfoEntity.class).values());
-    }
+		return RxUtils.fluxIterable(query,
+				iter -> collectToMapWithUser(iter,
+						records -> JooqUserRepository.collectToMap(records).values().iterator()
+								.next(),
+						ServiceInfoEntity.class).values());
+	}
 
-    public static <T extends RecordSupplier & ServiceOwneraAware> Map<Long, T> collectToMapWithUser(
-            Iterable<org.jooq.Record> records,
-            @Nullable Function<Iterable<org.jooq.Record>, DomainUserEntity> userMapper, Class<T> clazz) {
+	public static <T extends RecordSupplier & ServiceOwneraAware> Map<Long, T> collectToMapWithUser(
+			Iterable<org.jooq.Record> records,
+			@Nullable Function<Iterable<org.jooq.Record>, DomainUserEntity> userMapper, Class<T> clazz) {
 
-        Map<Long, T> entities = new HashMap<>();
-        records.forEach(rec -> {
-            var serviceInfo = entities.computeIfAbsent(rec.get(serviceInfoTable.ID),
-                    k -> rec.into(serviceInfoTable.fields()).into(clazz));
+		Map<Long, T> entities = new HashMap<>();
+		records.forEach(rec -> {
+			var serviceInfo = entities.computeIfAbsent(rec.get(serviceInfoTable.ID),
+					k -> rec.into(serviceInfoTable.fields()).into(clazz));
 
-            serviceInfo.getRecords().add(rec.into(recordTable.fields()).into(com.tlback.domain.model.RecordEntity.class));
+			serviceInfo.getRecords().add(rec.into(recordTable.fields())
+					.into(com.tlback.domain.model.RecordEntity.class));
 
-            if (userMapper != null && serviceInfo.getServiceOwner() == null) {
-                var user = userMapper.apply(records);
-                serviceInfo.setServiceOwner(user);
-            }
-        });
-        return entities;
-    }
+			if (userMapper != null && serviceInfo.getServiceOwner() == null) {
+				var user = userMapper.apply(records);
+				serviceInfo.setServiceOwner(user);
+			}
+		});
+		return entities;
+	}
 
-    public Mono<ServiceInfoEntity> findById(Long id) {
-        return Mono.from(
-                dsl.selectFrom(serviceInfoTable)
-                        .where(serviceInfoTable.ID.eq(id)))
-                .map(r -> r.into(ServiceInfoEntity.class));
-    }
+	public Mono<ServiceInfoEntity> findById(Long id) {
+		return Mono.from(
+				dsl.selectFrom(serviceInfoTable)
+						.where(serviceInfoTable.ID.eq(id)))
+				.map(r -> r.into(ServiceInfoEntity.class));
+	}
 
-    public Mono<ServiceInfoRecord> update(ServiceInfoRecord record) {
-        return Mono.from(
-                dsl.update(serviceInfoTable)
-                        .set(serviceInfoTable.SERVICE_NAME,
-                                DSL.coalesce(DSL.val(record.getServiceName()), serviceInfoTable.SERVICE_NAME))
-                        .set(serviceInfoTable.SERVICE_DESCRIPTION,
-                                DSL.coalesce(DSL.val(record.getServiceDescription()),
-                                        serviceInfoTable.SERVICE_DESCRIPTION))
-                        .set(serviceInfoTable.EDITABLE,
-                                DSL.coalesce(DSL.val(record.getEditable()), serviceInfoTable.EDITABLE))
-                        .where(serviceInfoTable.ID.eq(record.getId()))
-                        .returning(serviceInfoTable.fields()))
-                .map(r -> r.into(ServiceInfoRecord.class));
-    }
+	public Mono<ServiceInfoRecord> update(ServiceInfoRecord record) {
+		return Mono.from(
+				dsl.update(serviceInfoTable)
 
-    public Mono<ServiceInfoRecord> save(ServiceInfoRecord rec) {
-        return Mono.from(
-                dsl.insertInto(serviceInfoTable)
-                        .set(serviceInfoTable.SERVICE_NAME, rec.getServiceName())
-                        .set(serviceInfoTable.SERVICE_OWNER_ID, rec.getServiceOwnerId())
-                        .set(serviceInfoTable.EDITABLE, rec.getEditable())
-                        .set(serviceInfoTable.SERVICE_DESCRIPTION, rec.getServiceDescription())
-                        .set(serviceInfoTable.TIME_DURATION, rec.getTimeDuration())
-                        .returning(serviceInfoTable.fields()))
-                .map(r -> r.into(ServiceInfoRecord.class));
-    }
+						.set(serviceInfoTable.PRICE,
+								DSL.coalesce(DSL.val(record.getPrice()), serviceInfoTable.PRICE))
+						.set(serviceInfoTable.SERVICE_NAME,
+								DSL.coalesce(DSL.val(record.getServiceName()),serviceInfoTable.SERVICE_NAME))
+						.set(serviceInfoTable.SERVICE_DESCRIPTION,
+								DSL.coalesce(DSL.val(record.getServiceDescription()), serviceInfoTable.SERVICE_DESCRIPTION))
+						.set(serviceInfoTable.EDITABLE,
+								DSL.coalesce(DSL.val(record.getEditable()), serviceInfoTable.EDITABLE))
+						.where(serviceInfoTable.ID.eq(record.getId()))
+						.returning(serviceInfoTable.fields()))
+				.map(r -> r.into(ServiceInfoRecord.class));
+	}
 
-    public Mono<Boolean> delete(Long serviceId) {
-        var query = dsl.deleteFrom(serviceInfoTable)
-                .where(serviceInfoTable.ID.eq(serviceId));
+	public Mono<ServiceInfoRecord> save(ServiceInfoRecord rec) {
+		return Mono.from(
+				dsl.insertInto(serviceInfoTable)
+						.set(serviceInfoTable.PRICE, rec.getPrice())
+						.set(serviceInfoTable.SERVICE_NAME, rec.getServiceName())
+						.set(serviceInfoTable.SERVICE_OWNER_ID, rec.getServiceOwnerId())
+						.set(serviceInfoTable.EDITABLE, rec.getEditable())
+						.set(serviceInfoTable.SERVICE_DESCRIPTION, rec.getServiceDescription())
+						.set(serviceInfoTable.TIME_DURATION, rec.getTimeDuration())
+						.returning(serviceInfoTable.fields()))
+				.map(r -> r.into(ServiceInfoRecord.class));
+	}
 
-        return Mono.from(query)
-                .map(it -> it != 0);
-    }
+	public Mono<Boolean> delete(Long serviceId) {
+		var query = dsl.deleteFrom(serviceInfoTable)
+				.where(serviceInfoTable.ID.eq(serviceId));
 
-    public static Mono<ServiceInfoRecord> insert(ServiceInfoEntity entity, DSLContext dsl) {
-        return Mono.from(dsl.insertInto(serviceInfoTable)
-                .set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
-                .set(serviceInfoTable.TIME_DURATION, entity.getTimeDuration())
-                .set(serviceInfoTable.SERVICE_DESCRIPTION, entity.getServiceDescription())
-                .returningResult(serviceInfoTable.fields()))
-                .map(it -> it.into(ServiceInfoRecord.class));
-    }
+		return Mono.from(query)
+				.map(it -> it != 0);
+	}
 
-    public static SelectOnConditionStep<org.jooq.Record> fetchFull(DSLContext dsl) {
-        return dsl.select(JooqUserRepository.fetch(dsl).asMultiset())
-                .select(serviceInfoTable.fields())
-                .select(userTable.fields())
-                .from(serviceInfoTable)
-                .join(userTable)
-                .on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID));
-    }
+	public static Mono<ServiceInfoRecord> insert(ServiceInfoEntity entity, DSLContext dsl) {
+		return Mono.from(dsl.insertInto(serviceInfoTable)
+				.set(serviceInfoTable.SERVICE_NAME, entity.getServiceName())
+				.set(serviceInfoTable.TIME_DURATION, entity.getTimeDuration())
+				.set(serviceInfoTable.SERVICE_DESCRIPTION, entity.getServiceDescription())
+				.returningResult(serviceInfoTable.fields()))
+				.map(it -> it.into(ServiceInfoRecord.class));
+	}
+
+	public static SelectOnConditionStep<org.jooq.Record> fetchFull(DSLContext dsl) {
+		return dsl.select(JooqUserRepository.fetch(dsl).asMultiset())
+				.select(serviceInfoTable.fields())
+				.select(userTable.fields())
+				.from(serviceInfoTable)
+				.join(userTable)
+				.on(serviceInfoTable.SERVICE_OWNER_ID.eq(userTable.ID));
+	}
 
 }
