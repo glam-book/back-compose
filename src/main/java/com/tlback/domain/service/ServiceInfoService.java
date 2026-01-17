@@ -68,6 +68,7 @@ public class ServiceInfoService {
         dto.getId().ifPresent(rec::setId);
         rec.setServiceName(dto.getTitle());
         rec.setEditable(false);
+        rec.setPrice(dto.getPrice());
         rec.setServiceDescription(dto.getDescription());
         rec.setServiceOwnerId(userId);
         return rec;
