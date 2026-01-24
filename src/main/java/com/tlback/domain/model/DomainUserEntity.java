@@ -36,7 +36,7 @@ public class DomainUserEntity implements Serializable {
     @Column("login")
     private String login;
 
-    @Column("icon")
+    @Column("profile_icon")
     private String profileIcon;
 
     private Option<TelegramUser> tgUser;

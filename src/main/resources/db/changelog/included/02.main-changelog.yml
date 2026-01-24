@@ -115,3 +115,13 @@ databaseChangeLog:
                 - column:
                     name: client_id
               where: "confirmed = 'CREATED'"
+
+  - changeSet:
+      id: rename_icon_to_profile_icon
+      context: ddl
+      author: owpk
+      changes:
+        - renameColumn:
+            tableName: domain_user
+            oldColumnName: icon
+            newColumnName: profile_icon
