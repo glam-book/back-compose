@@ -116,7 +116,11 @@ public class JooqUserRepository {
 
     public Mono<DomainUserEntity> save(DomainUserEntity entity) {
         var insertQuery = dsl.insertInto(userTable)
-                .columns(userTable.LOGIN, userTable.NAME, userTable.LAST_NAME, userTable.MIDDLE_NAME, userTable.ICON)
+                .columns(userTable.LOGIN, 
+                    userTable.NAME, 
+                    userTable.LAST_NAME, 
+                    userTable.MIDDLE_NAME, 
+                    userTable.PROFILE_ICON)
                 .values(entity.getLogin(), entity.getName(), entity.getLastName(), entity.getMiddleName(), entity.getProfileIcon())
                 .returningResult(userTable.fields());
 
