@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.tlback.domain.model.DomainUserEntity;
-import com.tlback.domain.model.contact.Supports;
+import com.tlback.domain.model.contact.UserContactType;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ConfirmRequestJob implements Job {
-    private Map<Supports, ContactPendingConfirmAction> actions;
+    private Map<UserContactType, ContactPendingConfirmAction> actions;
 
     @Override
     public void execute(JobExecutionContext jobCtx) throws JobExecutionException {
@@ -35,12 +35,12 @@ public class ConfirmRequestJob implements Job {
                 (actionSupport instanceof String s)
         ) {
 
-            var action = actions.get(Supports.valueOf(s));
+            var action = actions.get(UserContactType.valueOf(s));
             log.info("Sending pending confirm request to user {}", domainUser.getId());
 
             domainUser.getTgUser()
                     .peek(tgUser -> action.sendConfirmRequest(tgUser, pendingConfirmInfo))
-                    .onEmpty(() -> log.warn("No target contact {} found from domain user", Supports.TG));
+                    .onEmpty(() -> log.warn("No target contact {} found from domain user", UserContactType.TG));
         }
     }
 

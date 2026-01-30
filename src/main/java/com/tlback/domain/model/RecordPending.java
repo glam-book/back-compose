@@ -30,7 +30,7 @@ public class RecordPending implements Serializable {
     private LocalDateTime requestTime;
 
     @Column("confirmed")
-    private Boolean confirmed;
+    private PendingState confirmed;
 
     private Set<ServiceInfoEntity> services = new HashSet<>();
 

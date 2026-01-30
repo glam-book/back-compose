@@ -29,7 +29,8 @@ import com.tlback.domain.mapper.ContactMapper;
 import com.tlback.domain.mapper.RecordMapper;
 import com.tlback.domain.mapper.ServiceInfoMapper;
 import com.tlback.domain.model.RecordEntity;
-import com.tlback.domain.model.contact.Supports;
+import com.tlback.domain.model.contact.ContactProvider;
+import com.tlback.domain.model.contact.UserContactType;
 import com.tlback.domain.service.RecordService;
 
 import lombok.RequiredArgsConstructor;
@@ -78,11 +79,11 @@ public class RecordControllerV1 {
     }
 
     @GetMapping("/pending/{recordId}")
-    public Flux<RecordPendingWithContactDto<?>> pendingDetails(UserData userDetail,
+    public Flux<RecordPendingWithContactDto<ContactProvider>> pendingDetails(UserData userDetail,
             @PathVariable(name = "recordId") Long recordId,
             @RequestParam(required = false, defaultValue = "TG", name = "contactTarget") String contactTarget) {
         var userId = userDetail.getPrincipal();
-        var supports = Supports.valueOf(contactTarget);
+        var supports = UserContactType.valueOf(contactTarget);
         return recordService.getPendingDetails(recordId, userId)
                 .map(it -> RecordPendingWithContactDto
                         .builder()
@@ -106,7 +107,6 @@ public class RecordControllerV1 {
                 .map(it -> mapRecord(it, isOwner, userId));
     }
 
-    // Map<Integer, List<RecordCalendarDto>>
     @GetMapping("/calendar")
     public Mono<Map<Integer, Set<RecordCalendarDto>>> getCalendar(
             UserData userData,

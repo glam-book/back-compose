@@ -13,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import com.tlback.domain.model.PendingState;
 import com.tlback.domain.model.TelegramUser;
-import com.tlback.domain.model.contact.Supports;
+import com.tlback.domain.model.contact.UserContactType;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgCallbackQueryHandler;
@@ -64,8 +64,8 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
     }
 
     @Override
-    public Supports supports() {
-        return Supports.TG;
+    public UserContactType supports() {
+        return UserContactType.TG;
     }
 
     @Override

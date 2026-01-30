@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import com.tlback.domain.model.contact.Supports;
+import com.tlback.domain.model.contact.UserContactType;
 
 import io.vavr.control.Option;
 import lombok.Data;
@@ -41,18 +41,18 @@ public class DomainUserEntity implements Serializable {
 
     private Option<TelegramUser> tgUser;
 
-    public Object getSubuser(Supports source) {
+    public Object getSubuser(UserContactType source) {
         return switch(source) {
             case TG -> tgUser;
             default -> tgUser;
         };
     }
 
-    public List<Supports> determineSupportedContacts() {
-        var initial = new ArrayList<Supports>();
+    public List<UserContactType> determineSupportedContacts() {
+        var initial = new ArrayList<UserContactType>();
 
         if (!tgUser.isEmpty())
-            initial.add(Supports.TG);
+            initial.add(UserContactType.TG);
 
         return initial;
     }

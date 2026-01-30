@@ -11,7 +11,7 @@ public final class PhoneContact implements ContactProvider {
     private final PhoneNumber phoneNumber;
 
     @Override
-    public Supports support() {
-        return Supports.PHONE;
+    public UserContactType support() {
+        return UserContactType.PHONE;
     }
 }

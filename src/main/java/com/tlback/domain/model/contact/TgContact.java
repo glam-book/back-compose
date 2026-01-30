@@ -15,7 +15,7 @@ public final class TgContact implements ContactProvider {
     private @Nullable String tgUserName;
 
     @Override
-    public Supports support() {
-        return Supports.TG;
+    public UserContactType support() {
+        return UserContactType.TG;
     }
 }

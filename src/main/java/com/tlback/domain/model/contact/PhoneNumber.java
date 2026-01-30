@@ -92,12 +92,8 @@ public class PhoneNumber {
      */
     public boolean isValidFormat() {
         String digits = this.getDigitsOnly();
-        if (StringUtils.isBlank(digits)) {
+        if (StringUtils.isBlank(digits))
             return false;
-        }
-        // Убедимся, что номер начинается с + или без него, но начинается с цифры 1-9
-        // и содержит от 4 до 15 цифр (после извлечения всех нецифр)
-        // Это базовая проверка, можно усложнить для конкретных стран
         return VALID_NUMBER_PATTERN.matcher(digits).matches();
     }
 
@@ -121,7 +117,7 @@ public class PhoneNumber {
             return this;
         }
 
-        // Пример базовой логики (на примере России и США, можно расширить)
+        // Пример базовой логики
         // Для +79991234567 длина 11, код страны 7 (1 цифра), регион 3 цифры (999),
         // остальное - номер
         // Для +12345678900 длина 11, код страны 1 (1 цифра), регион 3 цифры (234),
@@ -205,81 +201,61 @@ public class PhoneNumber {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        PhoneNumber that = (PhoneNumber) o;
-        // Сравниваем по rawNumber, так как это основное представление
+        var that = (PhoneNumber) o;
         return Objects.equals(getDigitsOnly(), that.getDigitsOnly());
     }
 
     @Override
     public int hashCode() {
-        // Хэш-код также строим по нормализованному (только цифры) значению
         return Objects.hash(getDigitsOnly());
     }
 
     public String pretty() {
-        // Если компоненты не были разобраны, возвращаем сырой номер как есть
-        if (this.countryCode == null && this.regionCode == null && this.subscriberNumber == null) {
+        if (this.countryCode == null && this.regionCode == null && this.subscriberNumber == null)
             return this.rawNumber;
-        }
 
-        StringBuilder formatted = new StringBuilder();
+        var formatted = new StringBuilder();
 
-        // Добавляем код страны, если он есть
-        if (this.countryCode != null) {
+        if (this.countryCode != null)
             formatted.append('+').append(this.countryCode);
-        }
 
-        // Добавляем код региона/оператора, если он есть
         if (this.regionCode != null) {
-            if (formatted.length() > 0) {
+            if (!formatted.isEmpty())
                 formatted.append(' ');
-            }
             formatted.append('(').append(this.regionCode).append(')');
         }
 
         // Добавляем номер абонента, если он есть
         if (this.subscriberNumber != null) {
-            if (formatted.length() > 0) {
+            if (!formatted.isEmpty())
                 formatted.append(' ');
-            }
-            // Попробуем красиво разбить subscriberNumber на части
-            // Обычно разбиение идет по 2-3-2-2 или 3-3-2-2 для России (например, 123-45-67)
-            // или 3-3-3-4 для США (например, 555-123-4567)
-            // Это базовая логика, можно усложнить в зависимости от страны и длины номера
-            String subNum = this.subscriberNumber;
+            var subNum = this.subscriberNumber;
             int len = subNum.length();
 
             if (len >= 5) { // Для номеров 5+ символов применяем форматирование
-                // Пример: для 7 цифр (1234567) -> 123-45-67
-                // Пример: для 10 цифр (5551234567) -> 555-123-4567
-                // Попробуем разбить на последние 4 и остальные
                 String prefix = subNum.substring(0, len - 4);
                 String suffix = subNum.substring(len - 4);
 
-                // Далее разбиваем префикс
-                StringBuilder prefixBuilder = new StringBuilder();
+                var prefixBuilder = new StringBuilder();
                 int prefixLen = prefix.length();
                 if (prefixLen > 3) {
-                    // Или 123456 -> 123 456 -> 123-456
                     int firstPartLen = prefixLen % 3 == 0 ? 3 : prefixLen % 3; // 12 для 12345
                     prefixBuilder.append(prefix, 0, firstPartLen); // "12"
                     for (int i = firstPartLen; i < prefixLen; i += 3) {
                         prefixBuilder.append('-').append(prefix, i, Math.min(i + 3, prefixLen)); // "-345"
                     }
                 } else {
-                    prefixBuilder.append(prefix); // Если короче 4, просто добавляем как есть
+                    prefixBuilder.append(prefix);
                 }
 
                 formatted.append(prefixBuilder).append('-').append(suffix);
             } else {
-                // Если короче 5, просто добавляем как есть
                 formatted.append(subNum);
             }
         }
 
         return formatted.toString();
-    } // Если префикс длинный, разбиваем его на группы по 3, начиная с конца
-      // Например, 12345 -> 12 345 -> 12-345
+    } 
 
     @Override
     public String toString() {

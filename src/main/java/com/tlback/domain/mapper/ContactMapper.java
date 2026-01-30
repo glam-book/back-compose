@@ -9,8 +9,8 @@ import org.mapstruct.MappingConstants;
 import com.tlback.domain.model.DomainUserEntity;
 import com.tlback.domain.model.contact.ContactProvider;
 import com.tlback.domain.model.contact.GenericContact;
-import com.tlback.domain.model.contact.Supports;
 import com.tlback.domain.model.contact.TgContact;
+import com.tlback.domain.model.contact.UserContactType;
 
 import io.vavr.control.Option;
 
@@ -35,7 +35,7 @@ public abstract class ContactMapper {
             .toList();
     }
 
-    public Option<? extends ContactProvider> of(Supports source, DomainUserEntity entity) {
+    public Option<? extends ContactProvider> of(UserContactType source, DomainUserEntity entity) {
         return switch (source) {
             case TG -> mapTgContact(entity);
             default -> Option.of(new GenericContact(entity.getName())); // TODO fill other, check identity

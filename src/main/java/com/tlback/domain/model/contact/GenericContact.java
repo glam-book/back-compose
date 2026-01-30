@@ -11,7 +11,7 @@ public final class GenericContact implements ContactProvider {
     private final String genericIdentity;
 
     @Override
-    public Supports support() {
-        return Supports.RAW;
+    public UserContactType support() {
+        return UserContactType.RAW;
     }   
 }

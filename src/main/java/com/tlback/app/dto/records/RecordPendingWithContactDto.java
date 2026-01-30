@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tlback.app.dto.service.preview.ServicePreviewDto;
+import com.tlback.domain.model.PendingState;
 import com.tlback.domain.model.contact.ContactProvider;
 
 import lombok.Builder;
@@ -16,6 +17,6 @@ import lombok.Data;
 public class RecordPendingWithContactDto<U extends ContactProvider> {
     private U contact; // TODO List ?
     private LocalDateTime requestTime;
-    private Boolean confirmed;
+    private PendingState confirmed;
     private Set<ServicePreviewDto> services; 
 }

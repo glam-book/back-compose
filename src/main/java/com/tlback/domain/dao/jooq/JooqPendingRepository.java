@@ -21,6 +21,7 @@ import com.tlback.jooq.gen.tables.ServcieInfoToPending;
 import com.tlback.jooq.gen.tables.ServiceInfo;
 import com.tlback.jooq.gen.tables.records.ServiceInfoRecord;
 
+import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -161,8 +162,14 @@ public class JooqPendingRepository {
 	private RecordPending tryToMap(Record record, Map<Long, RecordPending> mapped) {
 		var pendingId = record.get(pendingTable.ID);
 		var mainEntity = mapped.computeIfAbsent(pendingId,
-				k -> record.into(pendingTable.fields())
-						.into(RecordPending.class));
+				k -> {
+					var mappedRecordPending = record.into(pendingTable.fields())
+							.into(RecordPending.class);
+					var confirmed = record.get(pendingTable.CONFIRMED);
+					var sate = Try.of(() -> PendingState.valueOf(confirmed)).getOrElse(PendingState.CREATED);
+					mappedRecordPending.setConfirmed(sate);
+					return mappedRecordPending;
+				});
 
 		if (mainEntity != null) {
 			var userId = record.get(userTable.ID);
