@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tlback.app.dto.service.preview.ServicePreviewDto;
+import com.tlback.domain.model.PendingState;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ public class RecordPendingDto implements Comparable<RecordPendingDto> {
     private Long requesterId;
     private String requesterLogin;
     private LocalDateTime requestTime;
-    private Boolean confirmed;
+    private PendingState confirmed;
     private Set<ServicePreviewDto> services;
 
     @Override
