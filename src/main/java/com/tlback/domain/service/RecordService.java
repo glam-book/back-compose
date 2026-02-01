@@ -221,15 +221,14 @@ public class RecordService {
 
 		var mainMessage = """
 				%s
-				⏰ Время начала: %s
-				""".formatted(header, tsFrom.format(DATE_TIME_FORMAT));
+				⏰ Время начала: %s""".formatted(header, tsFrom.format(DATE_TIME_FORMAT));
 
-		var serviceInfo = (serviceInfoEntities != null && !serviceInfoEntities.isEmpty()) ? "\n" +
-				serviceInfoEntities.stream()
+		var serviceInfo = (serviceInfoEntities != null && !serviceInfoEntities.isEmpty())
+				? ("\n" + serviceInfoEntities.stream()
 						.map(s -> s.getServiceName() + " : " + s.getPrice().setScale(0, RoundingMode.HALF_UP)
 								+ " руб. " +
 								(Boolean.TRUE.equals(s.getIsHourlyPrice()) ? "за час" : ""))
-						.reduce("", (a, b) -> a + "\n" + b)
+						.reduce("", (a, b) -> a + "\n" + b))
 				: "";
 		var notificationRequest = NotificationRequest
 				.builder()
