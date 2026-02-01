@@ -3,11 +3,13 @@ package com.tlback.domain.service;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jooq.exception.IntegrityConstraintViolationException;
 import org.springframework.stereotype.Service;
@@ -108,7 +110,8 @@ public class RecordService {
 		var filter = RecordFilter.builder()
 				.recordOwnerId(userId)
 				.dateFrom(from.atStartOfDay())
-				.dateTo(to.atStartOfDay()).build();
+				.dateTo(to.plusDays(1).atStartOfDay())
+				.build();
 
 		return recordRepository.findByFilter(filter,
 				List.of(JooqRecordRepository.JOIN_RECORD_PENDINGS));
@@ -190,31 +193,47 @@ public class RecordService {
 					var rec = tuple.getT2();
 					var recPending = tuple.getT1();
 					var recordOwner = rec.getRecordOwnerId();
+
+					var serviceToNotify = rec.getServiceInfo().stream()
+							.filter(s -> targetServices.contains(s.getId()))
+							.collect(Collectors.toSet());
+
 					return userService.findById(recordOwner)
 							.flatMap(user -> pendingConfirmationService
 									.onPendingCreated(recPending.getId())
 									.thenReturn(user))
-							.flatMap(user -> sendPendingCreationNotificaion(rec, user))
+							.flatMap(user -> sendPendingCreationNotificaion(
+									"🎉 Новая заявка на запись!",
+									rec.getTsFrom(), serviceToNotify, user)
+									.and(userService.findById(initiatorId)
+											.flatMap(initiator -> sendPendingCreationNotificaion(
+													"🫡 Вы создали заявку на запись!", rec.getTsFrom(),
+													serviceToNotify, initiator))))
 							.thenReturn(tuple.getT2());
 				});
 	}
 
 	private Mono<Void> sendPendingCreationNotificaion(
-			RecordEntity rec,
+			String header,
+			OffsetDateTime tsFrom,
+			Set<ServiceInfoEntity> serviceInfoEntities,
 			DomainUserEntity recOwner) {
+
+		var mainMessage = """
+				%s
+				⏰ Время начала: %s
+				""".formatted(header, tsFrom.format(DATE_TIME_FORMAT));
+
+		var serviceInfo = (serviceInfoEntities != null && !serviceInfoEntities.isEmpty()) ? "\n" +
+				serviceInfoEntities.stream()
+						.map(s -> s.getServiceName() + " : " + s.getPrice().setScale(0, RoundingMode.HALF_UP)
+								+ " руб. " +
+								(Boolean.TRUE.equals(s.getIsHourlyPrice()) ? "за час" : ""))
+						.reduce("", (a, b) -> a + "\n" + b)
+				: "";
 		var notificationRequest = NotificationRequest
 				.builder()
-				.message(String.format("""
-						🎉 Новая заявка на запись!
-						⏰ Время начала: %s
-						Cервисы: %s
-						""",
-						rec.getTsFrom().format(DATE_TIME_FORMAT),
-						rec.getServiceInfo().stream()
-								.map(s -> s.getServiceName() + " : " + s.getPrice().setScale(2, RoundingMode.HALF_UP)
-										+ " руб. " +
-										(Boolean.TRUE.equals(s.getIsHourlyPrice()) ? "за час" : ""))
-								.reduce("", (a, b) -> a + "\n" + b)))
+				.message(mainMessage + serviceInfo)
 				.build();
 		return Mono.fromRunnable(() -> userNotifier.sendNotification(recOwner, notificationRequest));
 	}
