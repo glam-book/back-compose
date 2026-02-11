@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.4
-ARG JDK_VERSION=17
+ARG JDK_VERSION=21
 ARG GLAM_TG_BOT_TOKEN
 
-FROM gradle:8.4-jdk${JDK_VERSION} AS builder
+FROM gradle:8.14.3-jdk${JDK_VERSION} AS builder
 WORKDIR /home/gradle/project
 ENV GLAM_TG_BOT_TOKEN=$GLAM_TG_BOT_TOKEN
 
@@ -22,8 +22,9 @@ RUN --mount=type=cache,target=/home/gradle/.gradle ./gradlew build -x test --no-
 FROM eclipse-temurin:${JDK_VERSION}-jre-alpine AS runtime
 WORKDIR /app
 EXPOSE 8080
-# Copy built jar from builder stage (assumes Gradle produces a single fat/boot jar in build/libs)
+
+COPY --from=builder /app /app
 COPY --from=builder /home/gradle/project/build/libs/*.jar ./app.jar
 
 # Запуск: сначала liquibaseUpdate, потом приложение
-ENTRYPOINT ["sh", "-c", "./gradlew --no-daemon update && java -jar /app/build/libs/*.jar"]
+ENTRYPOINT ["sh", "-c", "exec ./gradlew --no-daemon update && java $JAVA_OPTS -jar /app/app.jar"]
