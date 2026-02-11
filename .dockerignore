@@ -1,3 +1,7 @@
 build/
 .gradle/
-!gradle/wrapper/      # оставить wrapper
+.idea/
+.github/
+.vscode/
+docker/
+scripts/
