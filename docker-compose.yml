@@ -1,0 +1,42 @@
+services:
+  backend:
+    build: ./
+    container_name: tl-backend
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend-net
+
+  db:
+    image: postgres:16
+    container_name: tl_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${TL_DB_NAME}
+      POSTGRES_USER: ${TL_DB_USER}
+      POSTGRES_PASSWORD: ${TL_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend-net
+    ports:
+      - "5599:${TL_DB_PORT}"
+
+  redis:
+    image: redis:7
+    container_name: tl_redis
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+
+volumes:
+  pgdata:
