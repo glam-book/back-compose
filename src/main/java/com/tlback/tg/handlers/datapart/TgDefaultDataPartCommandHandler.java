@@ -11,6 +11,8 @@ public abstract class TgDefaultDataPartCommandHandler implements TgDataPartHandl
 
     @Override
     public void handleDataPart(String data, Message msg, TelegramClientGroupping tgClient) {
+        log.info("Handling data part: {} for command: {}", data, getRouting());
+
         var prefix = data.charAt(0) + "";
 
         switch (prefix) {
