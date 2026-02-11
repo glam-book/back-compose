@@ -1,4 +1,4 @@
-package com.tlback.domain.service.confirm;
+package com.tlback.domain.tg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -15,9 +16,15 @@ import com.tlback.domain.model.PendingState;
 import com.tlback.domain.model.TelegramUser;
 import com.tlback.domain.model.contact.UserContactType;
 import com.tlback.domain.model.utils.PendingConfirmInfo;
+import com.tlback.domain.service.confirm.ContactPendingConfirmAction;
+import com.tlback.domain.service.confirm.PendingConfirmationService;
 import com.tlback.tg.balancer.TelegramClientGroupping;
 import com.tlback.tg.handlers.TgCallbackQueryHandler;
-import com.tlback.tg.handlers.TgCommandHandler;
+import com.tlback.tg.handlers.datapart.KeyValueDataPart;
+import com.tlback.tg.handlers.datapart.SimpleDataPart;
+import com.tlback.tg.handlers.datapart.TemplateDataPart;
+import com.tlback.tg.handlers.datapart.TgDataPartHandler;
+import com.tlback.tg.handlers.datapart.TgDefaultDataPartCommandHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +33,8 @@ import reactor.core.scheduler.Schedulers;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ContactTgConfirmAction implements ContactPendingConfirmAction<TelegramUser>,
-        TgCommandHandler, TgCallbackQueryHandler {
+public class ContactTgConfirmAction extends TgDefaultDataPartCommandHandler 
+    implements ContactPendingConfirmAction<TelegramUser>, TgCallbackQueryHandler {
 
     private final TelegramClientGroupping tgClient;
     private final PendingConfirmationService pendingConfirmationService;
@@ -47,11 +54,13 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
 
         var yesButton = InlineKeyboardButton.builder();
         yesButton.text("🆗 Да, приду");
-        yesButton.callbackData(MESSAGE_ACTION + ":" + rec.pendingId() + ":YES");
+        var yesComeCmd = TgDataPartHandler.buildCommand(MESSAGE_ACTION, SimpleDataPart.of(rec.pendingId(), "YES"));
+        yesButton.callbackData(yesComeCmd);
 
         var noButton = InlineKeyboardButton.builder();
         noButton.text("🚫 Не приду");
-        noButton.callbackData(MESSAGE_ACTION + ":" + rec.pendingId() + ":NO");
+        var notComeCmd = TgDataPartHandler.buildCommand(MESSAGE_ACTION, SimpleDataPart.of(rec.pendingId(), "NO"));
+        noButton.callbackData(notComeCmd);
 
         row.add(yesButton.build());
         row.add(noButton.build());
@@ -66,23 +75,6 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
     @Override
     public UserContactType supports() {
         return UserContactType.TG;
-    }
-
-    @Override
-    public void handle(String data, TelegramClientGroupping tgClient) {
-        var splitted = data.split(":");
-
-        if (splitted.length > 0) {
-            var recPendingId = Long.parseLong(splitted[0]);
-            var answer = splitted[1];
-            var state = toPendingState(answer);
-            switch (state) {
-                case CONFIRMED -> pendingConfirmationService.onPendingConfirmed(recPendingId)
-                        .subscribeOn(Schedulers.boundedElastic());
-                case CANCELLED -> pendingConfirmationService.onPendingCancelled(recPendingId)
-                        .subscribeOn(Schedulers.boundedElastic());
-            }
-        }
     }
 
     private PendingState toPendingState(String answer) {
@@ -117,6 +109,7 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
                     case CANCELLED -> 
                         pendingConfirmationService.onPendingCancelled(recPendingId)
                             .doOnSuccess(it -> tgClient.executeGeneric(buildEditMessageText(callbackQuery, "Ваша запись будет отменена")));
+                    default -> throw new IllegalArgumentException("Unexpected value: " + state);
                 }
             }
         } catch (Exception e) {
@@ -139,6 +132,43 @@ public class ContactTgConfirmAction implements ContactPendingConfirmAction<Teleg
                 .text(text)
                 .messageId(msg.getMessageId())
                 .build();
+    }
+
+    @Override
+    protected void handleDataPart(SimpleDataPart dataParts, Message message, TelegramClientGroupping tgClient) {
+        var parts = dataParts.parts();
+        if (!parts.isEmpty() && parts.size() >= 2) {
+            var recPendingId = Long.parseLong(parts.get(0));
+            var answer = parts.get(1);
+            var state = toPendingState(answer);
+            switch (state) {
+                case CONFIRMED -> pendingConfirmationService.onPendingConfirmed(recPendingId)
+                        .subscribeOn(Schedulers.boundedElastic());
+                case CANCELLED -> pendingConfirmationService.onPendingCancelled(recPendingId)
+                        .subscribeOn(Schedulers.boundedElastic());
+                default -> throw new IllegalArgumentException("Unexpected value: " + state);
+            }
+        } else {
+            throw new IllegalArgumentException("Unexpected contact confirm action parts value: " + parts);
+        }
+    }
+
+    @Override
+    protected void handleDataPart(KeyValueDataPart dataParts, Message message, TelegramClientGroupping tgClient) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleDataPart'");
+    }
+
+    @Override
+    protected void handleDataPart(TemplateDataPart dataParts, Message message, TelegramClientGroupping tgClient) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleDataPart'");
+    }
+
+    @Override
+    public void handle(Message msg, TelegramClientGroupping tgClient) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handle'");
     }
 
 }

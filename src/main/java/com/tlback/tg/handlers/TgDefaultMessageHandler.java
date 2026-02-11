@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import com.tlback.tg.balancer.TelegramClientGroupping;
+import com.tlback.tg.handlers.datapart.TgDataPartHandler;
+
+import io.vavr.control.Try;
 
 @Service
 public class TgDefaultMessageHandler implements TgMessageHandler {
@@ -25,11 +28,16 @@ public class TgDefaultMessageHandler implements TgMessageHandler {
             var chatId = msg.getChatId().toString();
             var txt = msg.getText();
             if (txt.startsWith("/")) {
-                var cmd = txt.substring(0, txt.indexOf(":"));
+                var isDataAble = txt.contains(TgDataPartHandler.commandPartDelimiter());
+                var cmd = isDataAble ? txt.substring(0, txt.indexOf(TgDataPartHandler.commandPartDelimiter())) : txt;
                 var commandHandler = this.commandHandlerMap.get(cmd);
-                if (commandHandler != null)
-                    commandHandler.handle(
-                            txt.substring(txt.indexOf(":") + 1), tgClient);
+                if (commandHandler != null) {
+                    if (isDataAble && commandHandler instanceof TgDataPartHandler tdp) {
+                        var cmdData = Try.of(() -> txt.substring(txt.indexOf(TgDataPartHandler.commandPartDelimiter()) + 1)).getOrElse(txt);
+                        tdp.handleDataPart(cmdData, msg, tgClient);
+                    } else
+                        commandHandler.handle(msg, tgClient);
+                }
             } else {
                 handleSimpleText(txt, chatId, tgClient);
             }
