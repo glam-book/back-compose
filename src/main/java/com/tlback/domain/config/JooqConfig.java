@@ -1,12 +1,14 @@
 package com.tlback.domain.config;
 
 import org.jooq.DSLContext;
+import org.jooq.Log;
 import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
+import org.jooq.tools.JooqLogger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,12 +29,17 @@ public class JooqConfig {
     @Bean
     @ConditionalOnMissingBean
     org.jooq.Configuration jooqConfiguration(ConnectionFactory connectionFactory) {
+        suppressJooqWarningLogs();
         var transactionAwareDataSource = new TransactionAwareConnectionFactoryProxy(connectionFactory);
 
         return new DefaultConfiguration()
                 .set(transactionAwareDataSource)
                 .set(SQLDialect.POSTGRES)
                 .set(jooqSettings());
+    }
+
+    private void suppressJooqWarningLogs() {
+        JooqLogger.globalThreshold(Log.Level.ERROR);
     }
 
     // Configure jOOQ settings

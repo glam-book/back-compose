@@ -29,6 +29,7 @@ public class DomainConfig {
 
     @Bean
     ExecutorService executorService() {
+
         return Executors.newVirtualThreadPerTaskExecutor();
     }
 
